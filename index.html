@@ -51,12 +51,125 @@ body {
 .hint a:hover {
   color: #8c8c7c; 
 }
+
+/* Mobile controls */
+#mobileControls {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  align-items: end;
+  justify-content: center;
+  gap: 12px;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+.dpad {
+  display: grid;
+  grid-template-columns: 42px 42px 42px;
+  grid-template-rows: 42px 42px 42px;
+  gap: 4px;
+}
+
+.dpad .up    { grid-column: 2; grid-row: 1; }
+.dpad .left  { grid-column: 1; grid-row: 2; }
+.dpad .right { grid-column: 3; grid-row: 2; }
+.dpad .down  { grid-column: 2; grid-row: 3; }
+
+.touch-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid #484840;
+  background:
+    linear-gradient(180deg, #232320 0%, #141412 100%);
+  color: #8c8c7c;
+  font-family: 'Press Start 2P', monospace;
+  box-shadow:
+    inset 0 0 0 2px #181810,
+    0 0 0 1px #2a2a2a,
+    0 3px 10px rgba(0,0,0,0.5);
+  text-shadow: 1px 1px 0 #181810;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.dpad .touch-btn {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.attack-btn {
+  min-width: 88px;
+  height: 42px;
+  padding: 0 10px;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.touch-btn:active,
+.touch-btn.active {
+  transform: translateY(1px);
+  background:
+    linear-gradient(180deg, #181810 0%, #10100e 100%);
+  color: #c8c8b0;
+  border-color: #8c8c7c;
+}
+
+#mobileControls {
+  display: none;
+  position: relative;
+  margin-top: 12px; /* pushes below canvas */
+  align-items: end;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* Toggle button also below */
+#toggleControls {
+  display: none;
+  margin-top: 6px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 10px;
+  line-height: 1;
+  border-radius: 4px;
+}
+
+/* Mobile only */
+@media (hover: none) and (pointer: coarse) {
+  #toggleControls {
+    display: block;
+  }
+
+  #mobileControls.show {
+    display: flex;
+  }
+}
 </style>
 </head>
 <body>
 
 <div class="screen-wrap">
   <canvas id="gameCanvas" width="240" height="240"></canvas>
+
+  <button id="toggleControls" class="touch-btn" aria-label="Toggle touch controls">☠</button>
+
+  <div id="mobileControls" aria-label="Touch controls">
+    <div class="dpad">
+      <button class="touch-btn up" data-key="ArrowUp" aria-label="Move up">▲</button>
+      <button class="touch-btn left" data-key="ArrowLeft" aria-label="Move left">◄</button>
+      <button class="touch-btn right" data-key="ArrowRight" aria-label="Move right">►</button>
+      <button class="touch-btn down" data-key="ArrowDown" aria-label="Move down">▼</button>
+    </div>
+    <button class="touch-btn attack-btn" data-key=" " aria-label="Attack">ATTACK</button>
+  </div>
 </div>
 
 <div class="hint">ARROWS / WASD = MOVE &nbsp;&nbsp; SPACE = ATTACK<br><br><center><a href="https://github.com/ImmaGundam/BoneCrawler">Made by ImmaGundam<center></div>
@@ -220,6 +333,78 @@ document.addEventListener('keyup',e=>{keys[e.key]=false;});
 canvas.addEventListener('click',()=>{
   if(gState==='title'||gState==='gameover'){gState='playing';resetGame();}
 });
+
+// ── Mobile Controls ────────────────────────────────────────────
+const mobileControls = document.getElementById('mobileControls');
+const toggleControls = document.getElementById('toggleControls');
+const touchButtons = document.querySelectorAll('#mobileControls .touch-btn');
+
+function isTouchDevice() {
+  return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+}
+
+function setControlsVisibility(show) {
+  if (!isTouchDevice()) return;
+  mobileControls.classList.toggle('show', show);
+  toggleControls.style.display = 'block';
+}
+
+if (toggleControls) {
+  toggleControls.addEventListener('click', (e) => {
+    e.preventDefault();
+    const showing = mobileControls.classList.contains('show');
+    setControlsVisibility(!showing);
+  });
+}
+
+function pressKey(key, btn) {
+  keys[key] = true;
+  if (btn) btn.classList.add('active');
+}
+function releaseKey(key, btn) {
+  keys[key] = false;
+  if (btn) btn.classList.remove('active');
+}
+
+touchButtons.forEach(btn => {
+  const key = btn.dataset.key;
+
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    pressKey(key, btn);
+  }, { passive:false });
+
+  btn.addEventListener('touchend', e => {
+    e.preventDefault();
+    releaseKey(key, btn);
+  }, { passive:false });
+
+  btn.addEventListener('touchcancel', () => {
+    releaseKey(key, btn);
+  });
+
+  btn.addEventListener('mousedown', e => {
+    e.preventDefault();
+    pressKey(key, btn);
+  });
+
+  btn.addEventListener('mouseup', () => {
+    releaseKey(key, btn);
+  });
+
+  btn.addEventListener('mouseleave', () => {
+    releaseKey(key, btn);
+  });
+});
+
+window.addEventListener('blur', () => {
+  Object.keys(keys).forEach(k => keys[k] = false);
+  touchButtons.forEach(btn => btn.classList.remove('active'));
+});
+
+if (isTouchDevice()) {
+  setControlsVisibility(false);
+}
 
 // ── Update ─────────────────────────────────────────────────────
 function update(){
