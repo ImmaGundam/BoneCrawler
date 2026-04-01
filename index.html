@@ -1,415 +1,482 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Bone Crawler</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 body {
-  background: #0e0e0e;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  font-family: 'Press Start 2P', monospace;
-  gap: 14px;
+background: #0e0e0e;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+font-family: ‘Press Start 2P’, monospace;
+gap: 14px;
+padding: 24px 0 40px;
+overflow-x: hidden;
 }
 
+/* ── Scale wrapper ────────────────────────────────────────── */
+.gb-scale-wrap {
+transform-origin: top center;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 14px;
+transition: transform 0.18s ease;
+}
+
+/* ── Screen ───────────────────────────────────────────────── */
 .screen-wrap {
-  position: relative;
-  padding: 10px;
-  background: #1a1a1a;
-  border-radius: 6px;
-  box-shadow:
-    0 0 0 2px #2a2a2a,
-    0 0 40px rgba(0,0,0,0.9),
-    0 8px 32px rgba(0,0,0,0.7);
+position: relative;
+padding: 10px;
+background: #1a1a1a;
+border-radius: 6px;
+box-shadow:
+0 0 0 2px #2a2a2a,
+0 0 40px rgba(0,0,0,0.9),
+0 8px 32px rgba(0,0,0,0.7);
 }
 
 #gameCanvas {
-  display: block;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  border-radius: 2px;
+display: block;
+image-rendering: pixelated;
+image-rendering: crisp-edges;
+border-radius: 2px;
+cursor: pointer;
 }
 
-.hint {
-  font-size: 5px;
-  color: #444;
-  letter-spacing: 1px;
-
+.focus-overlay {
+position: absolute;
+inset: 10px;
+border-radius: 2px;
+background: rgba(0,0,0,0.82);
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 8px;
+cursor: pointer;
 }
-.hint a {
-  color: #666;
-  text-decoration: none;
+.focus-overlay.hidden { display: none; }
+.focus-overlay .fo-title { font-size: 7px; color: #8c8c7c; letter-spacing: 1px; }
+.focus-overlay .fo-sub   { font-size: 5px; color: #444; letter-spacing: 1px; }
+
+/* ── Touch Controls ───────────────────────────────────────── */
+.touch-controls {
+display: flex;
+align-items: center;
+justify-content: space-between;
+width: 260px;
+padding: 0 4px;
 }
 
-.hint a:hover {
-  color: #8c8c7c; 
+/* D-Pad */
+.dpad {
+position: relative;
+width: 80px; height: 80px;
+flex-shrink: 0;
+touch-action: none;
+cursor: pointer;
+-webkit-tap-highlight-color: transparent;
+}
+.dpad-h, .dpad-v {
+position: absolute;
+background: #1a1a1a;
+border: 1px solid #2e2e2e;
+border-radius: 3px;
+box-shadow: 0 0 0 1px #111, inset 0 2px 4px rgba(0,0,0,0.7);
+}
+.dpad-h { width: 80px; height: 26px; top:50%; transform:translateY(-50%); }
+.dpad-v { width: 26px; height: 80px; left:50%; transform:translateX(-50%); }
+.dpad-center {
+position: absolute;
+width: 26px; height: 26px;
+top:50%; left:50%; transform:translate(-50%,-50%);
+background: #181818; z-index: 2; border-radius: 2px;
+}
+.dpad-arrows {
+position: absolute; inset: 0; z-index: 3;
+pointer-events: none;
+display: grid;
+grid-template-columns: 27px 26px 27px;
+grid-template-rows: 27px 26px 27px;
+}
+.dpad-arrows span {
+display: flex; align-items: center; justify-content: center;
+font-size: 9px; color: #2e2e2e;
+transition: color 0.05s;
+}
+.dpad-arrows span.lit { color: #8c8c7c; text-shadow: 0 0 6px rgba(140,140,124,0.5); }
+
+/* Attack button */
+.atk-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.btn-atk {
+width: 52px; height: 52px;
+border-radius: 50%;
+background: #1a1a1a;
+border: 1px solid #2e2e2e;
+box-shadow: 0 0 0 1px #111, inset 0 2px 4px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.6);
+display: flex; align-items: center; justify-content: center;
+color: #333; font-size: 7px; font-family: ‘Press Start 2P’, monospace;
+touch-action: none; cursor: pointer;
+-webkit-tap-highlight-color: transparent;
+transition: transform 0.05s, background 0.05s, color 0.05s, box-shadow 0.05s;
+}
+.btn-atk.pressed {
+transform: scale(0.88) translateY(2px);
+background: #242424; color: #8c8c7c;
+box-shadow: 0 0 0 1px #111, inset 0 3px 6px rgba(0,0,0,0.9), 0 0 8px rgba(140,140,124,0.15);
+}
+.btn-label { font-size: 4px; color: #333; letter-spacing: 1px; }
+
+/* ── Hint ─────────────────────────────────────────────────── */
+.hint { font-size: 5px; color: #444; letter-spacing: 1px; text-align: center; line-height: 2.2; }
+.hint a { color: #666; text-decoration: none; }
+.hint a:hover { color: #8c8c7c; }
+
+/* ── Resize Panel ─────────────────────────────────────────── */
+.sizer-panel {
+width: 260px;
+background: #1a1a1a;
+border-radius: 4px;
+padding: 10px 14px 12px;
+box-shadow: 0 0 0 1px #2a2a2a, 0 4px 16px rgba(0,0,0,0.7);
+}
+.sizer-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+.sizer-label { font-size: 5px; color: #444; letter-spacing: 2px; }
+.sizer-val {
+font-size: 6px; color: #8c8c7c;
+background: #111; padding: 3px 8px;
+border-radius: 2px; border: 1px solid #2a2a2a;
+min-width: 46px; text-align: center;
+}
+.sizer-row { display: flex; align-items: center; gap: 8px; }
+.sizer-end { font-size: 4px; color: #333; white-space: nowrap; flex-shrink: 0; }
+
+input[type=range]#scaleSlider {
+-webkit-appearance: none; appearance: none;
+flex: 1; height: 4px;
+background: #2a2a2a; border-radius: 2px; outline: none;
+box-shadow: inset 0 1px 3px rgba(0,0,0,0.8); cursor: pointer;
+}
+input[type=range]#scaleSlider::-webkit-slider-thumb {
+-webkit-appearance: none;
+width: 14px; height: 20px;
+background: #2e2e2e; border: 1px solid #3a3a3a; border-radius: 2px;
+box-shadow: 0 2px 6px rgba(0,0,0,0.8); cursor: pointer;
+}
+input[type=range]#scaleSlider::-webkit-slider-thumb:hover { background: #3a3a3a; border-color: #8c8c7c; }
+input[type=range]#scaleSlider::-moz-range-thumb {
+width: 14px; height: 20px;
+background: #2e2e2e; border: 1px solid #3a3a3a; border-radius: 2px; cursor: pointer;
 }
 </style>
+
 </head>
 <body>
 
-<div class="screen-wrap">
-  <canvas id="gameCanvas" width="240" height="240"></canvas>
-</div>
+<div class="gb-scale-wrap" id="gbScaleWrap">
 
-<div class="hint">ARROWS / WASD = MOVE &nbsp;&nbsp; SPACE = ATTACK<br><br><center><a href="https://github.com/ImmaGundam/BoneCrawler">Made by ImmaGundam<center></div>
+  <div class="screen-wrap" id="screenEl">
+    <canvas id="gameCanvas" width="240" height="240"></canvas>
+    <div id="focusOverlay" class="focus-overlay">
+      <div class="fo-title">▶ TAP / CLICK</div>
+      <div class="fo-sub">TO PLAY</div>
+    </div>
+  </div>
+
+  <div class="touch-controls">
+    <div class="dpad" id="dpadEl">
+      <div class="dpad-v"></div>
+      <div class="dpad-h"></div>
+      <div class="dpad-center"></div>
+      <div class="dpad-arrows">
+        <span></span><span id="da-up">▲</span><span></span>
+        <span id="da-left">◀</span><span></span><span id="da-right">▶</span>
+        <span></span><span id="da-down">▼</span><span></span>
+      </div>
+    </div>
+
+```
+<div style="font-size:4px;color:#2a2a2a;letter-spacing:1px;text-align:center;line-height:2.5;">D-PAD<br>MOVE</div>
+
+<div class="atk-wrap">
+  <div class="btn-atk" id="btnAtk">ATK</div>
+  <div class="btn-label">SPACE / A</div>
+</div>
+```
+
+  </div>
+
+  <div class="sizer-panel">
+    <div class="sizer-top">
+      <div class="sizer-label">◈ SIZE</div>
+      <div class="sizer-val" id="sizerVal">100%</div>
+    </div>
+    <div class="sizer-row">
+      <span class="sizer-end">100%</span>
+      <input type="range" id="scaleSlider" min="100" max="200" value="100" step="5">
+      <span class="sizer-end">200%</span>
+    </div>
+  </div>
+
+  <div class="hint">
+    ARROWS / WASD = MOVE &nbsp;&nbsp; SPACE = ATTACK<br>
+    <br>
+    <a href="https://github.com/ImmaGundam/BoneCrawler">Made by ImmaGundam</a>
+  </div>
+
+</div>
 
 <script>
 // ================================================================
 //  BONE CRAWLER  ·  120×120 logic  ·  2× render (240×240 canvas)
 // ================================================================
-const SCALE = 2;
-const GW = 120, GH = 120;
+const SCALE=2, GW=120, GH=120;
+const PX=4, PY=17, PW=112, PH=99;
+const P={bg:'#c8c8b0',lt:'#8c8c7c',md:'#484840',dk:'#181810'};
+const PAL=[null,P.lt,P.md,P.dk];
 
-// Play-field bounds (below 17px HUD)
-const PX = 4, PY = 17, PW = 112, PH = 99;
-
-// GB 4-shade grayscale palette
-const P = { bg:'#c8c8b0', lt:'#8c8c7c', md:'#484840', dk:'#181810' };
-const PAL = [null, P.lt, P.md, P.dk]; // sprite index→colour
-
-// ── Sprites (8×8, values 0–3) ──────────────────────────────────
-const S = {
-  plrD: [
-    [0,0,2,3,3,2,0,0],[0,0,3,1,1,3,0,0],[0,0,2,3,3,2,0,0],
-    [0,2,3,3,3,3,2,0],[0,0,3,3,3,0,0,0],[0,0,3,2,2,3,0,0],
-    [0,0,3,0,0,3,0,0],[0,0,0,0,0,0,0,0]
-  ],
-  plrU: [
-    [0,0,2,3,3,2,0,0],[0,0,3,3,3,3,0,0],[0,0,2,3,3,2,0,0],
-    [0,2,3,3,3,3,2,0],[0,0,3,3,3,0,0,0],[0,0,3,2,2,3,0,0],
-    [0,0,3,0,0,3,0,0],[0,0,0,0,0,0,0,0]
-  ],
-  plrR: [
-    [0,0,2,3,3,0,0,0],[0,0,3,1,3,0,0,0],[0,0,2,3,3,0,0,0],
-    [0,2,3,3,3,3,2,0],[0,0,3,3,3,0,0,0],[0,0,3,2,3,0,0,0],
-    [0,0,3,0,3,0,0,0],[0,0,0,0,0,0,0,0]
-  ],
-  plrL: [
-    [0,0,0,3,3,2,0,0],[0,0,0,3,1,3,0,0],[0,0,0,3,3,2,0,0],
-    [0,2,3,3,3,3,2,0],[0,0,0,3,3,3,0,0],[0,0,0,3,2,3,0,0],
-    [0,0,0,3,0,3,0,0],[0,0,0,0,0,0,0,0]
-  ],
-  ske: [
-    [0,0,2,2,2,0,0,0],[0,2,3,1,3,2,0,0],[0,2,3,3,3,2,0,0],
-    [0,0,2,3,2,0,0,0],[0,2,3,3,3,2,0,0],[0,0,2,2,2,0,0,0],
-    [0,0,3,0,3,0,0,0],[0,2,3,0,3,2,0,0]
-  ],
-  skeA: [
-    [0,0,2,2,2,0,0,0],[0,2,3,3,3,2,0,0],[0,2,3,2,3,2,0,0],
-    [0,0,2,3,2,0,0,0],[3,3,3,3,3,2,0,0],[0,0,2,2,2,0,0,0],
-    [0,0,3,0,3,0,0,0],[0,2,3,0,3,2,0,0]
-  ],
-  hFull: [
-    [0,2,2,0,2,2,0,0],[2,3,3,2,3,3,2,0],[2,3,3,3,3,3,2,0],
-    [0,2,3,3,3,2,0,0],[0,0,2,3,2,0,0,0],[0,0,0,2,0,0,0,0]
-  ],
-  hHalf: [
-    [0,2,2,0,1,1,0,0],[2,3,3,2,1,2,1,0],[2,3,3,2,1,1,1,0],
-    [0,2,3,2,1,1,0,0],[0,0,2,2,1,0,0,0],[0,0,0,2,0,0,0,0]
-  ],
-  hEmt: [
-    [0,1,1,0,1,1,0,0],[1,2,2,1,2,2,1,0],[1,2,2,2,2,2,1,0],
-    [0,1,2,2,2,1,0,0],[0,0,1,2,1,0,0,0],[0,0,0,1,0,0,0,0]
-  ],
-  skull: [ // decorative 12×12 for title
-    [0,0,0,1,1,1,1,1,1,0,0,0],[0,0,1,2,2,2,2,2,2,1,0,0],
-    [0,1,2,3,2,2,2,2,3,2,1,0],[0,1,2,2,3,2,2,3,2,2,1,0],
-    [0,1,2,2,2,2,2,2,2,2,1,0],[0,0,1,2,3,2,2,3,2,1,0,0],
-    [0,0,1,2,2,3,3,2,2,1,0,0],[0,0,0,1,2,2,2,2,1,0,0,0],
-    [0,0,0,1,2,1,1,2,1,0,0,0],[0,0,0,0,1,0,0,1,0,0,0,0],
-    [0,0,0,0,1,0,0,1,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0]
-  ]
+const S={
+  plrD:[[0,0,2,3,3,2,0,0],[0,0,3,1,1,3,0,0],[0,0,2,3,3,2,0,0],[0,2,3,3,3,3,2,0],[0,0,3,3,3,0,0,0],[0,0,3,2,2,3,0,0],[0,0,3,0,0,3,0,0],[0,0,0,0,0,0,0,0]],
+  plrU:[[0,0,2,3,3,2,0,0],[0,0,3,3,3,3,0,0],[0,0,2,3,3,2,0,0],[0,2,3,3,3,3,2,0],[0,0,3,3,3,0,0,0],[0,0,3,2,2,3,0,0],[0,0,3,0,0,3,0,0],[0,0,0,0,0,0,0,0]],
+  plrR:[[0,0,2,3,3,0,0,0],[0,0,3,1,3,0,0,0],[0,0,2,3,3,0,0,0],[0,2,3,3,3,3,2,0],[0,0,3,3,3,0,0,0],[0,0,3,2,3,0,0,0],[0,0,3,0,3,0,0,0],[0,0,0,0,0,0,0,0]],
+  plrL:[[0,0,0,3,3,2,0,0],[0,0,0,3,1,3,0,0],[0,0,0,3,3,2,0,0],[0,2,3,3,3,3,2,0],[0,0,0,3,3,3,0,0],[0,0,0,3,2,3,0,0],[0,0,0,3,0,3,0,0],[0,0,0,0,0,0,0,0]],
+  ske: [[0,0,2,2,2,0,0,0],[0,2,3,1,3,2,0,0],[0,2,3,3,3,2,0,0],[0,0,2,3,2,0,0,0],[0,2,3,3,3,2,0,0],[0,0,2,2,2,0,0,0],[0,0,3,0,3,0,0,0],[0,2,3,0,3,2,0,0]],
+  skeA:[[0,0,2,2,2,0,0,0],[0,2,3,3,3,2,0,0],[0,2,3,2,3,2,0,0],[0,0,2,3,2,0,0,0],[3,3,3,3,3,2,0,0],[0,0,2,2,2,0,0,0],[0,0,3,0,3,0,0,0],[0,2,3,0,3,2,0,0]],
+  hFull:[[0,2,2,0,2,2,0,0],[2,3,3,2,3,3,2,0],[2,3,3,3,3,3,2,0],[0,2,3,3,3,2,0,0],[0,0,2,3,2,0,0,0],[0,0,0,2,0,0,0,0]],
+  hHalf:[[0,2,2,0,1,1,0,0],[2,3,3,2,1,2,1,0],[2,3,3,2,1,1,1,0],[0,2,3,2,1,1,0,0],[0,0,2,2,1,0,0,0],[0,0,0,2,0,0,0,0]],
+  hEmt: [[0,1,1,0,1,1,0,0],[1,2,2,1,2,2,1,0],[1,2,2,2,2,2,1,0],[0,1,2,2,2,1,0,0],[0,0,1,2,1,0,0,0],[0,0,0,1,0,0,0,0]],
+  skull:[[0,0,0,1,1,1,1,1,1,0,0,0],[0,0,1,2,2,2,2,2,2,1,0,0],[0,1,2,3,2,2,2,2,3,2,1,0],[0,1,2,2,3,2,2,3,2,2,1,0],[0,1,2,2,2,2,2,2,2,2,1,0],[0,0,1,2,3,2,2,3,2,1,0,0],[0,0,1,2,2,3,3,2,2,1,0,0],[0,0,0,1,2,2,2,2,1,0,0,0],[0,0,0,1,2,1,1,2,1,0,0,0],[0,0,0,0,1,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,1,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0]]
 };
 
-// ── Canvas ─────────────────────────────────────────────────────
-const canvas = document.getElementById('gameCanvas');
-const ctx    = canvas.getContext('2d');
-ctx.imageSmoothingEnabled = false;
+const canvas=document.getElementById('gameCanvas');
+const ctx=canvas.getContext('2d');
+ctx.imageSmoothingEnabled=false;
 
-// ── Draw helpers ───────────────────────────────────────────────
-function ds(spr, lx, ly, fx) { // drawSprite
-  const rows = spr.length, cols = spr[0].length;
-  for (let r=0;r<rows;r++) for (let c=0;c<cols;c++) {
-    const v = spr[r][fx ? cols-1-c : c];
-    if (!v) continue;
-    ctx.fillStyle = PAL[v];
-    ctx.fillRect((lx+c)*SCALE,(ly+r)*SCALE,SCALE,SCALE);
+function ds(spr,lx,ly,fx){
+  const rows=spr.length,cols=spr[0].length;
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const v=spr[r][fx?cols-1-c:c];if(!v)continue;
+    ctx.fillStyle=PAL[v];ctx.fillRect((lx+c)*SCALE,(ly+r)*SCALE,SCALE,SCALE);
   }
 }
-function fr(lx,ly,lw,lh,col) { // fillRect logical
-  ctx.fillStyle=col;
-  ctx.fillRect(lx*SCALE,ly*SCALE,lw*SCALE,lh*SCALE);
-}
-function txt(t,lx,ly,col,sz) {
-  ctx.fillStyle=col;
-  ctx.font=`${(sz||1)*5}px "Press Start 2P",monospace`;
-  ctx.textBaseline='top'; ctx.textAlign='left';
-  ctx.fillText(t,lx*SCALE,ly*SCALE);
-}
-function txtC(t,ly,col,sz) { // centered
-  ctx.fillStyle=col;
-  ctx.font=`${(sz||1)*5}px "Press Start 2P",monospace`;
-  ctx.textBaseline='top'; ctx.textAlign='center';
-  ctx.fillText(t,(GW/2)*SCALE,ly*SCALE);
-  ctx.textAlign='left';
-}
-
-// ── Collision ──────────────────────────────────────────────────
+function fr(lx,ly,lw,lh,col){ctx.fillStyle=col;ctx.fillRect(lx*SCALE,ly*SCALE,lw*SCALE,lh*SCALE);}
 function ov(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
-function atkBox(e,reach){
-  const r=reach||11;
+function atkBox(e,r){
+  r=r||11;
   if(e.dir==='right')return{x:e.x+e.w,y:e.y+1,w:r,h:e.h-2};
   if(e.dir==='left') return{x:e.x-r,  y:e.y+1,w:r,h:e.h-2};
   if(e.dir==='up')   return{x:e.x+1,  y:e.y-r,w:e.w-2,h:r};
-  /*down*/           return{x:e.x+1,  y:e.y+e.h,w:e.w-2,h:r};
+  return{x:e.x+1,y:e.y+e.h,w:e.w-2,h:r};
 }
 
-// ── Game state ─────────────────────────────────────────────────
-let gState='title';
-let player, enemies, parts, pSpawns, frame, score, prevSpc;
+const kkeys={},tkeys={};
+const k=key=>!!(kkeys[key]||tkeys[key]);
 
-function maxEnemies(){ return Math.min(6, 1+Math.floor(score/4)); }
+let gState='title',focused=false;
+let player,enemies,parts,pSpawns,frame,score,prevAtk=false;
 
+function maxEnemies(){return Math.min(6,1+Math.floor(score/4));}
 function resetGame(){
-  player={
-    x:GW/2-4, y:GH/2, w:8, h:8, speed:1.3,
-    dir:'down', hp:6,
-    atkT:0, atkCD:0, hurtT:0, walkF:0, dead:false
-  };
-  enemies=[]; parts=[]; pSpawns=[]; frame=0; score=0; prevSpc=false;
-  qSpawn(80);
+  player={x:GW/2-4,y:GH/2,w:8,h:8,speed:1.3,dir:'down',hp:6,atkT:0,atkCD:0,hurtT:0,walkF:0,dead:false};
+  enemies=[];parts=[];pSpawns=[];frame=0;score=0;prevAtk=false;qSpawn(80);
 }
-
-function qSpawn(delay){ pSpawns.push({t:delay}); }
-
+function qSpawn(d){pSpawns.push({t:d});}
 function doSpawn(){
-  const side=Math.random()*4|0;
-  let x,y;
+  const side=Math.random()*4|0;let x,y;
   if(side===0){x=PX+Math.random()*(PW-8);y=PY-10;}
   else if(side===1){x=PX+PW+2;y=PY+Math.random()*(PH-8);}
   else if(side===2){x=PX+Math.random()*(PW-8);y=PY+PH+4;}
   else{x=PX-10;y=PY+Math.random()*(PH-8);}
-  const spd=Math.min(0.88,0.3+score*0.018);
-  enemies.push({x,y,w:8,h:8,speed:spd,dir:'left',atkT:0,atkCD:60+(Math.random()*40|0),walkF:0});
+  enemies.push({x,y,w:8,h:8,speed:Math.min(0.88,0.3+score*0.018),dir:'left',atkT:0,atkCD:60+(Math.random()*40|0),walkF:0});
 }
-
 function burst(x,y){
   for(let i=0;i<8;i++){
-    const a=Math.random()*Math.PI*2, s=0.5+Math.random()*1.5;
+    const a=Math.random()*Math.PI*2,s=0.5+Math.random()*1.5;
     parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:20+(Math.random()*12|0),max:32,col:Math.random()<.5?P.md:P.lt});
   }
 }
 
-// ── Input ──────────────────────────────────────────────────────
-const keys={};
+// Keyboard
 document.addEventListener('keydown',e=>{
-  keys[e.key]=true;
+  kkeys[e.key]=true;
   if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();
   if(gState==='title'||gState==='gameover'){gState='playing';resetGame();}
 });
-document.addEventListener('keyup',e=>{keys[e.key]=false;});
+document.addEventListener('keyup',e=>{kkeys[e.key]=false;});
 
-canvas.addEventListener('click',()=>{
+// Focus
+const focusEl=document.getElementById('focusOverlay');
+function doFocus(){
+  focused=true;focusEl.classList.add('hidden');
   if(gState==='title'||gState==='gameover'){gState='playing';resetGame();}
-});
+}
+canvas.addEventListener('click',doFocus);
+canvas.addEventListener('touchend',e=>{e.preventDefault();doFocus();},{passive:false});
 
-// ── Update ─────────────────────────────────────────────────────
+// D-Pad
+const dpadEl=document.getElementById('dpadEl');
+const daEls={ArrowUp:document.getElementById('da-up'),ArrowDown:document.getElementById('da-down'),ArrowLeft:document.getElementById('da-left'),ArrowRight:document.getElementById('da-right')};
+const DIRS=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
+const ptrDirs=new Map();
+
+function dirsFromVec(dx,dy){
+  const dist=Math.hypot(dx,dy);if(dist<6)return[];
+  const nx=dx/dist,ny=dy/dist,dirs=[];
+  if(Math.abs(nx)>0.35)dirs.push(nx>0?'ArrowRight':'ArrowLeft');
+  if(Math.abs(ny)>0.35)dirs.push(ny>0?'ArrowDown':'ArrowUp');
+  return dirs;
+}
+function syncDpad(){
+  DIRS.forEach(d=>{tkeys[d]=false;daEls[d].classList.remove('lit');});
+  for(const dirs of ptrDirs.values())dirs.forEach(d=>{tkeys[d]=true;daEls[d].classList.add('lit');});
+}
+
+dpadEl.addEventListener('pointerdown',e=>{
+  e.preventDefault();doFocus();dpadEl.setPointerCapture(e.pointerId);
+  const r=dpadEl.getBoundingClientRect();
+  ptrDirs.set(e.pointerId,dirsFromVec(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2)));
+  syncDpad();
+},{passive:false});
+dpadEl.addEventListener('pointermove',e=>{
+  if(!ptrDirs.has(e.pointerId))return;e.preventDefault();
+  const r=dpadEl.getBoundingClientRect();
+  ptrDirs.set(e.pointerId,dirsFromVec(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2)));
+  syncDpad();
+},{passive:false});
+['pointerup','pointercancel'].forEach(ev=>dpadEl.addEventListener(ev,e=>{ptrDirs.delete(e.pointerId);syncDpad();}));
+
+// Attack button
+const btnAtk=document.getElementById('btnAtk');
+const atkPtrs=new Set();
+btnAtk.addEventListener('pointerdown',e=>{
+  e.preventDefault();doFocus();btnAtk.setPointerCapture(e.pointerId);
+  atkPtrs.add(e.pointerId);tkeys[' ']=true;btnAtk.classList.add('pressed');
+},{passive:false});
+['pointerup','pointercancel'].forEach(ev=>btnAtk.addEventListener(ev,e=>{
+  atkPtrs.delete(e.pointerId);if(atkPtrs.size===0)tkeys[' ']=false;btnAtk.classList.remove('pressed');
+}));
+
+// Update
 function update(){
   if(gState!=='playing')return;
   frame++;
-
-  // Spawn queue
-  for(let i=pSpawns.length-1;i>=0;i--){
-    pSpawns[i].t--;
-    if(pSpawns[i].t<=0){pSpawns.splice(i,1);doSpawn();}
-  }
-  if(enemies.length<maxEnemies()&&pSpawns.length===0) qSpawn(100);
-
-  const p=player;
-  if(p.dead)return;
-
-  // Player movement
+  for(let i=pSpawns.length-1;i>=0;i--){pSpawns[i].t--;if(pSpawns[i].t<=0){pSpawns.splice(i,1);doSpawn();}}
+  if(enemies.length<maxEnemies()&&pSpawns.length===0)qSpawn(100);
+  const p=player;if(p.dead)return;
   let dx=0,dy=0;
-  if(keys['ArrowLeft'] ||keys['a']){dx-=p.speed;p.dir='left';}
-  if(keys['ArrowRight']||keys['d']){dx+=p.speed;p.dir='right';}
-  if(keys['ArrowUp']   ||keys['w']){dy-=p.speed;p.dir='up';}
-  if(keys['ArrowDown'] ||keys['s']){dy+=p.speed;p.dir='down';}
+  if(k('ArrowLeft') ||k('a')){dx-=p.speed;p.dir='left';}
+  if(k('ArrowRight')||k('d')){dx+=p.speed;p.dir='right';}
+  if(k('ArrowUp')   ||k('w')){dy-=p.speed;p.dir='up';}
+  if(k('ArrowDown') ||k('s')){dy+=p.speed;p.dir='down';}
   if(dx&&dy){dx*=0.707;dy*=0.707;}
   p.x=Math.max(PX,Math.min(PX+PW-p.w,p.x+dx));
   p.y=Math.max(PY,Math.min(PY+PH-p.h,p.y+dy));
   if(dx||dy)p.walkF++;
-
-  // Player attack
-  const spcNow=!!(keys[' ']);
-  const spcJust=spcNow&&!prevSpc;
-  prevSpc=spcNow;
-  if(spcJust&&p.atkCD<=0&&p.atkT<=0){
-    p.atkT=14; p.atkCD=30;
+  const atkNow=k(' ');
+  if(atkNow&&!prevAtk&&p.atkCD<=0&&p.atkT<=0){
+    p.atkT=14;p.atkCD=30;
     const box=atkBox(p,11);
-    for(let i=enemies.length-1;i>=0;i--){
-      const e=enemies[i];
-      if(ov(box,{x:e.x,y:e.y,w:e.w,h:e.h})){
-        burst(e.x+4,e.y+4);
-        enemies.splice(i,1);
-        score++;
-      }
-    }
+    for(let i=enemies.length-1;i>=0;i--)
+      if(ov(box,enemies[i])){burst(enemies[i].x+4,enemies[i].y+4);enemies.splice(i,1);score++;}
   }
-  if(p.atkT>0)p.atkT--;
-  if(p.atkCD>0)p.atkCD--;
-  if(p.hurtT>0)p.hurtT--;
-
-  // Enemies
+  prevAtk=atkNow;
+  if(p.atkT>0)p.atkT--;if(p.atkCD>0)p.atkCD--;if(p.hurtT>0)p.hurtT--;
   for(const e of enemies){
-    if(e.atkT>0)e.atkT--;
-    if(e.atkCD>0)e.atkCD--;
-    e.walkF++;
-    const cx=e.x+4,cy=e.y+4,pcx=p.x+4,pcy=p.y+4;
-    const ddx=pcx-cx,ddy=pcy-cy;
-    const dist=Math.hypot(ddx,ddy);
-    if(dist>0) e.dir=Math.abs(ddx)>Math.abs(ddy)?(ddx>0?'right':'left'):(ddy>0?'down':'up');
-    const near=ov({x:e.x-2,y:e.y-2,w:e.w+4,h:e.h+4},{x:p.x,y:p.y,w:p.w,h:p.h});
-    if(near){
-      if(e.atkCD<=0){
-        e.atkT=20; e.atkCD=80+(Math.random()*50|0);
-        if(p.hurtT<=0){
-          p.hp=Math.max(0,p.hp-1);
-          p.hurtT=52;
-          if(p.hp<=0){p.dead=true;setTimeout(()=>{gState='gameover';},1200);}
-        }
-      }
-    } else {
-      if(dist>0){e.x+=ddx/dist*e.speed;e.y+=ddy/dist*e.speed;}
-    }
+    if(e.atkT>0)e.atkT--;if(e.atkCD>0)e.atkCD--;e.walkF++;
+    const ddx=(p.x+4)-(e.x+4),ddy=(p.y+4)-(e.y+4),dist=Math.hypot(ddx,ddy);
+    if(dist>0)e.dir=Math.abs(ddx)>Math.abs(ddy)?(ddx>0?'right':'left'):(ddy>0?'down':'up');
+    if(ov({x:e.x-2,y:e.y-2,w:e.w+4,h:e.h+4},p)){
+      if(e.atkCD<=0){e.atkT=20;e.atkCD=80+(Math.random()*50|0);
+        if(p.hurtT<=0){p.hp=Math.max(0,p.hp-1);p.hurtT=52;if(p.hp<=0){p.dead=true;setTimeout(()=>gState='gameover',1200);}}}
+    } else if(dist>0){e.x+=ddx/dist*e.speed;e.y+=ddy/dist*e.speed;}
   }
-
-  // Particles
   for(let i=parts.length-1;i>=0;i--){
-    const pt=parts[i];
-    pt.x+=pt.vx;pt.y+=pt.vy;pt.vx*=0.82;pt.vy*=0.82;
+    const pt=parts[i];pt.x+=pt.vx;pt.y+=pt.vy;pt.vx*=0.82;pt.vy*=0.82;
     if(--pt.life<=0)parts.splice(i,1);
   }
 }
 
-// ── Render ─────────────────────────────────────────────────────
+// Render
 function render(){
   fr(0,0,GW,GH,P.bg);
   if(gState==='title'){rTitle();return;}
   rPlay();
   if(gState==='gameover')rOver();
 }
-
 function rPlay(){
   const p=player;
-
-  // Wall borders
-  fr(PX-2,PY-2,PW+4,2,P.dk);
-  fr(PX-2,PY+PH,PW+4,2,P.dk);
-  fr(PX-2,PY-2,2,PH+4,P.dk);
-  fr(PX+PW,PY-2,2,PH+4,P.dk);
-  fr(PX-1,PY-1,PW+2,1,P.lt);
-  fr(PX-1,PY-1,1,PH+2,P.lt);
-
-  // HUD – 3 hearts
-  for(let i=0;i<3;i++){
-    const rem=Math.max(0,Math.min(2,p.hp-i*2));
-    ds(rem>=2?S.hFull:rem===1?S.hHalf:S.hEmt, 5+i*14, 5);
-  }
-  // Score
-  ctx.fillStyle=P.dk;
-  ctx.font='6px "Press Start 2P",monospace';
-  ctx.textBaseline='top'; ctx.textAlign='right';
-  ctx.fillText(score,(GW-5)*SCALE,5*SCALE);
-  ctx.textAlign='left';
+  fr(PX-2,PY-2,PW+4,2,P.dk);fr(PX-2,PY+PH,PW+4,2,P.dk);
+  fr(PX-2,PY-2,2,PH+4,P.dk);fr(PX+PW,PY-2,2,PH+4,P.dk);
+  fr(PX-1,PY-1,PW+2,1,P.lt);fr(PX-1,PY-1,1,PH+2,P.lt);
+  for(let i=0;i<3;i++){const r=Math.max(0,Math.min(2,p.hp-i*2));ds(r>=2?S.hFull:r===1?S.hHalf:S.hEmt,5+i*14,5);}
+  ctx.fillStyle=P.dk;ctx.font='6px "Press Start 2P",monospace';
+  ctx.textBaseline='top';ctx.textAlign='right';ctx.fillText(score,(GW-5)*SCALE,5*SCALE);ctx.textAlign='left';
   fr(PX-1,PY-3,PW+2,1,P.md);
-
-  // Particles
-  for(const pt of parts){
-    ctx.globalAlpha=pt.life/pt.max;
-    fr(Math.round(pt.x),Math.round(pt.y),1,1,pt.col);
-  }
+  for(const pt of parts){ctx.globalAlpha=pt.life/pt.max;fr(Math.round(pt.x),Math.round(pt.y),1,1,pt.col);}
   ctx.globalAlpha=1;
-
-  // Enemies
-  for(const e of enemies){
-    const bob=Math.floor(e.walkF/10)%2;
-    ds(e.atkT>0?S.skeA:S.ske, Math.round(e.x), Math.round(e.y)+bob, e.dir==='right');
-  }
-
-  // Player
+  for(const e of enemies){const bob=Math.floor(e.walkF/10)%2;ds(e.atkT>0?S.skeA:S.ske,Math.round(e.x),Math.round(e.y)+bob,e.dir==='right');}
   const flash=p.hurtT>0&&Math.floor(p.hurtT/4)%2===1;
   if(!flash){
-    const sprMap={down:S.plrD,up:S.plrU,left:S.plrL,right:S.plrR};
-    const moving=keys['ArrowLeft']||keys['ArrowRight']||keys['ArrowUp']||keys['ArrowDown']||keys['a']||keys['s']||keys['w']||keys['d'];
+    const moving=k('ArrowLeft')||k('ArrowRight')||k('ArrowUp')||k('ArrowDown')||k('a')||k('s')||k('w')||k('d');
     const wb=moving?Math.floor(p.walkF/8)%2:0;
-    ds(sprMap[p.dir], Math.round(p.x), Math.round(p.y)+wb);
-
-    // Attack flash
+    ds({down:S.plrD,up:S.plrU,left:S.plrL,right:S.plrR}[p.dir],Math.round(p.x),Math.round(p.y)+wb);
     if(p.atkT>0){
-      const box=atkBox(p,11);
-      const a=p.atkT/14;
-      ctx.globalAlpha=a*0.88;
-      fr(box.x,box.y,box.w,box.h,P.dk);
-      ctx.globalAlpha=a*0.55;
-      fr(box.x+1,box.y+1,box.w-2,box.h-2,P.bg);
-      ctx.globalAlpha=1;
+      const box=atkBox(p,11),a=p.atkT/14;
+      ctx.globalAlpha=a*0.88;fr(box.x,box.y,box.w,box.h,P.dk);
+      ctx.globalAlpha=a*0.55;fr(box.x+1,box.y+1,box.w-2,box.h-2,P.bg);ctx.globalAlpha=1;
     }
   }
 }
-
 function rTitle(){
-  fr(0,0,GW,GH,P.bg);
-  // Decorative skulls
-  ds(S.skull, 10, 18);
-  ds(S.skull, GW-22, 18);
-  // Title text
-  ctx.fillStyle=P.dk;
-  ctx.font='10px "Press Start 2P",monospace';
-  ctx.textBaseline='top'; ctx.textAlign='center';
-  ctx.fillText('BONE',  GW*SCALE/2, 40*SCALE);
-  ctx.fillText('CRAWLER',GW*SCALE/2,53*SCALE);
-  ctx.fillStyle=P.md;
-  ctx.font='5px "Press Start 2P",monospace';
+  ds(S.skull,10,18);ds(S.skull,GW-22,18);
+  ctx.fillStyle=P.dk;ctx.font='10px "Press Start 2P",monospace';
+  ctx.textBaseline='top';ctx.textAlign='center';
+  ctx.fillText('BONE',GW*SCALE/2,40*SCALE);ctx.fillText('CRAWLER',GW*SCALE/2,53*SCALE);
+  ctx.fillStyle=P.md;ctx.font='5px "Press Start 2P",monospace';
   ctx.fillText('GOOD LUCK & SURVIVE',GW*SCALE/2,74*SCALE);
-  if(Math.floor(Date.now()/500)%2===0){
-    ctx.fillStyle=P.dk;
-    ctx.fillText('CLICK TO START',GW*SCALE/2,90*SCALE);
-  }
-  // Small skeleton preview
-  ds(S.ske,56,102);
-  ctx.textAlign='left';
+  if(Math.floor(Date.now()/500)%2===0){ctx.fillStyle=P.dk;ctx.fillText('CLICK TO START',GW*SCALE/2,90*SCALE);}
+  ds(S.ske,56,102);ctx.textAlign='left';
 }
-
 function rOver(){
-  ctx.fillStyle='rgba(16,16,10,0.74)';
-  ctx.fillRect(0,0,GW*SCALE,GH*SCALE);
-  ctx.fillStyle=P.bg;
-  ctx.font='10px "Press Start 2P",monospace';
-  ctx.textBaseline='top'; ctx.textAlign='center';
-  ctx.fillText('GAME', GW*SCALE/2,32*SCALE);
-  ctx.fillText('OVER', GW*SCALE/2,46*SCALE);
-  ctx.fillStyle=P.lt;
-  ctx.font='5px "Press Start 2P",monospace';
-  ctx.fillText('KILLS: '+score, GW*SCALE/2,67*SCALE);
-  if(Math.floor(Date.now()/500)%2===0){
-    ctx.fillStyle=P.bg;
-    ctx.fillText('CLICK TO RETRY',GW*SCALE/2,82*SCALE);
-  }
+  ctx.fillStyle='rgba(16,16,10,0.74)';ctx.fillRect(0,0,GW*SCALE,GH*SCALE);
+  ctx.fillStyle=P.bg;ctx.font='10px "Press Start 2P",monospace';
+  ctx.textBaseline='top';ctx.textAlign='center';
+  ctx.fillText('GAME',GW*SCALE/2,32*SCALE);ctx.fillText('OVER',GW*SCALE/2,46*SCALE);
+  ctx.fillStyle=P.lt;ctx.font='5px "Press Start 2P",monospace';
+  ctx.fillText('KILLS: '+score,GW*SCALE/2,67*SCALE);
+  if(Math.floor(Date.now()/500)%2===0){ctx.fillStyle=P.bg;ctx.fillText('CLICK TO RETRY',GW*SCALE/2,82*SCALE);}
   ctx.textAlign='left';
 }
 
-// ── Loop ───────────────────────────────────────────────────────
-function loop(){update();render();requestAnimationFrame(loop);}
+// Resize
+const scaleWrap=document.getElementById('gbScaleWrap');
+const scaleSlider=document.getElementById('scaleSlider');
+const sizerVal=document.getElementById('sizerVal');
+let naturalH=0;
+function applyScale(pct){
+  const s=pct/100;
+  scaleWrap.style.transform=`scale(${s})`;
+  if(naturalH>0)scaleWrap.style.height=(naturalH*s)+'px';
+  sizerVal.textContent=pct+'%';
+}
+scaleSlider.addEventListener('input',()=>applyScale(+scaleSlider.value));
 
-document.fonts.ready.then(()=>{ loop(); }).catch(()=>{ loop(); });
+function loop(){update();render();requestAnimationFrame(loop);}
+document.fonts.ready.then(()=>{
+  requestAnimationFrame(()=>{naturalH=scaleWrap.getBoundingClientRect().height;applyScale(100);loop();});
+}).catch(()=>{
+  requestAnimationFrame(()=>{naturalH=scaleWrap.getBoundingClientRect().height;applyScale(100);loop();});
+});
 </script>
+
 </body>
 </html>
