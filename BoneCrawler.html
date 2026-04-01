@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bone Crawler</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+body {
+  background: #0e0e0e;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-family: 'Press Start 2P', monospace;
+  gap: 14px;
+}
+
+.screen-wrap {
+  position: relative;
+  padding: 10px;
+  background: #1a1a1a;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 2px #2a2a2a,
+    0 0 40px rgba(0,0,0,0.9),
+    0 8px 32px rgba(0,0,0,0.7);
+}
+
+#gameCanvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 2px;
+}
+
+.hint {
+  font-size: 5px;
+  color: #444;
+  letter-spacing: 1px;
+
+}
+.hint a {
+  color: #666;
+  text-decoration: none;
+}
+
+.hint a:hover {
+  color: #8c8c7c; 
+}
+</style>
+</head>
+<body>
+
+<div class="screen-wrap">
+  <canvas id="gameCanvas" width="240" height="240"></canvas>
+</div>
+
+<div class="hint">ARROWS / WASD = MOVE &nbsp;&nbsp; SPACE = ATTACK<br><br><center><a href="https://github.com/ImmaGundam/BoneCrawler">Made by ImmaGundam<center></div>
+
+<script>
+// ================================================================
+//  BONE CRAWLER  ·  120×120 logic  ·  2× render (240×240 canvas)
+// ================================================================
+const SCALE = 2;
+const GW = 120, GH = 120;
+
+// Play-field bounds (below 17px HUD)
+const PX = 4, PY = 17, PW = 112, PH = 99;
+
+// GB 4-shade grayscale palette
+const P = { bg:'#c8c8b0', lt:'#8c8c7c', md:'#484840', dk:'#181810' };
+const PAL = [null, P.lt, P.md, P.dk]; // sprite index→colour
+
+// ── Sprites (8×8, values 0–3) ──────────────────────────────────
+const S = {
+  plrD: [
+    [0,0,2,3,3,2,0,0],[0,0,3,1,1,3,0,0],[0,0,2,3,3,2,0,0],
+    [0,2,3,3,3,3,2,0],[0,0,3,3,3,0,0,0],[0,0,3,2,2,3,0,0],
+    [0,0,3,0,0,3,0,0],[0,0,0,0,0,0,0,0]
+  ],
+  plrU: [
+    [0,0,2,3,3,2,0,0],[0,0,3,3,3,3,0,0],[0,0,2,3,3,2,0,0],
+    [0,2,3,3,3,3,2,0],[0,0,3,3,3,0,0,0],[0,0,3,2,2,3,0,0],
+    [0,0,3,0,0,3,0,0],[0,0,0,0,0,0,0,0]
+  ],
+  plrR: [
+    [0,0,2,3,3,0,0,0],[0,0,3,1,3,0,0,0],[0,0,2,3,3,0,0,0],
+    [0,2,3,3,3,3,2,0],[0,0,3,3,3,0,0,0],[0,0,3,2,3,0,0,0],
+    [0,0,3,0,3,0,0,0],[0,0,0,0,0,0,0,0]
+  ],
+  plrL: [
+    [0,0,0,3,3,2,0,0],[0,0,0,3,1,3,0,0],[0,0,0,3,3,2,0,0],
+    [0,2,3,3,3,3,2,0],[0,0,0,3,3,3,0,0],[0,0,0,3,2,3,0,0],
+    [0,0,0,3,0,3,0,0],[0,0,0,0,0,0,0,0]
+  ],
+  ske: [
+    [0,0,2,2,2,0,0,0],[0,2,3,1,3,2,0,0],[0,2,3,3,3,2,0,0],
+    [0,0,2,3,2,0,0,0],[0,2,3,3,3,2,0,0],[0,0,2,2,2,0,0,0],
+    [0,0,3,0,3,0,0,0],[0,2,3,0,3,2,0,0]
+  ],
+  skeA: [
+    [0,0,2,2,2,0,0,0],[0,2,3,3,3,2,0,0],[0,2,3,2,3,2,0,0],
+    [0,0,2,3,2,0,0,0],[3,3,3,3,3,2,0,0],[0,0,2,2,2,0,0,0],
+    [0,0,3,0,3,0,0,0],[0,2,3,0,3,2,0,0]
+  ],
+  hFull: [
+    [0,2,2,0,2,2,0,0],[2,3,3,2,3,3,2,0],[2,3,3,3,3,3,2,0],
+    [0,2,3,3,3,2,0,0],[0,0,2,3,2,0,0,0],[0,0,0,2,0,0,0,0]
+  ],
+  hHalf: [
+    [0,2,2,0,1,1,0,0],[2,3,3,2,1,2,1,0],[2,3,3,2,1,1,1,0],
+    [0,2,3,2,1,1,0,0],[0,0,2,2,1,0,0,0],[0,0,0,2,0,0,0,0]
+  ],
+  hEmt: [
+    [0,1,1,0,1,1,0,0],[1,2,2,1,2,2,1,0],[1,2,2,2,2,2,1,0],
+    [0,1,2,2,2,1,0,0],[0,0,1,2,1,0,0,0],[0,0,0,1,0,0,0,0]
+  ],
+  skull: [ // decorative 12×12 for title
+    [0,0,0,1,1,1,1,1,1,0,0,0],[0,0,1,2,2,2,2,2,2,1,0,0],
+    [0,1,2,3,2,2,2,2,3,2,1,0],[0,1,2,2,3,2,2,3,2,2,1,0],
+    [0,1,2,2,2,2,2,2,2,2,1,0],[0,0,1,2,3,2,2,3,2,1,0,0],
+    [0,0,1,2,2,3,3,2,2,1,0,0],[0,0,0,1,2,2,2,2,1,0,0,0],
+    [0,0,0,1,2,1,1,2,1,0,0,0],[0,0,0,0,1,0,0,1,0,0,0,0],
+    [0,0,0,0,1,0,0,1,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0]
+  ]
+};
+
+// ── Canvas ─────────────────────────────────────────────────────
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+// ── Draw helpers ───────────────────────────────────────────────
+function ds(spr, lx, ly, fx) { // drawSprite
+  const rows = spr.length, cols = spr[0].length;
+  for (let r=0;r<rows;r++) for (let c=0;c<cols;c++) {
+    const v = spr[r][fx ? cols-1-c : c];
+    if (!v) continue;
+    ctx.fillStyle = PAL[v];
+    ctx.fillRect((lx+c)*SCALE,(ly+r)*SCALE,SCALE,SCALE);
+  }
+}
+function fr(lx,ly,lw,lh,col) { // fillRect logical
+  ctx.fillStyle=col;
+  ctx.fillRect(lx*SCALE,ly*SCALE,lw*SCALE,lh*SCALE);
+}
+function txt(t,lx,ly,col,sz) {
+  ctx.fillStyle=col;
+  ctx.font=`${(sz||1)*5}px "Press Start 2P",monospace`;
+  ctx.textBaseline='top'; ctx.textAlign='left';
+  ctx.fillText(t,lx*SCALE,ly*SCALE);
+}
+function txtC(t,ly,col,sz) { // centered
+  ctx.fillStyle=col;
+  ctx.font=`${(sz||1)*5}px "Press Start 2P",monospace`;
+  ctx.textBaseline='top'; ctx.textAlign='center';
+  ctx.fillText(t,(GW/2)*SCALE,ly*SCALE);
+  ctx.textAlign='left';
+}
+
+// ── Collision ──────────────────────────────────────────────────
+function ov(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+function atkBox(e,reach){
+  const r=reach||11;
+  if(e.dir==='right')return{x:e.x+e.w,y:e.y+1,w:r,h:e.h-2};
+  if(e.dir==='left') return{x:e.x-r,  y:e.y+1,w:r,h:e.h-2};
+  if(e.dir==='up')   return{x:e.x+1,  y:e.y-r,w:e.w-2,h:r};
+  /*down*/           return{x:e.x+1,  y:e.y+e.h,w:e.w-2,h:r};
+}
+
+// ── Game state ─────────────────────────────────────────────────
+let gState='title';
+let player, enemies, parts, pSpawns, frame, score, prevSpc;
+
+function maxEnemies(){ return Math.min(6, 1+Math.floor(score/4)); }
+
+function resetGame(){
+  player={
+    x:GW/2-4, y:GH/2, w:8, h:8, speed:1.3,
+    dir:'down', hp:6,
+    atkT:0, atkCD:0, hurtT:0, walkF:0, dead:false
+  };
+  enemies=[]; parts=[]; pSpawns=[]; frame=0; score=0; prevSpc=false;
+  qSpawn(80);
+}
+
+function qSpawn(delay){ pSpawns.push({t:delay}); }
+
+function doSpawn(){
+  const side=Math.random()*4|0;
+  let x,y;
+  if(side===0){x=PX+Math.random()*(PW-8);y=PY-10;}
+  else if(side===1){x=PX+PW+2;y=PY+Math.random()*(PH-8);}
+  else if(side===2){x=PX+Math.random()*(PW-8);y=PY+PH+4;}
+  else{x=PX-10;y=PY+Math.random()*(PH-8);}
+  const spd=Math.min(0.88,0.3+score*0.018);
+  enemies.push({x,y,w:8,h:8,speed:spd,dir:'left',atkT:0,atkCD:60+(Math.random()*40|0),walkF:0});
+}
+
+function burst(x,y){
+  for(let i=0;i<8;i++){
+    const a=Math.random()*Math.PI*2, s=0.5+Math.random()*1.5;
+    parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:20+(Math.random()*12|0),max:32,col:Math.random()<.5?P.md:P.lt});
+  }
+}
+
+// ── Input ──────────────────────────────────────────────────────
+const keys={};
+document.addEventListener('keydown',e=>{
+  keys[e.key]=true;
+  if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();
+  if(gState==='title'||gState==='gameover'){gState='playing';resetGame();}
+});
+document.addEventListener('keyup',e=>{keys[e.key]=false;});
+
+canvas.addEventListener('click',()=>{
+  if(gState==='title'||gState==='gameover'){gState='playing';resetGame();}
+});
+
+// ── Update ─────────────────────────────────────────────────────
+function update(){
+  if(gState!=='playing')return;
+  frame++;
+
+  // Spawn queue
+  for(let i=pSpawns.length-1;i>=0;i--){
+    pSpawns[i].t--;
+    if(pSpawns[i].t<=0){pSpawns.splice(i,1);doSpawn();}
+  }
+  if(enemies.length<maxEnemies()&&pSpawns.length===0) qSpawn(100);
+
+  const p=player;
+  if(p.dead)return;
+
+  // Player movement
+  let dx=0,dy=0;
+  if(keys['ArrowLeft'] ||keys['a']){dx-=p.speed;p.dir='left';}
+  if(keys['ArrowRight']||keys['d']){dx+=p.speed;p.dir='right';}
+  if(keys['ArrowUp']   ||keys['w']){dy-=p.speed;p.dir='up';}
+  if(keys['ArrowDown'] ||keys['s']){dy+=p.speed;p.dir='down';}
+  if(dx&&dy){dx*=0.707;dy*=0.707;}
+  p.x=Math.max(PX,Math.min(PX+PW-p.w,p.x+dx));
+  p.y=Math.max(PY,Math.min(PY+PH-p.h,p.y+dy));
+  if(dx||dy)p.walkF++;
+
+  // Player attack
+  const spcNow=!!(keys[' ']);
+  const spcJust=spcNow&&!prevSpc;
+  prevSpc=spcNow;
+  if(spcJust&&p.atkCD<=0&&p.atkT<=0){
+    p.atkT=14; p.atkCD=30;
+    const box=atkBox(p,11);
+    for(let i=enemies.length-1;i>=0;i--){
+      const e=enemies[i];
+      if(ov(box,{x:e.x,y:e.y,w:e.w,h:e.h})){
+        burst(e.x+4,e.y+4);
+        enemies.splice(i,1);
+        score++;
+      }
+    }
+  }
+  if(p.atkT>0)p.atkT--;
+  if(p.atkCD>0)p.atkCD--;
+  if(p.hurtT>0)p.hurtT--;
+
+  // Enemies
+  for(const e of enemies){
+    if(e.atkT>0)e.atkT--;
+    if(e.atkCD>0)e.atkCD--;
+    e.walkF++;
+    const cx=e.x+4,cy=e.y+4,pcx=p.x+4,pcy=p.y+4;
+    const ddx=pcx-cx,ddy=pcy-cy;
+    const dist=Math.hypot(ddx,ddy);
+    if(dist>0) e.dir=Math.abs(ddx)>Math.abs(ddy)?(ddx>0?'right':'left'):(ddy>0?'down':'up');
+    const near=ov({x:e.x-2,y:e.y-2,w:e.w+4,h:e.h+4},{x:p.x,y:p.y,w:p.w,h:p.h});
+    if(near){
+      if(e.atkCD<=0){
+        e.atkT=20; e.atkCD=80+(Math.random()*50|0);
+        if(p.hurtT<=0){
+          p.hp=Math.max(0,p.hp-1);
+          p.hurtT=52;
+          if(p.hp<=0){p.dead=true;setTimeout(()=>{gState='gameover';},1200);}
+        }
+      }
+    } else {
+      if(dist>0){e.x+=ddx/dist*e.speed;e.y+=ddy/dist*e.speed;}
+    }
+  }
+
+  // Particles
+  for(let i=parts.length-1;i>=0;i--){
+    const pt=parts[i];
+    pt.x+=pt.vx;pt.y+=pt.vy;pt.vx*=0.82;pt.vy*=0.82;
+    if(--pt.life<=0)parts.splice(i,1);
+  }
+}
+
+// ── Render ─────────────────────────────────────────────────────
+function render(){
+  fr(0,0,GW,GH,P.bg);
+  if(gState==='title'){rTitle();return;}
+  rPlay();
+  if(gState==='gameover')rOver();
+}
+
+function rPlay(){
+  const p=player;
+
+  // Wall borders
+  fr(PX-2,PY-2,PW+4,2,P.dk);
+  fr(PX-2,PY+PH,PW+4,2,P.dk);
+  fr(PX-2,PY-2,2,PH+4,P.dk);
+  fr(PX+PW,PY-2,2,PH+4,P.dk);
+  fr(PX-1,PY-1,PW+2,1,P.lt);
+  fr(PX-1,PY-1,1,PH+2,P.lt);
+
+  // HUD – 3 hearts
+  for(let i=0;i<3;i++){
+    const rem=Math.max(0,Math.min(2,p.hp-i*2));
+    ds(rem>=2?S.hFull:rem===1?S.hHalf:S.hEmt, 5+i*14, 5);
+  }
+  // Score
+  ctx.fillStyle=P.dk;
+  ctx.font='6px "Press Start 2P",monospace';
+  ctx.textBaseline='top'; ctx.textAlign='right';
+  ctx.fillText(score,(GW-5)*SCALE,5*SCALE);
+  ctx.textAlign='left';
+  fr(PX-1,PY-3,PW+2,1,P.md);
+
+  // Particles
+  for(const pt of parts){
+    ctx.globalAlpha=pt.life/pt.max;
+    fr(Math.round(pt.x),Math.round(pt.y),1,1,pt.col);
+  }
+  ctx.globalAlpha=1;
+
+  // Enemies
+  for(const e of enemies){
+    const bob=Math.floor(e.walkF/10)%2;
+    ds(e.atkT>0?S.skeA:S.ske, Math.round(e.x), Math.round(e.y)+bob, e.dir==='right');
+  }
+
+  // Player
+  const flash=p.hurtT>0&&Math.floor(p.hurtT/4)%2===1;
+  if(!flash){
+    const sprMap={down:S.plrD,up:S.plrU,left:S.plrL,right:S.plrR};
+    const moving=keys['ArrowLeft']||keys['ArrowRight']||keys['ArrowUp']||keys['ArrowDown']||keys['a']||keys['s']||keys['w']||keys['d'];
+    const wb=moving?Math.floor(p.walkF/8)%2:0;
+    ds(sprMap[p.dir], Math.round(p.x), Math.round(p.y)+wb);
+
+    // Attack flash
+    if(p.atkT>0){
+      const box=atkBox(p,11);
+      const a=p.atkT/14;
+      ctx.globalAlpha=a*0.88;
+      fr(box.x,box.y,box.w,box.h,P.dk);
+      ctx.globalAlpha=a*0.55;
+      fr(box.x+1,box.y+1,box.w-2,box.h-2,P.bg);
+      ctx.globalAlpha=1;
+    }
+  }
+}
+
+function rTitle(){
+  fr(0,0,GW,GH,P.bg);
+  // Decorative skulls
+  ds(S.skull, 10, 18);
+  ds(S.skull, GW-22, 18);
+  // Title text
+  ctx.fillStyle=P.dk;
+  ctx.font='10px "Press Start 2P",monospace';
+  ctx.textBaseline='top'; ctx.textAlign='center';
+  ctx.fillText('BONE',  GW*SCALE/2, 40*SCALE);
+  ctx.fillText('CRAWLER',GW*SCALE/2,53*SCALE);
+  ctx.fillStyle=P.md;
+  ctx.font='5px "Press Start 2P",monospace';
+  ctx.fillText('GOOD LUCK & SURVIVE',GW*SCALE/2,74*SCALE);
+  if(Math.floor(Date.now()/500)%2===0){
+    ctx.fillStyle=P.dk;
+    ctx.fillText('CLICK TO START',GW*SCALE/2,90*SCALE);
+  }
+  // Small skeleton preview
+  ds(S.ske,56,102);
+  ctx.textAlign='left';
+}
+
+function rOver(){
+  ctx.fillStyle='rgba(16,16,10,0.74)';
+  ctx.fillRect(0,0,GW*SCALE,GH*SCALE);
+  ctx.fillStyle=P.bg;
+  ctx.font='10px "Press Start 2P",monospace';
+  ctx.textBaseline='top'; ctx.textAlign='center';
+  ctx.fillText('GAME', GW*SCALE/2,32*SCALE);
+  ctx.fillText('OVER', GW*SCALE/2,46*SCALE);
+  ctx.fillStyle=P.lt;
+  ctx.font='5px "Press Start 2P",monospace';
+  ctx.fillText('KILLS: '+score, GW*SCALE/2,67*SCALE);
+  if(Math.floor(Date.now()/500)%2===0){
+    ctx.fillStyle=P.bg;
+    ctx.fillText('CLICK TO RETRY',GW*SCALE/2,82*SCALE);
+  }
+  ctx.textAlign='left';
+}
+
+// ── Loop ───────────────────────────────────────────────────────
+function loop(){update();render();requestAnimationFrame(loop);}
+
+document.fonts.ready.then(()=>{ loop(); }).catch(()=>{ loop(); });
+</script>
+</body>
+</html>
