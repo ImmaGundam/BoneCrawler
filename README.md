@@ -1,4 +1,4 @@
-# Bone Crawler
+# BoneCrawler
 Survival action mini-game made in HTML canvas with JavaScript that runs in your browser.<br>Kill skeletons and survive! 
 
 https://immagundam.github.io/BoneCrawler
