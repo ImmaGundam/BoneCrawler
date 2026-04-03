@@ -3,20 +3,18 @@ Survival action mini-game made in HTML canvas with JavaScript that runs in your 
 
 https://immagundam.github.io/BoneCrawler
 
-<img width="279" height="306" alt="image" src="https://github.com/user-attachments/assets/fde34f48-d47c-423c-996f-b32cb2c6b401" /><br>
+![1](https://github.com/user-attachments/assets/2e3d2f84-0da1-422d-9c5e-8bc7b84220df)
+![2](https://github.com/user-attachments/assets/53fa94dc-60a9-4b9c-8bf5-fc757b2d675b)
+![3](https://github.com/user-attachments/assets/36a27231-65f8-4a2a-8285-e458523459a0)
+![4](https://github.com/user-attachments/assets/7ded20c3-bbd1-43fd-a735-211a0c980958)
 
-<img width="279" height="306" alt="image" src="https://github.com/user-attachments/assets/17318ffc-e0e1-4ac1-94eb-96e49af27bcd" /><br>
-
-
-<img width="279" height="306" alt="image" src="https://github.com/user-attachments/assets/bbab0892-dd39-4f5b-a95b-47f16ef16c93" /><br>
 
 ## How to Play
 - Dodge skeletons that hone in and attack you
-- Each kill is a point - see how many you can earn
+- Each kill is 1 point - Big Skeletons are 5 and drop a heart
+- Upgrade chest appears every 10 skeletons
 - Skeletons are defeated in 1 hit - but get quicker and more spawn as your score gets higher
-- Skeletons spawn rate and movement speed increase with each kill
 - Each hit to the player causes a half heart of damage
-- Keyboard for Desktop - on-screen controls populate when mobile browser detected
 
 ## Controls
 WASD or Arrow keys<br>
