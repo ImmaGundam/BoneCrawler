@@ -23,3 +23,5 @@ https://immagundam.github.io/BoneCrawler
 ## Controls
 WASD or Arrow keys<br>
 Spacebar - Attack
+
+##### <i>You may NOT redistribute, reupload, mirror, or host this Software, in whole or in part, on any website, platform, or service without explicit written permission from the copyright holder.</i>
