@@ -1,4 +1,4 @@
-# BoneCrawler
+# Bone Crawler
 Survival action mini-game made in HTML canvas with JavaScript that runs in your browser.<br>Kill skeletons and survive! 
 
 https://immagundam.github.io/BoneCrawler
@@ -13,7 +13,11 @@ https://immagundam.github.io/BoneCrawler
 - Dodge skeletons that hone in and attack you
 - Each kill is 1 point - Big Skeletons are 5 and drop a heart
 - Upgrade chest appears every 10 skeletons
+  - Restore 1 Heart
+  - Upgrade sword length
+  - Magic Shield - Creates a damaging shockwave on debuff 
 - Skeletons are defeated in 1 hit - but get quicker and more spawn as your score gets higher
+- Big Skeletons appear ever 20 points and take 3 hits to defeat
 - Each hit to the player causes a half heart of damage
 
 ## Controls
