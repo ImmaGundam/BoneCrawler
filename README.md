@@ -12,7 +12,7 @@ The king requests our services again, complete this job and you'll earn your sta
 
 ![ezgif-6e87094d60abafb1](https://github.com/user-attachments/assets/5a9bad07-ab0d-45d8-b14d-bcf7da8ff028)
 
-Chests drop Upgrades! Plan your upgrades carefully or get overwhelmed quickly.
+Chests drop Upgrades! Plan your upgrades carefully so you don't get overwhelmed quickly.
 
 ![upgrades](https://github.com/user-attachments/assets/e391be6d-dcaa-4ce0-a846-b4c9ed4d6fce)
 
