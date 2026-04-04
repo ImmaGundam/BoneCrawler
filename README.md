@@ -3,8 +3,7 @@ Gothic Fantasy Survival action game made in HTML canvas with JavaScript that run
 Playable online @<br>
 <i><a href="bonecrawler.com">bonecrawler.com</a><br>
 or<br>
-<a href="immagundam.github.io/BoneCrawler">immagundam.github.io/BoneCrawler</a><br>
-Domain points to GitHub hosting.</i>
+<a href="immagundam.github.io/BoneCrawler">immagundam.github.io/BoneCrawler</a><br></i>
 
 ![menu](https://github.com/user-attachments/assets/d2e7fea0-fc45-4f7e-841a-19f6f695f8c3)
 
