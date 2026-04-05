@@ -7,12 +7,12 @@ or<br>
 
 ![menu](https://github.com/user-attachments/assets/d2e7fea0-fc45-4f7e-841a-19f6f695f8c3)
 
-## Welcome, initiate, we have a task for you.<br>
-The king requests our services again, complete this job and you'll earn your stay.
+## Welcome, initiate. We have a task for you.<br>
+The king requests our services again. Complete this job and you'll earn your stay.
 
 ![ezgif-6e87094d60abafb1](https://github.com/user-attachments/assets/5a9bad07-ab0d-45d8-b14d-bcf7da8ff028)
 
-Chests drop Upgrades! Plan your upgrades carefully so you don't get overwhelmed quickly.
+Chests drop Upgrades! Plan your upgrades carefully so you don't get overwhelmed!
 
 ![upgrades](https://github.com/user-attachments/assets/e391be6d-dcaa-4ce0-a846-b4c9ed4d6fce)
 
