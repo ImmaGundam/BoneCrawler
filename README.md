@@ -1,5 +1,5 @@
 # BoneCrawler
-Gothic Fantasy Survival action game made in HTML canvas with JavaScript that runs in your browser.<br>Kill skeletons and survive the dungeon!<br><br>
+Dark Fantasy Survival action game made in HTML canvas with JavaScript that runs in your browser.<br>Kill skeletons and survive the dungeon!<br><br>
 Playable online @<br>
 <i><a href="bonecrawler.com">bonecrawler.com</a><br>
 or<br>
