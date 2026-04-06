@@ -1,4 +1,4 @@
-<!-- BoneCrawler.com - version 2.3 -->
+<!-- BoneCrawler.com - version 2.2.1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,7 +43,7 @@ linear-gradient(180deg,#16201b 0%,#0e1311 46%,#0b0b09 100%);border:1px solid rgb
 radial-gradient(circle at 50% 0%,rgba(120,156,138,.12),rgba(120,156,138,0) 42%),
 linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 18%,rgba(0,0,0,.16) 86%,rgba(0,0,0,.34) 100%)}
 #gameCanvas{display:block;width:min(344px,92vw);height:auto;image-rendering:pixelated;image-rendering:crisp-edges;border-radius:3px;box-shadow:0 0 0 1px rgba(196,168,99,.2),0 0 0 3px rgba(10,12,9,.88),0 0 24px rgba(0,0,0,.35)}
-.touch-pause-btn{position:absolute;top:8px;right:8px;z-index:8;min-width:58px;height:24px;padding:0 8px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(196,168,99,.42);border-radius:7px;background:rgba(6,9,7,.92);box-shadow:0 0 0 1px rgba(18,26,20,.92) inset,0 0 12px rgba(0,0,0,.28);color:#e6d7ab;font:700 9px/1 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 1px 0 rgba(0,0,0,.75);cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation}.touch-pause-btn.hidden{display:none}.touch-pause-btn:active{transform:translateY(1px);background:rgba(16,22,17,.96)}
+.touch-pause-btn{position:absolute;top:8px;right:8px;z-index:8;width:28px;height:28px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid rgba(196,168,99,.34);border-radius:999px;background:rgba(6,9,7,.60);box-shadow:0 0 0 1px rgba(18,26,20,.70) inset,0 0 10px rgba(0,0,0,.22);color:#e6d7ab;font:700 14px/1 Arial,sans-serif;letter-spacing:0;text-transform:none;text-shadow:0 1px 0 rgba(0,0,0,.75);cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;opacity:.6}.touch-pause-btn.hidden{display:none}.touch-pause-btn:active{transform:translateY(1px);background:rgba(16,22,17,.96)}
 .hint{display:flex;flex-direction:column;align-items:center;gap:6px;max-width:min(92vw,430px);font-size:9px;letter-spacing:1px;line-height:1.3;text-align:center}
 .info-strip{width:min(92vw,304px);padding:5px 9px;border:1px solid #2b3f20;background:rgba(4,7,4,0.58);box-shadow:0 0 0 1px rgba(10,18,9,0.82) inset;color:#b7c5d1;text-shadow:1px 1px 0 #050806;display:flex;justify-content:center;align-items:center;gap:6px;min-height:12px;opacity:.72}
 .info-strip a{color:#9cb6c8;text-decoration:none}
@@ -88,15 +88,15 @@ body{display:block;min-height:100vh;padding:20px 12px}
 .about-card,.about-license,.touch-pause-btn,.menu-about-btn,.zoom-btn,.player-about-actions .about-license,.player-about-actions .about-link-button{border-radius:2px}
 .about-card{background:linear-gradient(180deg,rgba(12,13,12,.99),rgba(6,7,7,.99));border:1px solid rgba(152,129,81,.48);box-shadow:0 0 0 1px rgba(39,42,39,.96) inset,0 0 0 2px rgba(12,14,13,.96),0 16px 46px rgba(0,0,0,.78)}
 .about-card::before{inset:5px;border-radius:0;border:1px solid rgba(154,142,112,.11)}
-.player-shell{width:min(100%,1440px);margin:0 auto;display:grid;grid-template-columns:300px minmax(240px,auto) 300px;gap:22px;align-items:start;justify-content:center}
+.player-shell{width:min(100%,1440px);margin:0 auto;display:grid;grid-template-columns:minmax(260px,300px) auto minmax(260px,300px);gap:22px;align-items:start;justify-content:center}
 .player-shell.stack-game{grid-template-columns:1fr;justify-items:center}
 .player-shell.stack-game .player-stage{order:1;width:100%;justify-content:center;grid-column:auto}
 .player-shell.stack-game .player-menu{order:2;width:min(100%,360px);grid-column:auto}
 .player-shell.stack-game .player-balance-spacer{display:none}
-.player-menu{display:grid;gap:14px;align-self:start;grid-column:1}
+.player-menu{display:grid;gap:14px;align-self:start;grid-column:1;width:min(100%,300px)}
 .player-menu.is-hidden{display:none}
-.player-stage{grid-column:2}
-.player-balance-spacer{grid-column:3;width:300px;min-height:1px}
+.player-stage{display:flex;justify-content:center;align-items:flex-start;grid-column:2;min-width:0}
+.player-balance-spacer{display:block;grid-column:3;width:300px;min-height:1px;visibility:hidden}
 .player-card{position:relative;background:linear-gradient(180deg,rgba(15,16,16,.98),rgba(7,8,8,.98));border:1px solid rgba(146,122,76,.44);box-shadow:0 0 0 1px rgba(36,38,37,.94) inset,0 0 0 2px rgba(10,11,11,.96),0 10px 22px rgba(0,0,0,.34);border-radius:2px;padding:14px 14px 12px;overflow:hidden}
 .player-card::before{content:'';position:absolute;inset:5px;pointer-events:none;border:1px solid rgba(166,151,117,.10)}
 .player-card::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 22%,rgba(0,0,0,.16) 88%,rgba(0,0,0,.28) 100%)}
@@ -154,29 +154,27 @@ body{display:block;min-height:100vh;padding:20px 12px}
           <div class="panel-head"><u><b>KEYBOARD / MOUSE</b></u><br></div>
           <div class="panel-line"><strong>ARROWS / WASD</strong> = MOVE</div>
           <div class="panel-line"><strong>SPACE / LEFT CLICK</strong> = ATTACK</div>
-          <div class="panel-line"><strong>ENTER / E</strong> = INTERACT WHEN THE <strong>E</strong> PROMPT APPEARS</div>
-          <div class="panel-line"><strong>ESC</strong> = PAUSE</div>
+          <div class="panel-line"><strong>ENTER / E</strong> = INTERACT</div>
+          <div class="panel-line"><strong>ESC</strong> = PAUSE GAME</div>
         </div>
         <div class="panel-rule"></div>
         <div class="panel-group">
           <div class="panel-head"><u><b>TOUCHSCREEN</b></u></div>
           <div class="panel-line"><strong>SWIPE / DRAG</strong> = MOVE</div>
           <div class="panel-line"><strong>TAP</strong> = ATTACK</div>
-          <div class="panel-line"><strong>TOP-RIGHT BUTTON</strong> = PAUSE / RESUME</div>
         </div>
         <div class="panel-rule"></div>
         <div class="panel-group">
           <div class="panel-head"><u><b>CHEST ROLLS</b></u></div>
-          <div class="panel-line note">Each chest can contain <strong>3 of 5</strong> upgrade choices.</div>
+          <div class="panel-line note">Each chest can contain <strong>3 of 4</strong> upgrade choices, or points.</div>
           <div class="panel-line heart"><strong>HEART</strong> — HEAL 1 HEART</div>
           <div class="panel-line sword"><strong>SWORD</strong> — BIGGER BLADE</div>
-          <div class="panel-line shield"><strong>MAGIC SHIELD</strong> — ABSORB 1 HIT, THEN BURSTS IN A SHOCKWAVE</div>
-          <div class="panel-line speed"><strong>SPEED</strong> — INCREASE SPEED</div>
+	  <div class="panel-line speed"><strong>SPEED</strong> — INCREASE SPEED</div>
+          <div class="panel-line shield"><strong>MAGIC SHIELD</strong> — ABSORB HIT & BURSTS IN SHOCKWAVE</div>
         </div>
         <div class="panel-rule"></div>
         <div class="panel-group">
-          <div class="panel-line note">Scoreboard is stored locally as a cookie.</div>
-          <div class="panel-line note">Clear cache to reset.</div>
+          <div class="panel-line note"><i>Scoreboard is stored locally as a cookie. Clear cache to reset.</i></div>
         </div>
       </div>
     </details>
@@ -200,7 +198,7 @@ body{display:block;min-height:100vh;padding:20px 12px}
     <div class="screen-wrap-holder" id="screenWrapHolder">
       <div class="screen-wrap" id="screenWrap">
         <canvas id="gameCanvas" width="240" height="240"></canvas>
-                <button type="button" class="touch-pause-btn hidden" id="touchPauseBtn" aria-label="Pause game">PAUSE</button>
+                <button type="button" class="touch-pause-btn hidden" id="touchPauseBtn" aria-label="Pause game">❚❚</button>
       </div>
     </div>
   </div>
@@ -524,8 +522,10 @@ function syncPlayerShellLayout(){
   const menuHidden = !playerMenu || playerMenu.classList.contains('is-hidden');
   const menuWidth = menuHidden ? 0 : Math.ceil(playerMenu.offsetWidth || 300);
   const holderWidth = Math.ceil(screenWrapHolder.offsetWidth || 0);
-  const available = Math.max(320, window.innerWidth - 40);
-  playerShell.classList.toggle('stack-game', menuHidden || available < (menuWidth + holderWidth + 44));
+  const shellParentWidth = Math.ceil((playerShell.parentElement && playerShell.parentElement.clientWidth) || window.innerWidth || 0);
+  const available = Math.max(320, shellParentWidth - 24);
+  const required = menuHidden ? holderWidth : (holderWidth + menuWidth + 300 + 44);
+  playerShell.classList.toggle('stack-game', menuHidden || available < required);
 }
 
 function syncPlayerMenuVisibility(){
@@ -881,14 +881,13 @@ function resumeGame(){
 }
 function syncTouchPauseBtn(){
   if(!touchPauseBtn) return;
-  const active=(gState==='playing' || gState==='paused');
-  const label=gState==='paused' ? 'RESUME' : 'PAUSE';
+  const active=touchUiAvailable && (gState==='playing' || gState==='paused');
   const aria=gState==='paused' ? 'Resume game' : 'Pause game';
-  const stateKey=(active?'1':'0')+'|'+label+'|'+aria;
+  const stateKey=(active?'1':'0')+'|'+aria;
   if(stateKey===lastTouchPauseUiState) return;
   lastTouchPauseUiState=stateKey;
   touchPauseBtn.classList.toggle('hidden', !active);
-  touchPauseBtn.textContent=label;
+  touchPauseBtn.textContent='❚❚';
   touchPauseBtn.setAttribute('aria-label', aria);
 }
 
@@ -916,6 +915,7 @@ let currentPlayerName=loadPlayerName()||'Player';
 let scoreboardEntries=loadScores();
 let scoreboardPage=0;
 let runStartMs=0, runSaved=false, runTimeMs=0, pauseStartedMs=0, runCompleted=false;
+let zone2KillStart=0;
 let introStartMs=0;
 let introPage=0;
 let introSeenThisPage=false;
@@ -933,7 +933,7 @@ const BREAKABLE_HALF_HEART_DROP_CHANCE=0.35;
 const ZONE1_CHEST_KILL_STEP=10;
 const ZONE2_CHEST_KILL_STEP=15;
 const ZONE2_FIRST_CHEST_DELAY=18;
-const DRAGON_BOSS_TRIGGER_KILLS=200;
+const DRAGON_BOSS_TRIGGER_KILLS=100;
 const ZONE3_CHEST_KILL_STEP=18;
 const ZONE3_FIRST_CHEST_DELAY=22;
 const ZONE3_KEY_KILLS=300;
@@ -955,6 +955,7 @@ const SECRET1_POOL_BLOCKERS=[];
 const SECRET1_POOL_WATER_RECT={x:GW/2-25,y:PY+25,w:50,h:20};
 const SECRET2_NPC_RECT={x:GW/2-18,y:PY+68,w:12,h:8};
 const SECRET2_SWORD_RECT={x:GW/2-6,y:PY+24,w:12,h:24};
+const SECRET2_RETURN_PORTAL_RECT={x:PX+PW-18,y:PY+70,w:12,h:12};
 const SECRET2_STONE_BLOCKERS=[
   {x:GW/2-5,y:PY+42,w:10,h:7},
 ];
@@ -1030,7 +1031,7 @@ function devAdvanceProgress(){
     return;
   }
   if(currentZone===2){
-    killCount=Math.max(killCount, DRAGON_BOSS_TRIGGER_KILLS);
+    killCount=Math.max(killCount, zone2KillStart + DRAGON_BOSS_TRIGGER_KILLS);
     nextGiantAt=Math.max(nextGiantAt, killCount+giantKillStep());
     chest=null; keyDrop=null;
     enemies=[]; pSpawns=[]; fireballs=[];
@@ -1177,7 +1178,7 @@ function syncDevKillThresholds(){
       if(!chest) spawnChest();
       nextChestAt=killCount+getChestKillStepForZone(currentZone);
     }
-    if(nextGiantAt<=killCount && killCount<getZoneKillTarget(currentZone)){
+    if(nextGiantAt<=killCount && getZoneProgressKills(currentZone)<getZoneKillTarget(currentZone)){
       nextGiantAt=killCount+giantKillStep();
     }
   }
@@ -1365,10 +1366,22 @@ function collidesZoneObstacles(x,y,w,h){
   if(currentZone===ZONE_SECRET2) return SECRET2_STONE_BLOCKERS.some(r=>ov(box,r));
   return false;
 }
-function getRankInfo(totalScore){
-  if(totalScore>=350) return {rank:'A', message:'Marvelous, Bonecrawler..', lines:['Marvelous, Bonecrawler..']};
-  if(totalScore>=300) return {rank:'B', message:'Decent work.', lines:['Decent work.']};
-  if(totalScore>=250) return {rank:'C', message:"You'll need some shapin' up if you work like that.", lines:["You'll need some shapin' up",'if you work like that.']};
+function getRankInfo(totalScore, fromZone=currentZone, nextZone=0){
+  let thresholds;
+
+  if(fromZone===1 && nextZone===2){
+    thresholds = {A:1200, B:1000, C:950};
+  } else if(fromZone===2 && nextZone===3){
+    thresholds = {A:1500, B:1300, C:1200};
+  } else if(fromZone===3 || nextZone===ZONE_SECRET2 || nextZone===-1){
+    thresholds = {A:2000, B:1800, C:1700};
+  } else {
+    thresholds = {A:1200, B:1000, C:950};
+  }
+
+  if(totalScore>=thresholds.A) return {rank:'A', message:'Marvelous, Bonecrawler..', lines:['Marvelous, Bonecrawler..']};
+  if(totalScore>=thresholds.B) return {rank:'B', message:'Decent work.', lines:['Decent work.']};
+  if(totalScore>=thresholds.C) return {rank:'C', message:"You'll need some shapin' up if you work like that.", lines:["You'll need some shapin' up",'if you work like that.']};
   return {rank:'D', message:"Hmm... still alive, I 'spose.", lines:['Hmm... still alive,',"I 'spose."]};
 }
 function isSecretZone(zone){
@@ -1384,7 +1397,7 @@ function getZoneLabel(zone){
 function buildZoneTransitionInfo(nextZone, opts={}){
   const fromZone=('fromZone' in opts) ? opts.fromZone : currentZone;
   const hideStats=('hideStats' in opts) ? !!opts.hideStats : (fromZone===ZONE_SECRET1 || nextZone===ZONE_SECRET1);
-  const rankInfo=getRankInfo(score);
+  const rankInfo=getRankInfo(score, fromZone, nextZone);
   return {
     nextZone,
     fromZone,
@@ -1439,8 +1452,13 @@ function getZoneKillTarget(zone=currentZone){
   return 0;
 }
 
+function getZoneProgressKills(zone=currentZone){
+  if(zone===2) return Math.max(0, killCount-zone2KillStart);
+  return killCount;
+}
+
 function ensureZoneMomentum(){
-  if(isSecretZone(currentZone) || killCount>=getZoneKillTarget(currentZone) || pSpawns.length>0) return;
+  if(isSecretZone(currentZone) || getZoneProgressKills(currentZone)>=getZoneKillTarget(currentZone) || pSpawns.length>0) return;
   const immediateDelay=Math.max(12, Math.floor(regularSpawnDelay()*0.55));
   if(score>=50 && score>=nextWizardScore && !enemies.some(e=>e.wizard)){
     qSpawn(immediateDelay, false, true);
@@ -1457,6 +1475,7 @@ function enterZone2(){
   dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false;
   bossClearTimer=0;
   parts=[];
+  zone2KillStart=killCount;
   nextChestAt=Math.max(nextChestAt, killCount + ZONE2_FIRST_CHEST_DELAY);
   const p=player;
   p.hasKey=false;
@@ -2151,7 +2170,7 @@ function handleEnemyDefeat(i,e,fromShockwave){
       spawnChest();
       nextChestAt+=getChestKillStepForZone(currentZone);
     }
-    if(killCount>=nextGiantAt && killCount<getZoneKillTarget(currentZone) && !isSecretZone(currentZone)){
+    if(killCount>=nextGiantAt && getZoneProgressKills(currentZone)<getZoneKillTarget(currentZone) && !isSecretZone(currentZone)){
       qSpawn(giantSpawnDelay(),true);
       nextGiantAt+=giantKillStep();
     }
@@ -2417,8 +2436,6 @@ document.addEventListener('keydown',e=>{
   keys[e.key]=true;
   if([' ','Enter','Escape','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
 
-  // Public release: remove that single script import near the top of the file.
-
   if(gState==='dialog'){
     if(e.key==='Enter' || e.key===' ' || e.key==='e' || e.key==='E') advanceDialog();
     else if(e.key==='Escape') advanceDialog();
@@ -2550,9 +2567,12 @@ if(touchPauseBtn){
     if(gState==='playing') pauseGame();
     else if(gState==='paused') resumeGame();
   };
-  if(window.PointerEvent) touchPauseBtn.addEventListener('pointerdown', onTouchPausePress);
-  else touchPauseBtn.addEventListener('touchstart', onTouchPausePress, {passive:false});
-  touchPauseBtn.addEventListener('click', onTouchPausePress);
+  if(touchUiAvailable){
+    if(window.PointerEvent) touchPauseBtn.addEventListener('pointerdown', onTouchPausePress);
+    else touchPauseBtn.addEventListener('touchstart', onTouchPausePress, {passive:false});
+  } else {
+    touchPauseBtn.addEventListener('click', onTouchPausePress);
+  }
 }
 
 canvas.addEventListener('click',e=>{
@@ -2643,13 +2663,13 @@ function update(){
         doSpawn(g, wiz);
       }
     }
-    if(currentZone===2 && killCount>=DRAGON_BOSS_TRIGGER_KILLS && !dragonBoss && !bossDefeated){
+    if(currentZone===2 && getZoneProgressKills(2)>=DRAGON_BOSS_TRIGGER_KILLS && !dragonBoss && !bossDefeated){
       spawnDragonBoss();
     }
     if(currentZone===3 && killCount>=ZONE3_BOSS_TRIGGER_KILLS && enemies.length===0 && pSpawns.length===0 && !shadowBoss && !shadowBossDefeated){
       spawnShadowBoss();
     }
-    if(!dragonBoss && !shadowBoss && killCount<getZoneKillTarget(currentZone) && enemies.length<maxEnemies()&&pSpawns.length===0){
+    if(!dragonBoss && !shadowBoss && getZoneProgressKills(currentZone)<getZoneKillTarget(currentZone) && enemies.length<maxEnemies()&&pSpawns.length===0){
       // Wizard Skeleton spawns once score reaches 50, then every 35 score after
       if(score>=50 && score>=nextWizardScore && !enemies.some(e=>e.wizard)){
         qSpawn(regularSpawnDelay(), false, true);
@@ -2767,6 +2787,11 @@ function update(){
       openZoneTransition(2,{secret:true,fromZone:ZONE_SECRET1});
       return;
     }
+  }
+
+  if(currentZone===ZONE_SECRET2 && ov({x:p.x,y:p.y,w:p.w,h:p.h}, SECRET2_RETURN_PORTAL_RECT)){
+    finishRunVictory();
+    return;
   }
 
   // Chest collision → pause for upgrade
@@ -3553,6 +3578,32 @@ function drawDungeonSecret2(){
   fr(nx+6,ny+4,1,2,C.BN3);
   fr(nx+4,ny+1,1,1,C.BLD);
 
+  // return portal - easter egg exit back to the main menu
+  const rx=SECRET2_RETURN_PORTAL_RECT.x, ry=SECRET2_RETURN_PORTAL_RECT.y;
+  const pulse=0.20 + 0.08*Math.sin(frame*0.12);
+  ctx.globalAlpha=pulse;
+  fr(rx-2,ry-2,SECRET2_RETURN_PORTAL_RECT.w+4,SECRET2_RETURN_PORTAL_RECT.h+4,C.MG2);
+  ctx.globalAlpha=0.28 + 0.08*Math.sin(frame*0.15+1.1);
+  fr(rx-1,ry-1,SECRET2_RETURN_PORTAL_RECT.w+2,SECRET2_RETURN_PORTAL_RECT.h+2,C.SH);
+  ctx.globalAlpha=1;
+
+  // stone base / frame
+  fr(rx+1,ry+1,10,10,'#36414b');
+  fr(rx+2,ry+2,8,8,'#101923');
+
+  // glowing portal interior
+  fr(rx+3,ry+3,6,6,'#1f3c63');
+  fr(rx+4,ry+4,4,4,'#4ea2ff');
+  fr(rx+5 + Math.round(Math.sin(frame*0.09)),ry+5,1,1,'#d8f6ff');
+  fr(rx+6 + Math.round(Math.cos(frame*0.11)),ry+6,1,1,C.MG2);
+
+  // tiny orbit sparks
+  if(Math.floor(frame/10)%2===0){
+    fr(rx+2,ry,1,1,'#9fd8ff');
+    fr(rx+10,ry+2,1,1,'#bde9ff');
+    fr(rx+1,ry+10,1,1,C.MG2);
+  }
+
   fr(PX-1,PY-1,PW+2,1,C.WH);
   fr(PX-1,PY-1,1,PH+2,C.WH);
   fr(PX-1,PY+PH,PW+2,1,'#23313d');
@@ -4194,6 +4245,7 @@ function drawZoneFrontOverlays(){
 // ── Main render dispatch ──────────────────────────────────────
 function render(){
   syncMenuCredit();
+  syncTouchPauseBtn();
   if(gState==='title'){rTitle();return;}
   if(gState==='help'){rHelp();return;}
   if(gState==='intro'){rIntro();return;}
