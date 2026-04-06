@@ -1,7 +1,7 @@
 # BoneCrawler
 Dark Fantasy Survival action game made in HTML canvas with JavaScript that runs in your browser.<br>Kill skeletons, get a high score and survive the dungeon!<br><br>
 Playable online @<br>
-<i><a href="bonecrawler.com">bonecrawler.com</a><br>
+<i><a href="https://bonecrawler.com" target="_blank">bonecrawler.com</a><br>
 or<br>
 <a href="immagundam.github.io/BoneCrawler">immagundam.github.io/BoneCrawler</a><br></i>
 
