@@ -1,5 +1,5 @@
 # BoneCrawler
-Dark Fantasy Survival action game made in HTML canvas with JavaScript that runs in your browser.<br>Kill skeletons, get a high score and survive the dungeon!<br><br>
+Dark Fantasy Arcade-Survival Action Game made in HTML5 canvas with vanilla JavaScript that runs in your browser.<br>Kill skeletons, get a high score and survive the dungeon!<br><br>
 Playable online @<br>
 <i><a href="https://bonecrawler.com" target="_blank">bonecrawler.com</a><br>
 or<br>
@@ -19,9 +19,15 @@ Chests drop Upgrades! Plan your upgrades carefully so you don't get overwhelmed!
 - Dodge waves of skeletons that hone in and attack you.
 - Clear zones to earn points! Each Zone will Rank you!
 
+
+
 <img width="auto" height="250" alt="Screenshot 2026-04-05 215322" src="https://github.com/user-attachments/assets/23588fad-4399-4b44-aa35-48a5f80efe73" />
 
-- Chests will allow you to pick 1 option of 3 randomly dropped upgrades, or points. They appear every 10 skeletons beat.<br>
+
+<img width="auto" height="250" alt="score1" src="https://github.com/user-attachments/assets/075b5e88-b225-4efa-a24f-c6426413c8dc" />
+
+
+- Chests will allow you to pick 1 option of 4 randomly dropped upgrades, or points. They appear every 10 skeletons beat.<br>
   - Heal - Restore 1 Heart - Max at 5
   - Bigger Sword - Upgrade sword - Unlimited
   - Magic Shield - Creates a damaging shockwave on contact - shockwaves Stack
@@ -92,4 +98,6 @@ Tab = Attack<br>
 <i>- This game is made to be difficult. Everything is still a Work In Progress -</i><br>
 Thank you for playing!<br>
 
+### <i>Warning:<br>
+Game contains: undead enemies, dark fantasy themes & atmosphere, a scary dragon, depictions of violence and the belief of magic. There's also a pixel guy who might be dead.</i>
 ##### <i>You may NOT redistribute, reupload, mirror, or host this Software, in whole or in part, on any website, platform, or service without explicit written permission from the copyright holder.</i>
