@@ -1,4 +1,5 @@
 # BoneCrawler
+
 Dark Fantasy Arcade-Survival Action Game made in HTML5 canvas with vanilla JavaScript that runs in your browser.<br>Kill skeletons, get a high score and survive the dungeon!<br><br>
 Playable online @<br>
 <i><a href="https://bonecrawler.com" target="_blank">bonecrawler.com</a><br>
@@ -8,6 +9,7 @@ or<br>
 ## Welcome, initiate. We have a task for you.<br>
 The king requests our services again. Complete this job and you'll earn your stay.
 
+<div align="center">
 <img width="auto" height="300" src="https://github.com/user-attachments/assets/5a9bad07-ab0d-45d8-b14d-bcf7da8ff028" /><br>
 <img width="auto" height="300" src="https://github.com/user-attachments/assets/9363ef25-60d9-43bc-b15b-b0902df9d971" /><br>
 
@@ -15,14 +17,14 @@ Chests drop Upgrades! Plan your upgrades carefully so you don't get overwhelmed!
 
 <img width="auto" height="200" src="https://github.com/user-attachments/assets/e391be6d-dcaa-4ce0-a846-b4c9ed4d6fce" />
 <img width="auto" height="300" alt="image" src="https://github.com/user-attachments/assets/5eae93e6-7d48-447f-a75a-85ee1eec7b2c" />
-
+</div>
 
 ## How to Play
 - Dodge waves of skeletons that hone in and attack you.
 - Clear zones to earn points! Each Zone will Rank you!
 - There are 3 zones, 2 secret rooms, 3 bosses and a tiny fantasy dungeon to explore and discover secrets.<br><br>
 Gameplay is made for short runs (5-10 minutes). Die a few times in a few minutes and try again later, or keep dying for a few hours in a "one more try" loop.<br>
-
+<div align="center">
 ### <b><u><i>You got this, Bonecrawler.</i></b></u><br><br>
 <img width="auto" height="300" alt="death" src="https://github.com/user-attachments/assets/e746a6d8-43c8-41d3-b0c0-fe0a8ca3a56c" />
 
@@ -31,10 +33,8 @@ Gameplay is made for short runs (5-10 minutes). Die a few times in a few minutes
 <img width="auto" height="250" alt="Screenshot 2026-04-05 215322" src="https://github.com/user-attachments/assets/23588fad-4399-4b44-aa35-48a5f80efe73" />
 
 <img width="auto" height="250" alt="score1" src="https://github.com/user-attachments/assets/075b5e88-b225-4efa-a24f-c6426413c8dc" />
+</div>
 
-<img width="303" height="650" alt="image" src="https://github.com/user-attachments/assets/ee142ff1-29a4-42b5-952e-9add24a25ba9" /><br>
-
-<img width="303" height="650" src="https://github.com/user-attachments/assets/aac597fc-9d92-4bf3-9e5a-46500586418c" />
 
 ### Enemies
     - Normal skeletons: defeated in 1 hit (1 point)
@@ -88,25 +88,23 @@ Boss Spawn - Zone 3 - Corrupted:<br>
 Secret Zone 2:<br>
 - 999 score<br>
 - reached from Zone 3 door after boss + key<br>
+      <br>
+In main menu, enter "immagundam" to enable god mode.<br>
+      God/Dev mode:<br>
+- Infinite health<br>
+- Infinite Shield (no shockwave, because it doesn't break)<br>
+- 1 hit = 5 dmg (bosses = 2 hits)<br>
 </details>
 
 ## Controls
-<u><b>Keyboard & Mouse:</b></u><br>
-WASD or Arrow keys = Movement<br>
-Spacebar or Left Click = Attack<br>
-ESC = Pause<br>
-E = Interact<br><br>
-<u><b>Touchscreen:</b></u><br>
-Swipe / Drag = Movement<br>
-Tab = Attack<br>
 
-## About
-
-<i>- This game is made to be difficult. Everything is still a Work In Progress -</i><br>
-Thank you for playing!<br>
-
+<div align="center">
+<img width="303" height="650" alt="image" src="https://github.com/user-attachments/assets/ee142ff1-29a4-42b5-952e-9add24a25ba9" /><br>
+</div>
 ### <i>Warning:<br>
 Game contains: undead enemies, dark fantasy themes & atmosphere, a scary dragon, depictions of violence and the belief of magic. There's also a pixel guy who might be dead.</i>
+<i>- This game is made to be difficult. Everything is still a Work In Progress -</i><br>
+Thank you for playing!<br>
 
 <hr>
 
@@ -131,6 +129,7 @@ Game contains: undead enemies, dark fantasy themes & atmosphere, a scary dragon,
   </p>
 
   <p><strong>Thank you for helping keep indie development going.</strong></p>
+  <img width="auto" height="300" src="https://github.com/user-attachments/assets/aac597fc-9d92-4bf3-9e5a-46500586418c" /><br>
 </div>
 
 ##### <i>You may NOT redistribute, reupload, mirror, or host this Software, in whole or in part, on any website, platform, or service without explicit written permission from the copyright holder.</i>
