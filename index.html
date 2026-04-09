@@ -1,4 +1,4 @@
-<!-- BoneCrawler.com - version 2.3.1 -->
+<!-- BoneCrawler.com - version 2.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,9 +93,9 @@ body{display:block;min-height:100vh;padding:20px 12px}
 .player-shell.stack-game .player-stage{order:1;width:100%;justify-content:center;grid-column:auto}
 .player-shell.stack-game .player-menu{order:2;width:min(100%,360px);grid-column:auto}
 .player-shell.stack-game .player-balance-spacer{display:none}
-.player-menu{display:grid;gap:14px;align-self:start;grid-column:1;width:min(100%,300px)}
+.player-menu{display:grid;gap:14px;align-self:start;grid-column:1;width:min(100%,300px);position:relative;z-index:2}
 .player-menu.is-hidden{display:none}
-.player-stage{display:flex;justify-content:center;align-items:flex-start;grid-column:2;min-width:0}
+.player-stage{display:flex;justify-content:center;align-items:flex-start;grid-column:2;min-width:0;position:relative;z-index:0;isolation:isolate}
 .player-balance-spacer{display:block;grid-column:3;width:300px;min-height:1px;visibility:hidden}
 .player-card{position:relative;background:linear-gradient(180deg,rgba(15,16,16,.98),rgba(7,8,8,.98));border:1px solid rgba(146,122,76,.44);box-shadow:0 0 0 1px rgba(36,38,37,.94) inset,0 0 0 2px rgba(10,11,11,.96),0 10px 22px rgba(0,0,0,.34);border-radius:2px;padding:14px 14px 12px;overflow:hidden}
 .player-card::before{content:'';position:absolute;inset:5px;pointer-events:none;border:1px solid rgba(166,151,117,.10)}
@@ -156,6 +156,7 @@ body{display:block;min-height:100vh;padding:20px 12px}
           <div class="panel-line"><strong>SPACE / LEFT CLICK</strong> = ATTACK</div>
           <div class="panel-line"><strong>ENTER / E</strong> = INTERACT</div>
           <div class="panel-line"><strong>ESC</strong> = PAUSE GAME</div>
+          <div class="panel-line"><strong>DODGE</strong> — SHIFT</div>
         </div>
         <div class="panel-rule"></div>
         <div class="panel-group">
@@ -166,15 +167,22 @@ body{display:block;min-height:100vh;padding:20px 12px}
         <div class="panel-rule"></div>
         <div class="panel-group">
           <div class="panel-head"><u><b>CHEST ROLLS</b></u></div>
-          <div class="panel-line note">Each chest can contain <strong>3 of 4</strong> upgrade choices, or points.</div>
-          <div class="panel-line heart"><strong>HEART</strong> — HEAL 1 HEART</div>
+          <div class="panel-line note">Each chest contains <strong>3 random upgrades</strong>, a Heart or Points. Upgrades stack. Pick Wisely!</div>
+          <div class="panel-line heart"><strong>HEART</strong> — HEAL 1 HEART [MAX 5]</div>
           <div class="panel-line sword"><strong>SWORD</strong> — BIGGER BLADE</div>
 	  <div class="panel-line speed"><strong>SPEED</strong> — INCREASE SPEED</div>
           <div class="panel-line shield"><strong>MAGIC SHIELD</strong> — ABSORB HIT & BURSTS IN SHOCKWAVE</div>
+          <div class="panel-line speed"><strong>STEP</strong> — IMPROVE DODGE</div>
         </div>
         <div class="panel-rule"></div>
         <div class="panel-group">
-          <div class="panel-line note"><i>Scoreboard is stored locally as a cookie. Clear cache to reset.</i></div>
+          <div class="panel-head">The world has secrets. Find them. <i>(Try looking for breakable objects)</i></div>
+          <div class="panel-line heart"><strong>HALF HEART</strong> — SMALL HEAL (rare drop)</div>
+          <div class="panel-line"><strong>HEALTH POTION</strong> — HEALS 1 FULL HEART</div>
+        </div>
+        <div class="panel-rule"></div>
+        <div class="panel-group">
+          <div class="panel-line note"><i>Scoreboard is stored locally as a cookie. Clear cache to reset.</i><br><br>If you find the game too difficult, type "immagundam" for player-name to become invincible.</div>
         </div>
       </div>
     </details>
@@ -476,6 +484,42 @@ skeClassicA:[
     [0,8,8,8,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0],
   ],
+  whirlwindIcon:[
+    [0,0,15,4,15,0,0],
+    [0,15,4,0,4,15,0],
+    [15,4,0,15,0,4,15],
+    [4,0,15,4,15,0,4],
+    [15,4,0,15,0,4,15],
+    [0,15,4,0,4,15,0],
+    [0,0,15,4,15,0,0],
+  ],
+  stepIcon:[
+    [0,0,4,4,0,0,0],
+    [0,4,5,5,4,0,0],
+    [0,0,4,5,0,0,0],
+    [0,4,5,5,4,0,0],
+    [4,0,5,0,4,0,0],
+    [0,4,0,4,0,4,0],
+    [0,0,0,0,0,0,0],
+  ],
+  shadowStepIcon:[
+    [0,15,4,4,15,0,0],
+    [15,4,5,5,4,15,0],
+    [0,15,4,5,15,0,0],
+    [15,4,5,5,4,15,0],
+    [4,0,5,0,4,0,15],
+    [0,4,0,4,0,15,0],
+    [0,0,15,0,15,0,0],
+  ],
+  potionIcon:[
+    [0,0,12,12,0,0,0],
+    [0,12,1,1,12,0,0],
+    [0,12,18,18,12,0,0],
+    [12,18,18,18,18,12,0],
+    [12,18,17,17,18,12,0],
+    [0,12,18,18,12,0,0],
+    [0,0,12,12,0,0,0],
+  ],
 };
 
 // ── Bone decals (deterministic) ──────────────────────────────
@@ -564,8 +608,11 @@ if(zoomBtns.length){
 }
 window.addEventListener('resize', ()=>{ syncDisplayZoomLayout(); syncPlayerMenuVisibility(); syncPlayerShellLayout(); });
 setDisplayZoom(savedDisplayZoom, false);
+syncDisplayZoomLayout();
 syncPlayerMenuVisibility();
 syncPlayerShellLayout();
+// Force synchronous layout pass so panels never overlap game on initial paint
+requestAnimationFrame(()=>{ syncDisplayZoomLayout(); syncPlayerShellLayout(); });
 panelDismiss.addEventListener('click', (ev)=>{
   ev.preventDefault();
   ev.stopPropagation();
@@ -707,6 +754,23 @@ function atkBox(e,reach){
 const PLAYER_BASE_SPEED = 0.26;
 const SPEED_UP_STEP = 0.12;
 const MAX_PLAYER_SPEED = 0.94;
+const MASTER_SWORD_START_LEVEL = 4;
+const MASTER_SWORD_START_REACH = 35;
+const MASTER_SWORD_DISPLAY_RANGE = 5;
+const MASTER_SWORD_START_WIDTH = 1;
+const MASTER_SWORD_START_HEART_SLOTS = 5;
+const STEP_BASE_DISTANCE = 10;
+const STEP_SHADOW_BASE_DISTANCE = 14;
+const STEP_DISTANCE_PER_UPGRADE = 2;
+const STEP_BASE_COOLDOWN_FRAMES = 5*60;
+const STEP_SHADOW_BASE_COOLDOWN_FRAMES = 4*60;
+const STEP_COOLDOWN_REDUCTION_PER_UPGRADE = 45;
+const STEP_MIN_COOLDOWN_FRAMES = 90;
+const SHADOW_STEP_INVULN_FRAMES = 12;
+const POTION_DROP_CHANCE = 0.04;
+const POTION_MAX_COUNT = 1;
+const POTION_ITEM_TTL_FRAMES = 8*60;
+const POTION_ITEM_FADE_FRAMES = 2*60;
 const UPGRADE_SLOT_YS=[37,58,79];
 const POINT_REWARD_WEIGHTS=[
   {points:5,weight:25},
@@ -723,6 +787,7 @@ const UPGRADE_POOL=[
   {type:'sword',label:'SWORD',sub:'BIGGER BLADE',border:C.SI2,text:C.BN1,icon:'upSword'},
   {type:'shield',label:'MAGIC SHIELD',sub:'ABSORB HIT + SHOCKWAVE',border:C.SH2,text:C.SH,icon:'shieldIcon',labelFs:6,subFs:4},
   {type:'speed',label:'SPEED',sub:'INCREASE SPEED',border:C.FR2,text:C.FR1,icon:'upSpeed'},
+  {type:'shadowstep',label:'SHADOW STEP',sub:'IMPROVE DODGE',border:'#7a74f5',text:'#d8d3ff',icon:'shadowStepIcon',labelFs:5,subFs:4},
   {type:'points',label:'POINTS',sub:'BONUS SCORE',border:C.FR1,text:C.BN1,icon:'pointsIcon'},
 ];
 let currentUpgradeBtns=[];
@@ -820,6 +885,47 @@ const ZONE2_TREE_BLOCKERS=[
   {x:GW/2-23,y:PY+53,w:13,h:6},
   {x:GW/2+10,y:PY+53,w:13,h:6},
 ];
+const ZONE1_EXTRA_BLOCKERS=[
+  {x:PX+9,y:PY+PH-16,w:8,h:6},   // broken weapon rack
+  {x:PX+19,y:PY+PH-18,w:7,h:10}, // training dummy
+];
+
+const ZONE2_HOLE_BLOCKERS=[
+  {x:PX+15,y:PY+PH-24,w:4,h:4},
+  {x:PX+PW-27,y:PY+PH-25,w:4,h:4},
+];
+const ZONE2_DECOR_BREAK_RECTS=[
+  // back-wall bookshelves sitting in the grass
+  {x:GW/2-14,y:PY+7,w:6,h:17},
+  {x:GW/2-6,y:PY+7,w:6,h:17},
+  {x:GW/2+2,y:PY+7,w:6,h:17},
+  {x:GW/2+10,y:PY+7,w:6,h:17},
+  // grassy upper-right clutter
+  {x:PX+PW-30,y:PY+12,w:7,h:7},
+  {x:PX+PW-22,y:PY+10,w:6,h:8},
+  {x:PX+PW-14,y:PY+12,w:6,h:8},
+  // side and pocket bookshelves tucked into the back wall
+  {x:PX+6,y:PY+7,w:6,h:17},
+  {x:PX+14,y:PY+7,w:6,h:17},
+  {x:PX+PW-20,y:PY+7,w:6,h:17},
+  {x:PX+PW-12,y:PY+7,w:6,h:17},
+];
+const ZONE2_DECOR_BLOCKERS=[
+  // bookshelf bases only, so upper shelves still feel against the wall
+  {x:GW/2-14,y:PY+18,w:6,h:6},
+  {x:GW/2-6,y:PY+18,w:6,h:6},
+  {x:GW/2+2,y:PY+18,w:6,h:6},
+  {x:GW/2+10,y:PY+18,w:6,h:6},
+  // grassy corner clutter
+  {x:PX+PW-30,y:PY+12,w:7,h:7},
+  {x:PX+PW-22,y:PY+10,w:6,h:8},
+  {x:PX+PW-14,y:PY+12,w:6,h:8},
+  // side and pocket shelf bases
+  {x:PX+6,y:PY+18,w:6,h:6},
+  {x:PX+14,y:PY+18,w:6,h:6},
+  {x:PX+PW-20,y:PY+18,w:6,h:6},
+  {x:PX+PW-12,y:PY+18,w:6,h:6},
+];
 const SCORE_PAGE_SIZE=6;
 const SCOREBOARD_KEY='boneCrawlerScoreboard_v1';
 const PLAYERNAME_KEY='boneCrawlerPlayerName_v1';
@@ -859,7 +965,7 @@ function pointInBtn(mx,my,btn){
   return mx>=btn.x&&mx<=btn.x+btn.w&&my>=btn.y&&my<=btn.y+btn.h;
 }
 function clearGameplayKeys(){
-  const reset=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','a','A','s','S','d','D','w','W',' '];
+  const reset=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','a','A','s','S','d','D','w','W',' ','Shift','p','P'];
   for(const k of reset) keys[k]=false;
   prevSpc=false;
   mouseAttackQueued=false;
@@ -895,23 +1001,25 @@ function syncTouchPauseBtn(){
 
 // ── Game state ────────────────────────────────────────────────
 const ZONE_TRANSITION_CONTINUE_BTN={x:35,y:99,w:50,h:10};
-const RETRY_CONFIRM_YES_BTN={x:24,y:98,w:28,h:10};
-const RETRY_CONFIRM_NO_BTN={x:68,y:98,w:28,h:10};
-const RETRY_CONFIRM_EASYMODE_BOX={x:24,y:83,w:6,h:6};
+const RETRY_CONFIRM_YES_BTN={x:24,y:92,w:28,h:10};
+const RETRY_CONFIRM_NO_BTN={x:68,y:92,w:28,h:10};
+const SECRET2_SWORD_CONFIRM_YES_BTN={x:24,y:92,w:28,h:10};
+const SECRET2_SWORD_CONFIRM_NO_BTN={x:68,y:92,w:28,h:10};
 const RETRY_POINT_SACRIFICE=0.30;
 const WHIRLWIND_HOLD_FRAMES=24;
 const WHIRLWIND_COOLDOWN_FRAMES=5*60;
 
 let gState='title';
 let player, enemies, parts, pSpawns, frame, score, prevSpc;
-let killCount, nextChestAt, nextGiantAt, chest, floatTexts, heartDrops, shockwaves, keyDrop, currentZone;
-let zone1Broken, zone1Rubble, zone3Broken;
+let killCount, nextChestAt, nextGiantAt, chest, floatTexts, heartDrops, potionDrops, shockwaves, keyDrop, currentZone;
+let zone1Broken, zone1Rubble, zone2Broken, zone3Broken;
 let fireballs, nextWizardScore;
 let normalKillCount=0, giantKillCount=0, wizardKillCount=0;
+let zone3TreeHits=0, zone3TreeShakeT=0, zone3TreeAwake=false, zone3TreeMet=false;
 let pendingZoneTransition=0;
 let zoneTransitionInfo=null;
-let dragonBoss=null, dragonFlames=[], dragonSwipe=null, bossDefeated=false;
-let shadowBoss=null, shadowWaves=[], shadowBossDefeated=false;
+let dragonBoss=null, dragonFlames=[], dragonSwipe=null, bossDefeated=false, zone1MiniBossDefeated=false, pendingZone1DragonSpawn=false;
+let shadowBoss=null, shadowWaves=[], shadowBossDefeated=false, shadowWizardRespawns=[];
 let bossClearTimer=0;
 let secret1BlessingT=0;
 let secret2NpcMet=false;
@@ -934,43 +1042,47 @@ let touchMoveActive=false;
 let touchStartX=0, touchStartY=0, touchX=0, touchY=0, touchStartTime=0;
 let touchIdentifier=null;
 let devGodMode=false;
-let zone1DoorKeyDropped=false;
-let zone1SecretKeyDropped=false;
 let retryCheckpoint=null;
 let retryTaxPaid=false;
 let retryPromptMode='';
-let retryEasyModeChecked=false;
-let easyModeShieldT=0;
-let easyModeShieldRestore=false;
 let secret1UnlockAlertShown=false;
 let secret1UnlockAlertT=0;
 let startupDialogPending=false;
 let newGamePlus=false;
 let masterSwordOwned=false;
 let whirlwindUnlocked=false;
+let masterSwordDialogSeen=false;
+let whirlwindLearnDialogSeen=false;
+let pendingRewardDialogs=[];
 let whirlwindChargeT=0;
 let whirlwindCooldownT=0;
 let whirlwindSlashT=0;
+let dodgeCooldownT=0;
+let potionCount=0;
+let potionDialogSeenThisRun=false;
 const DEV_GOD_SPEED_MULT=1.85;
 
 const ITEM_TTL_FRAMES=15*60;
 const ITEM_FADE_FRAMES=5*60;
-const BREAKABLE_HALF_HEART_DROP_CHANCE=0.35;
+const BREAKABLE_HALF_HEART_DROP_CHANCE=0.10;
+const ZONE3_TREE_HITS_TO_WAKE=5;
 const ZONE1_CHEST_KILL_STEP=10;
 const ZONE2_CHEST_KILL_STEP=15;
 const ZONE2_FIRST_CHEST_DELAY=18;
-const DRAGON_BOSS_TRIGGER_KILLS=100;
-const ZONE1_DOOR_KEY_KILLS=50;
+const ZONE1_ZONE2_KEY_KILLS=50;
 const ZONE1_SECRET_KEY_KILLS=150;
-const ZONE1_BONE_DRAGON_KILLS=300;
+const ZONE1_DRAGON_MINIBOSS_KILLS=300;
+const ZONE1_DRAGON_PHASE_HITS=10;
+const ZONE2_KEY_KILLS=50;
+const DRAGON_BOSS_TRIGGER_KILLS=100;
 const ZONE3_CHEST_KILL_STEP=18;
 const ZONE3_FIRST_CHEST_DELAY=22;
 const ZONE3_KEY_KILLS=300;
-const ZONE3_BOSS_TRIGGER_KILLS=400;
-const EASY_MODE_SHIELD_FRAMES=20*60;
+const ZONE3_BOSS_TRIGGER_KILLS=ZONE3_KEY_KILLS;
 const SHADOW_PHASE_HITS=10;
 const SHADOW_HOWL_FRAMES=180;
 const SHADOW_WAVE_INTERVAL=18;
+const CRAWLER_WIZARD_RESPAWN_FRAMES=4*60;
 const ZONE_SECRET1=101;
 const ZONE_SECRET2=102;
 const SECRET2_SCORE_REQ=999;
@@ -979,12 +1091,14 @@ const ZONE3_DOOR_RECT={x:GW/2-5,y:PY-2,w:10,h:10};
 const SECRET1_ENTRANCE_RECT={x:PX+3,y:PY+24,w:4,h:10};
 const SECRET1_EXIT_DOOR_RECT={x:GW/2-5,y:PY-2,w:10,h:10};
 function zone1SecretEntranceReady(){
-  return currentZone===1 && !!player && !!player.hasSecret1Key;
+  return currentZone===1 && !!player && !!player.secret1Key && !hasKeyDropKind('secret1') && enemies.length===0 && pSpawns.length===0;
 }
 const SECRET1_POOL_BLOCKERS=[];
 const SECRET1_POOL_WATER_RECT={x:GW/2-25,y:PY+25,w:50,h:20};
 const SECRET2_NPC_RECT={x:GW/2-18,y:PY+68,w:12,h:8};
 const SECRET2_SWORD_RECT={x:GW/2-6,y:PY+24,w:12,h:24};
+const ZONE3_TREE_RECT={x:PX+13,y:PY+PH-28,w:16,h:22};
+const ZONE3_TREE_INTERACT_RECT={x:PX+8,y:PY+PH-26,w:22,h:18};
 const SECRET2_RETURN_PORTAL_RECT={x:PX+PW-18,y:PY+70,w:12,h:12};
 const SECRET2_STONE_BLOCKERS=[
   {x:GW/2-5,y:PY+42,w:10,h:7},
@@ -992,25 +1106,29 @@ const SECRET2_STONE_BLOCKERS=[
 function isSecret1WaterZone(box){
   return !!box && ov(box, SECRET1_POOL_WATER_RECT);
 }
-const ZONE3_TREE_BLOCKERS=[
-  // broken half-tree moved into the bottom-left corner
-  {x:PX+11,y:PY+PH-24,w:10,h:14},
-  {x:PX+7,y:PY+PH-12,w:18,h:7},
 
-  // second dead tree pushed into the left wall with exposed root mass
-  {x:PX+1,y:PY+PH-31,w:8,h:15},
-  {x:PX,y:PY+PH-18,w:12,h:7},
+const ZONE3_TREE_BLOCKERS=[
+  {x:PX+15,y:PY+PH-20,w:12,h:10},
+  {x:PX+10,y:PY+PH-12,w:20,h:7},
+];
+const ZONE3_EXTRA_BLOCKERS=[
+  {x:PX+PW-18,y:PY+PH-11,w:7,h:7},
 ];
 const ZONE3_DECOR_BREAK_RECTS=[
   {x:PX+2,y:PY+22,w:6,h:17},
   {x:PX+PW-8,y:PY+20,w:6,h:17},
   {x:GW/2-7,y:PY+35,w:15,h:13},
+  {x:PX+PW-25,y:PY+PH-13,w:6,h:8},
+  {x:PX+PW-10,y:PY+PH-12,w:6,h:8},
 ];
 const ZONE3_DECOR_BLOCKERS=[
   {x:PX+2,y:PY+33,w:6,h:6},
   {x:PX+PW-8,y:PY+31,w:6,h:6},
   {x:GW/2-6,y:PY+41,w:12,h:8},
+  {x:PX+PW-25,y:PY+PH-13,w:6,h:8},
+  {x:PX+PW-10,y:PY+PH-12,w:6,h:8},
   ...ZONE3_TREE_BLOCKERS,
+  ...ZONE3_EXTRA_BLOCKERS,
 ];
 const DRAGON_PHASE_HITS=20;
 const DRAGON_SUMMON_INTERVAL=7*60;
@@ -1043,6 +1161,34 @@ function toggleDevGodMode(){
   setDevGodMode(!devGodMode);
 }
 
+function isGodName(name=currentPlayerName){
+  const clean=String(name||'').trim().toLowerCase();
+  return clean==='immagundam';
+}
+function syncNameGodMode(){
+  const shouldEnable=isGodName(currentPlayerName);
+  if(shouldEnable!==!!devGodMode) setDevGodMode(shouldEnable);
+}
+function getKeyDropList(){
+  if(!keyDrop) return [];
+  if(Array.isArray(keyDrop)) return keyDrop;
+  keyDrop=[keyDrop];
+  return keyDrop;
+}
+function hasAnyKeyDrop(){
+  return getKeyDropList().length>0;
+}
+function hasKeyDropKind(kind){
+  return getKeyDropList().some(drop=>drop && drop.kind===kind);
+}
+function clearKeyDrops(){
+  keyDrop=[];
+}
+function playerHasAnyKey(p=player){
+  if(!p) return false;
+  return !!(p.hasKey || p.zone1DoorKey || p.secret1Key || p.zone2Key);
+}
+
 function devSpawnChestAtPlayer(){
   if(!player || gState!=='playing') return;
   const x=Math.max(PX+2, Math.min(PX+PW-10, Math.floor(player.x+player.w/2-4)));
@@ -1054,8 +1200,8 @@ function devSpawnChestAtPlayer(){
 function devAdvanceProgress(){
   if(!player || gState!=='playing') return;
   if(currentZone===1){
-    player.hasZone2Key=true;
-    keyDrop=null;
+    player.zone1DoorKey=true;
+    clearKeyDrops();
     openZoneTransition(2);
     pushDevFloat('SKIP TO ZONE 2', C.GR);
     return;
@@ -1063,7 +1209,7 @@ function devAdvanceProgress(){
   if(currentZone===2){
     killCount=Math.max(killCount, zone2KillStart + DRAGON_BOSS_TRIGGER_KILLS);
     nextGiantAt=Math.max(nextGiantAt, killCount+giantKillStep());
-    chest=null; keyDrop=null;
+    chest=null; clearKeyDrops();
     enemies=[]; pSpawns=[]; fireballs=[];
     dragonFlames=[]; dragonSwipe=null;
     spawnDragonBoss();
@@ -1077,9 +1223,9 @@ function devAdvanceProgress(){
   }
   if(currentZone===3){
     killCount=Math.max(killCount, ZONE3_BOSS_TRIGGER_KILLS);
-    chest=null; keyDrop=null;
+    chest=null; clearKeyDrops();
     enemies=[]; pSpawns=[]; fireballs=[];
-    shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false;
+    shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
     spawnShadowBoss();
     if(shadowBoss){
       player.x=GW/2-4;
@@ -1114,7 +1260,7 @@ function devSkipBossPhase(){
 function devGotoZone(zone){
   if(!player) return;
   const target=String(zone||'').toLowerCase();
-  const startKillByZone={zone1:0, secret1:ZONE1_SECRET_KEY_KILLS, zone2:ZONE1_DOOR_KEY_KILLS, zone3:ZONE3_BOSS_TRIGGER_KILLS, secret2:ZONE3_KEY_KILLS};
+  const startKillByZone={zone1:0, secret1:100, zone2:100, zone3:ZONE3_BOSS_TRIGGER_KILLS, secret2:ZONE3_KEY_KILLS};
   if(!(target in startKillByZone)) return;
 
   gState='playing';
@@ -1122,10 +1268,10 @@ function devGotoZone(zone){
   zoneTransitionInfo=null;
   clearGameplayKeys();
 
-  chest=null; keyDrop=null;
-  enemies=[]; pSpawns=[]; fireballs=[]; heartDrops=[]; shockwaves=[]; parts=[];
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false;
-  shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false;
+  chest=null; clearKeyDrops();
+  enemies=[]; pSpawns=[]; fireballs=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; parts=[];
+  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
+  shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
   secret1BlessingT=0;
   runCompleted=false;
@@ -1137,13 +1283,12 @@ function devGotoZone(zone){
   nextWizardScore=Math.max(50, score>=50 ? score+35 : 50);
   zone1Broken=Array(ZONE1_DECOR_BREAK_RECTS.length).fill(false);
   zone1Rubble=[];
+  zone2Broken=Array(ZONE2_DECOR_BREAK_RECTS.length).fill(false);
   zone3Broken=Array(ZONE3_DECOR_BREAK_RECTS.length).fill(false);
   player.hasKey=false;
 
   if(target==='zone1'){
     currentZone=1;
-    zone1DoorKeyDropped=false;
-    zone1SecretKeyDropped=false;
     nextChestAt=10;
     nextGiantAt=20;
     player.x=GW/2-4;
@@ -1193,11 +1338,19 @@ function rebalanceDevKillBreakdown(){
 function syncDevKillThresholds(){
   killCount=Math.max(0, killCount|0);
   rebalanceDevKillBreakdown();
-  if(currentZone===1 && killCount>=100 && !player.hasKey && !keyDrop){
-    spawnKeyDrop(Math.floor(player.x+player.w/2)-3, Math.floor(player.y+player.h/2)-3);
-    floatTexts.push({x:player.x+player.w/2,y:player.y-8,text:'KEY!',life:46,max:46,col:C.FR1});
+  if(currentZone===1 && killCount>=ZONE1_ZONE2_KEY_KILLS && !player.zone1DoorKey && !hasKeyDropKind('zone1Door')){
+    spawnKeyDrop(Math.floor(player.x+player.w/2)-3, Math.floor(player.y+player.h/2)-3,'zone1Door');
+    floatTexts.push({x:player.x+player.w/2,y:player.y-8,text:'ZONE 2 KEY!',life:52,max:52,col:C.FR1});
   }
-  if(killCount>=100){
+  if(currentZone===1 && killCount>=ZONE1_SECRET_KEY_KILLS && !player.secret1Key && !hasKeyDropKind('secret1')){
+    spawnKeyDrop(Math.floor(player.x+player.w/2)-3, Math.floor(player.y+player.h/2)-3,'secret1');
+    floatTexts.push({x:player.x+player.w/2,y:player.y-8,text:'SECRET KEY!',life:52,max:52,col:C.MG2});
+  }
+  if(currentZone===2 && getZoneProgressKills(2)>=ZONE2_KEY_KILLS && !player.zone2Key && !hasKeyDropKind('zone2')){
+    spawnKeyDrop(Math.floor(player.x+player.w/2)-3, Math.floor(player.y+player.h/2)-3,'zone2');
+    floatTexts.push({x:player.x+player.w/2,y:player.y-8,text:'KEY!',life:46,max:46,col:C.BN1});
+  }
+  if(currentZone===1 && killCount>=ZONE1_ZONE2_KEY_KILLS){
     if(nextGiantAt<killCount || nextGiantAt-killCount>10) nextGiantAt=killCount+10;
     for(const spawn of pSpawns){
       spawn.t=Math.min(spawn.t, spawn.giant ? giantSpawnDelay() : regularSpawnDelay());
@@ -1268,7 +1421,7 @@ const __bonecrawlerDevApi = {
     shadowActive:!!shadowBoss,
     shadowPhase:shadowBoss ? shadowBoss.phase : 0,
     shadowHp:shadowBoss ? shadowBoss.hp : 0,
-    bossDefeated:!!bossDefeated,
+    bossDefeated:!!bossDefeated, zone1MiniBossDefeated:!!zone1MiniBossDefeated,
     shadowBossDefeated:!!shadowBossDefeated,
     godMode:!!devGodMode,
     playerHp:player ? player.hp : 0,
@@ -1289,25 +1442,30 @@ function resetGame(){
     x:GW/2-4, y:GH/2, w:8, h:8, speed:PLAYER_BASE_SPEED,
     dir:'down', hp:6, maxHp:10, visibleHearts:3,
     atkT:0, atkCD:0, hurtT:0, walkF:0, dead:false,
-    swordReach:11, swordLevel:0, swordWidth:0,
+    swordReach:11, swordLevel:0, swordWidth:1,
     shield:false, shieldBreakT:0, shieldLevel:0,
-    speedLevel:0, hasKey:false, hasZone2Key:false, hasSecret1Key:false,
+    speedLevel:0, hasKey:false, zone1DoorKey:false, secret1Key:false, zone2Key:false,
+    shadowStep:false, stepLevel:0, dodgeInvulnT:0,
   };
+  pendingRewardDialogs=[];
   if(masterSwordOwned){
-    player.swordLevel=Math.max(player.swordLevel||0, 2);
-    player.swordReach=Math.max(player.swordReach||11, 17);
-    player.swordWidth=Math.max(player.swordWidth||0, 2);
+    player.swordLevel=Math.max(player.swordLevel||0, MASTER_SWORD_START_LEVEL);
+    player.swordReach=Math.max(player.swordReach||11, MASTER_SWORD_START_REACH);
+    player.swordWidth=Math.max(player.swordWidth||1, MASTER_SWORD_START_WIDTH);
+    player.hp=player.maxHp;
+    player.visibleHearts=Math.max(player.visibleHearts||3, MASTER_SWORD_START_HEART_SLOTS);
   }
   if(newGamePlus){
-    player.visibleHearts=Math.max(player.visibleHearts||3, 4);
+    player.hp=player.maxHp;
+    player.visibleHearts=Math.max(player.visibleHearts||3, MASTER_SWORD_START_HEART_SLOTS);
   }
   enemies=[]; parts=[]; pSpawns=[]; frame=0; score=0; prevSpc=false;
-  killCount=0; nextChestAt=10; nextGiantAt=20; chest=null; floatTexts=[]; heartDrops=[]; shockwaves=[]; keyDrop=null; fireballs=[]; nextWizardScore=50; currentZone=1;
+  killCount=0; nextChestAt=10; nextGiantAt=20; chest=null; floatTexts=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; keyDrop=[]; fireballs=[]; nextWizardScore=50; currentZone=1;
   normalKillCount=0; giantKillCount=0; wizardKillCount=0;
   pendingZoneTransition=0;
   zoneTransitionInfo=null;
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false;
-  shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false;
+  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
+  shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
   secret1BlessingT=0;
   secret2NpcMet=false;
@@ -1317,6 +1475,8 @@ function resetGame(){
   dialogMode='npc';
   zone1Broken=Array(ZONE1_DECOR_BREAK_RECTS.length).fill(false);
   zone1Rubble=[];
+  zone2Broken=Array(ZONE2_DECOR_BREAK_RECTS.length).fill(false);
+  zone3Broken=Array(ZONE3_DECOR_BREAK_RECTS.length).fill(false);
   runStartMs=performance.now();
   runSaved=false;
   runTimeMs=0;
@@ -1325,16 +1485,18 @@ function resetGame(){
   retryCheckpoint=null;
   retryTaxPaid=false;
   retryPromptMode='';
-  retryEasyModeChecked=false;
-  easyModeShieldT=0;
-  easyModeShieldRestore=false;
-  zone1DoorKeyDropped=false;
-  zone1SecretKeyDropped=false;
   secret1UnlockAlertShown=false;
   secret1UnlockAlertT=0;
   whirlwindChargeT=0;
   whirlwindCooldownT=0;
   whirlwindSlashT=0;
+  dodgeCooldownT=0;
+  potionCount=0;
+  potionDialogSeenThisRun=false;
+  zone3TreeHits=0;
+  zone3TreeShakeT=0;
+  zone3TreeAwake=false;
+  zone3TreeMet=false;
   rollUpgradeChoices();
   qSpawn(80);
 }
@@ -1356,13 +1518,22 @@ function createZoneRetryCheckpoint(zone){
       visibleHearts:player.visibleHearts||3,
       swordReach:player.swordReach||11,
       swordLevel:player.swordLevel||0,
-      swordWidth:player.swordWidth||0,
+      swordWidth:Math.max(1, player.swordWidth||1),
       shield:!!player.shield,
       shieldLevel:player.shieldLevel||0,
       speed:player.speed||PLAYER_BASE_SPEED,
       speedLevel:player.speedLevel||0,
-      dir:player.dir||'down'
-    }
+      dir:player.dir||'down',
+      zone1DoorKey:!!player.zone1DoorKey,
+      secret1Key:!!player.secret1Key,
+      zone2Key:!!player.zone2Key,
+      shadowStep:!!player.shadowStep,
+      stepLevel:player.stepLevel||0
+    },
+    potionCount:Math.max(0,potionCount|0),
+    zone3TreeHits:Math.max(0, zone3TreeHits|0),
+    zone3TreeAwake:!!zone3TreeAwake,
+    zone3TreeMet:!!zone3TreeMet
   };
 }
 
@@ -1373,13 +1544,69 @@ function getRetryZoneLabel(zone){
   return 'Zone 1';
 }
 
+function queueRewardDialog(title, pages){
+  if(!pages || !pages.length) return false;
+  pendingRewardDialogs.push({
+    title:title||'REWARD',
+    pages:pages.map(page=>page.slice())
+  });
+  return true;
+}
+function openQueuedRewardDialog(){
+  if(!pendingRewardDialogs.length) return false;
+  const next=pendingRewardDialogs.shift();
+  dialogTitle=next.title||'REWARD';
+  dialogMode='reward';
+  dialogPages=next.pages.map(page=>page.slice());
+  dialogPageIndex=0;
+  clearGameplayKeys();
+  gState='dialog';
+  return true;
+}
+function getMasterSwordRewardPages(){
+  return [[
+    'MASTER SWORD',
+    'NEW RUNS START WITH',
+    'SWORD LV '+MASTER_SWORD_START_LEVEL,
+    'RANGE '+MASTER_SWORD_DISPLAY_RANGE,
+    'MAX HEALTH'
+  ]];
+}
+function queueWhirlwindLearnDialog(){
+  if(whirlwindLearnDialogSeen) return false;
+  whirlwindLearnDialogSeen=true;
+  return queueRewardDialog('SKILL LEARNED', [[
+    'WHIRLWIND SLASH',
+    'HOLD ATTACK',
+    'THEN RELEASE'
+  ]]);
+}
+function queueShadowStepDialog(){
+  return queueRewardDialog('SKILL LEARNED', [[
+    'SHADOW STEP',
+    'PRESS SHIFT TO DODGE',
+    'BRIEF INVINCIBILITY'
+  ]]);
+}
+function queuePotionAcquireDialog(){
+  return queueRewardDialog('ITEM ACQUIRED', [[
+    'HEALTH POTION',
+    'PRESS P TO HEAL',
+    'RESTORES 1 HEART'
+  ]]);
+}
+function queueMasterSwordRewardDialog(){
+  if(masterSwordDialogSeen) return false;
+  masterSwordDialogSeen=true;
+  queueRewardDialog('ITEM ACQUIRED', getMasterSwordRewardPages());
+  if(!whirlwindLearnDialogSeen) queueWhirlwindLearnDialog();
+  return true;
+}
 function startNgPlusDialog(){
-  dialogTitle='NEW GAME+';
-  dialogMode='npc';
-  dialogPages=[
-    ['ITEM ACQUIRED:','MASTER SWORD'],
-    ['SKILL LEARNED:','WHIRLWIND SLASH']
-  ];
+  masterSwordDialogSeen=true;
+  dialogTitle='ITEM ACQUIRED';
+  dialogMode='reward';
+  dialogPages=getMasterSwordRewardPages();
   dialogPageIndex=0;
   clearGameplayKeys();
   startupDialogPending=false;
@@ -1416,19 +1643,22 @@ function restoreRetryCheckpoint(){
   giantKillCount=Math.max(0, cp.giantKillCount|0);
   wizardKillCount=Math.max(0, cp.wizardKillCount|0);
   nextWizardScore=Math.max(50, cp.nextWizardScore|0);
-  chest=null; keyDrop=null;
-  enemies=[]; pSpawns=[]; heartDrops=[]; shockwaves=[]; fireballs=[]; parts=[];
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false;
-  shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false;
+  chest=null; clearKeyDrops();
+  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[]; parts=[];
+  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
+  shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
   zone1Broken=Array(ZONE1_DECOR_BREAK_RECTS.length).fill(false);
   zone1Rubble=[];
+  zone2Broken=Array(ZONE2_DECOR_BREAK_RECTS.length).fill(false);
   zone3Broken=Array(ZONE3_DECOR_BREAK_RECTS.length).fill(false);
   secret1BlessingT=0;
   dialogPages=[];
   dialogPageIndex=0;
+  pendingRewardDialogs=[];
   whirlwindChargeT=0;
   whirlwindSlashT=0;
+  dodgeCooldownT=0;
   runSaved=false;
   runCompleted=false;
   runStartMs=performance.now();
@@ -1438,12 +1668,23 @@ function restoreRetryCheckpoint(){
   if(cp.zone===2) enterZone2();
   else enterZone3();
 
+  player.hp=Math.min(cp.player.maxHp||player.maxHp, cp.player.hp||player.hp);
   player.maxHp=cp.player.maxHp||player.maxHp;
-  player.hp=player.maxHp;
-  player.visibleHearts=Math.max(cp.player.visibleHearts||player.visibleHearts, Math.min(5, Math.ceil(player.maxHp/2)));
+  player.visibleHearts=cp.player.visibleHearts||player.visibleHearts;
   player.swordReach=cp.player.swordReach||player.swordReach;
   player.swordLevel=cp.player.swordLevel||0;
-  player.swordWidth=cp.player.swordWidth||0;
+  player.swordWidth=Math.max(1, cp.player.swordWidth||1);
+  player.zone1DoorKey=!!cp.player.zone1DoorKey;
+  player.secret1Key=!!cp.player.secret1Key;
+  player.zone2Key=!!cp.player.zone2Key;
+  player.shadowStep=!!cp.player.shadowStep;
+  player.stepLevel=cp.player.stepLevel||0;
+  player.dodgeInvulnT=0;
+  potionCount=Math.max(0, cp.potionCount|0);
+  zone3TreeHits=Math.max(0, cp.zone3TreeHits|0);
+  zone3TreeAwake=!!cp.zone3TreeAwake;
+  zone3TreeMet=!!cp.zone3TreeMet;
+  zone3TreeShakeT=0;
   player.shield=!!cp.player.shield;
   player.shieldLevel=cp.player.shieldLevel||0;
   player.speed=cp.player.speed||player.speed;
@@ -1453,17 +1694,6 @@ function restoreRetryCheckpoint(){
   player.hurtT=0;
   player.atkT=0;
   player.atkCD=10;
-
-  easyModeShieldT=0;
-  easyModeShieldRestore=false;
-  if(retryEasyModeChecked){
-    easyModeShieldRestore=!!player.shield;
-    easyModeShieldT=EASY_MODE_SHIELD_FRAMES;
-    player.shield=true;
-    player.shieldBreakT=0;
-    floatTexts.push({x:GW/2,y:PY+12,text:'EASY MODE',life:72,max:72,col:C.SH});
-    floatTexts.push({x:GW/2,y:PY+20,text:'MAGIC SHIELD 20s',life:72,max:72,col:C.BN1});
-  }
 
   clearGameplayKeys();
   gState='playing';
@@ -1478,6 +1708,7 @@ function performPlayerAttack(strength=1){
   const box=atkBox(p, p.swordReach);
   for(let i=enemies.length-1;i>=0;i--){
     const e=enemies[i];
+    if(!e) continue;
     if(ov(box,{x:e.x,y:e.y,w:e.w,h:e.h})){
       e.hp -= dmg;
       burst(e.x+e.w/2, e.y+e.h/2);
@@ -1504,7 +1735,21 @@ function performPlayerAttack(strength=1){
       if(!zone1Broken[i] && ov(box, ZONE1_DECOR_BREAK_RECTS[i])) breakZone1Decor(i);
     }
   }
+  if(currentZone===2){
+    for(let i=0;i<ZONE2_DECOR_BREAK_RECTS.length;i++){
+      if(!zone2Broken[i] && ov(box, ZONE2_DECOR_BREAK_RECTS[i])) breakZone2Decor(i);
+    }
+  }
   if(currentZone===3){
+    if(!zone3TreeAwake && ov(box, ZONE3_TREE_RECT)){
+      zone3TreeHits=Math.min(ZONE3_TREE_HITS_TO_WAKE, zone3TreeHits+1);
+      zone3TreeShakeT=10;
+      burstDecor(ZONE3_TREE_RECT.x+ZONE3_TREE_RECT.w/2, ZONE3_TREE_RECT.y+ZONE3_TREE_RECT.h/2);
+      if(zone3TreeHits>=ZONE3_TREE_HITS_TO_WAKE){
+        zone3TreeAwake=true;
+        floatTexts.push({x:ZONE3_TREE_RECT.x+ZONE3_TREE_RECT.w/2,y:ZONE3_TREE_RECT.y-6,text:'DEKU',life:60,max:60,col:C.MG2});
+      }
+    }
     for(let i=0;i<ZONE3_DECOR_BREAK_RECTS.length;i++){
       if(!zone3Broken[i] && ov(box, ZONE3_DECOR_BREAK_RECTS[i])) breakZone3Decor(i);
     }
@@ -1530,12 +1775,16 @@ function performWhirlwindSlash(){
 
   for(let i=enemies.length-1;i>=0;i--){
     const e=enemies[i];
+    if(!e) continue;
     const ex=e.x+e.w/2, ey=e.y+e.h/2;
     if(Math.hypot(ex-cx,ey-cy) <= radius + Math.max(e.w,e.h)/2){
       e.hp -= devGodMode ? 999 : 2;
       burst(ex, ey);
-      if(e.hp<=0) handleEnemyDefeat(i,e,false);
-      else e.hurtT=12;
+      if(e.hp<=0){
+        handleEnemyDefeat(i,e,false);
+      } else {
+        e.hurtT=12;
+      }
     }
   }
 
@@ -1601,28 +1850,34 @@ function spawnHeartDrop(x,y,kind='full'){
     kind,
     ttl:ITEM_TTL_FRAMES,
     maxTtl:ITEM_TTL_FRAMES,
+    fadeFrames:ITEM_FADE_FRAMES,
     bobSeed:Math.random()*Math.PI*2,
   });
 }
 function spawnHalfHeartDrop(x,y){
   spawnHeartDrop(x,y,'half');
 }
+function spawnPotionDrop(x,y){
+  potionDrops.push({
+    x:(x|0),y:(y|0),w:7,h:7,
+    ttl:POTION_ITEM_TTL_FRAMES,
+    maxTtl:POTION_ITEM_TTL_FRAMES,
+    fadeFrames:POTION_ITEM_FADE_FRAMES,
+    bobSeed:Math.random()*Math.PI*2,
+  });
+}
 function getGroundItemAlpha(item){
   if(!item || typeof item.ttl!=='number') return 1;
-  if(item.ttl>ITEM_FADE_FRAMES) return 1;
-  const t=Math.max(0, item.ttl/ITEM_FADE_FRAMES);
+  const fadeFrames=item.fadeFrames||ITEM_FADE_FRAMES;
+  if(item.ttl>fadeFrames) return 1;
+  const t=Math.max(0, item.ttl/fadeFrames);
   const blink=item.ttl<90 ? (0.7+0.3*Math.sin(frame*0.55 + (item.bobSeed||0))) : 1;
   return Math.max(0, Math.min(1, t*t*blink));
 }
-function spawnKeyDrop(x,y,kind='generic'){
-  keyDrop={x:(x|0),y:(y|0),w:7,h:7,kind};
-}
-function awardWhirlwindSlash(text='SKILL LEARNED: WHIRLWIND SLASH'){
-  if(whirlwindUnlocked) return false;
-  whirlwindUnlocked=true;
-  floatTexts.push({x:GW/2,y:PY+32,text:'WHIRLWIND SLASH',life:90,max:90,col:C.SH});
-  if(text) floatTexts.push({x:GW/2,y:PY+24,text:text,life:80,max:80,col:C.BN1});
-  return true;
+function spawnKeyDrop(x,y,kind='zone3'){
+  const list=getKeyDropList();
+  list.push({x:(x|0),y:(y|0),w:7,h:7,kind});
+  keyDrop=list;
 }
 function collidesZone2Tree(x,y,w,h){
   if(currentZone!==2) return false;
@@ -1631,8 +1886,8 @@ function collidesZone2Tree(x,y,w,h){
 }
 function collidesZoneObstacles(x,y,w,h){
   const box={x,y,w,h};
-  if(currentZone===1) return ZONE1_DECOR_BLOCKERS.some((r,i)=>!zone1Broken[i]&&ov(box,r));
-  if(currentZone===2) return ZONE2_TREE_BLOCKERS.some(r=>ov(box,r));
+  if(currentZone===1) return ZONE1_DECOR_BLOCKERS.some((r,i)=>!zone1Broken[i]&&ov(box,r)) || ZONE1_EXTRA_BLOCKERS.some(r=>ov(box,r));
+  if(currentZone===2) return ZONE2_TREE_BLOCKERS.some(r=>ov(box,r)) || ZONE2_HOLE_BLOCKERS.some(r=>ov(box,r)) || ZONE2_DECOR_BLOCKERS.some((r,i)=>!zone2Broken[i]&&ov(box,r));
   if(currentZone===3) return ZONE3_DECOR_BLOCKERS.some((r,i)=>((i>=ZONE3_DECOR_BREAK_RECTS.length)||!zone3Broken[i])&&ov(box,r));
   if(currentZone===ZONE_SECRET1) return SECRET1_POOL_BLOCKERS.some(r=>ov(box,r));
   if(currentZone===ZONE_SECRET2) return SECRET2_STONE_BLOCKERS.some(r=>ov(box,r));
@@ -1721,9 +1976,9 @@ function getChestKillStepForZone(zone){
   return ZONE1_CHEST_KILL_STEP;
 }
 function getZoneKillTarget(zone=currentZone){
-  if(zone===1) return ZONE1_BONE_DRAGON_KILLS;
+  if(zone===1) return 300;
   if(zone===2) return DRAGON_BOSS_TRIGGER_KILLS;
-  if(zone===3) return ZONE3_BOSS_TRIGGER_KILLS;
+  if(zone===3) return ZONE3_KEY_KILLS;
   return 0;
 }
 
@@ -1745,17 +2000,18 @@ function ensureZoneMomentum(){
 
 function enterZone2(){
   currentZone=2;
-  chest=null; keyDrop=null;
-  enemies=[]; heartDrops=[]; shockwaves=[]; fireballs=[];
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false;
+  chest=null; clearKeyDrops();
+  enemies=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
+  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   bossClearTimer=0;
   parts=[];
   zone2KillStart=killCount;
   nextChestAt=Math.max(nextChestAt, killCount + ZONE2_FIRST_CHEST_DELAY);
   const p=player;
   p.hasKey=false;
-  p.hasZone2Key=false;
-  p.hasSecret1Key=false;
+  p.zone2Key=false;
+  p.zone1DoorKey=false;
+  p.secret1Key=false;
   p.x=GW/2-4;
   p.y=PY+PH-14;
   p.atkT=0; p.atkCD=10; p.hurtT=18;
@@ -1765,10 +2021,10 @@ function enterZone2(){
 }
 function enterZone3(){
   currentZone=3;
-  chest=null; keyDrop=null;
-  enemies=[]; pSpawns=[]; heartDrops=[]; shockwaves=[]; fireballs=[];
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false;
-  shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false;
+  chest=null; clearKeyDrops();
+  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
+  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
+  shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
   parts=[];
   zone3Broken=Array(ZONE3_DECOR_BREAK_RECTS.length).fill(false);
@@ -1776,8 +2032,7 @@ function enterZone3(){
   nextGiantAt=Math.max(nextGiantAt, killCount + 10);
   const p=player;
   p.hasKey=false;
-  p.hasZone2Key=false;
-  p.hasSecret1Key=false;
+  p.zone2Key=false;
   p.x=GW/2-4;
   p.y=PY+PH-14;
   p.atkT=0; p.atkCD=10; p.hurtT=18;
@@ -1795,37 +2050,38 @@ function applySecretZone1Blessing(){
   score+=500;
   floatTexts.push({x:GW/2,y:PY+16,text:'+500',life:65,max:65,col:C.BN1});
   floatTexts.push({x:GW/2,y:PY+24,text:'FAIRY BLESSING',life:90,max:90,col:C.MG2});
-  awardWhirlwindSlash('SECRET ART LEARNED');
 }
 function enterSecretZone1(){
   currentZone=ZONE_SECRET1;
-  chest=null; keyDrop=null;
-  enemies=[]; pSpawns=[]; heartDrops=[]; shockwaves=[]; fireballs=[];
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false;
-  shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false;
+  chest=null; clearKeyDrops();
+  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
+  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
+  shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
   parts=[];
   const p=player;
   p.hasKey=false;
-  p.hasZone2Key=false;
-  p.hasSecret1Key=false;
+  p.zone2Key=false;
   p.x=GW/2-4;
   p.y=PY+PH-14;
   p.atkT=0; p.atkCD=10; p.hurtT=0;
   applySecretZone1Blessing();
+  if(!whirlwindUnlocked){
+    whirlwindUnlocked=true;
+    queueWhirlwindLearnDialog();
+  }
   secret1BlessingT=SECRET1_BLESSING_FRAMES;
 }
 function enterSecretZone2(){
   currentZone=ZONE_SECRET2;
-  chest=null; keyDrop=null;
-  enemies=[]; pSpawns=[]; heartDrops=[]; shockwaves=[]; fireballs=[];
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false;
+  chest=null; clearKeyDrops();
+  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
+  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   bossClearTimer=0;
   parts=[];
   const p=player;
   p.hasKey=false;
-  p.hasZone2Key=false;
-  p.hasSecret1Key=false;
+  p.zone2Key=false;
   p.x=GW/2-4;
   p.y=PY+PH-14;
   p.atkT=0; p.atkCD=10; p.hurtT=0;
@@ -1834,11 +2090,12 @@ function enterSecretZone2(){
   dialogPageIndex=0;
   dialogTitle='WOUNDED STRANGER';
   dialogMode='npc';
-  masterSwordOwned=true;
-  whirlwindUnlocked=true;
-  newGamePlus=true;
+  if(masterSwordOwned && !whirlwindUnlocked){
+    whirlwindUnlocked=true;
+    queueWhirlwindLearnDialog();
+  }
   floatTexts.push({x:GW/2,y:PY+18,text:'SECRET ZONE',life:90,max:90,col:C.BN1});
-  floatTexts.push({x:GW/2,y:PY+26,text:'MASTER SWORD',life:95,max:95,col:C.SH});
+  floatTexts.push({x:GW/2,y:PY+26,text:masterSwordOwned?'SANCTUM':'MASTER SWORD',life:95,max:95,col:C.SH});
   saveRunIfNeeded();
 }
 
@@ -1850,10 +2107,15 @@ function canInteractSecret2Npc(){
 }
 
 function canInteractSecret2Sword(){
-  if(currentZone!==ZONE_SECRET2 || !player) return false;
+  if(currentZone!==ZONE_SECRET2 || !player || masterSwordOwned) return false;
   const p=player;
   const zone={x:SECRET2_SWORD_RECT.x-4,y:SECRET2_SWORD_RECT.y-4,w:SECRET2_SWORD_RECT.w+8,h:SECRET2_SWORD_RECT.h+8};
   return ov({x:p.x,y:p.y,w:p.w,h:p.h}, zone);
+}
+function canInteractZone3Tree(){
+  if(currentZone!==3 || !player || !zone3TreeAwake) return false;
+  const p=player;
+  return ov({x:p.x,y:p.y,w:p.w,h:p.h}, ZONE3_TREE_INTERACT_RECT);
 }
 
 function startSecret2NpcDialog(){
@@ -1869,16 +2131,34 @@ function startSecret2NpcDialog(){
   gState='dialog';
 }
 
-function startSecret2SwordDialog(){
-  if(currentZone!==ZONE_SECRET2) return;
-  dialogTitle='MASTER SWORD';
-  dialogMode='sword';
-  dialogPages = [[
-    'He who pulls it',
-    'shall be known as',
-    'the Hero of Legend.'
-  ]];
+function claimSecret2MasterSword(){
+  if(currentZone!==ZONE_SECRET2 || masterSwordOwned) return;
+  masterSwordOwned=true;
+  newGamePlus=true;
+  masterSwordDialogSeen=true;
+  if(!whirlwindUnlocked) whirlwindUnlocked=true;
+  if(!whirlwindLearnDialogSeen) queueWhirlwindLearnDialog();
+  dialogTitle='ITEM ACQUIRED';
+  dialogMode='reward';
+  dialogPages = getMasterSwordRewardPages();
   dialogPageIndex = 0;
+  saveRunIfNeeded();
+  clearGameplayKeys();
+  gState='dialog';
+}
+
+function startSecret2SwordDialog(){
+  if(currentZone!==ZONE_SECRET2 || masterSwordOwned) return;
+  clearGameplayKeys();
+  gState='secret2_sword_confirm';
+}
+function startZone3TreeDialog(){
+  if(currentZone!==3 || !zone3TreeAwake) return;
+  dialogTitle='DEKU';
+  dialogMode='npc';
+  dialogPages=[['.....']];
+  zone3TreeMet=true;
+  dialogPageIndex=0;
   clearGameplayKeys();
   gState='dialog';
 }
@@ -1920,15 +2200,7 @@ function hurtPlayer(amount=1){
     p.shieldBreakT=0;
     return false;
   }
-  if(p.dead || p.hurtT>0) return false;
-  if(easyModeShieldT>0){
-    p.shield=true;
-    p.shieldBreakT=0;
-    p.hurtT=12;
-    shieldBurst(p.x+4,p.y+4);
-    triggerShieldShockwave(p.x+4,p.y+4);
-    return true;
-  }
+  if(p.dead || p.hurtT>0 || (p.dodgeInvulnT||0)>0) return false;
   if(p.shield){
     p.shield=false;
     p.shieldBreakT=24;
@@ -1971,6 +2243,53 @@ function countDragonFightWizards(){
   return enemies.filter(e=>e.wizard).length;
 }
 
+function countShadowBossWizards(){
+  return enemies.filter(e=>e.shadowBossWizard).length;
+}
+
+function spawnWizardNearShadow(){
+  const b=shadowBoss;
+  if(!b || shadowBossDefeated) return false;
+  const c=getShadowCenter(b);
+  const candidates=[
+    {x:Math.round(c.x-18), y:Math.round(c.y-10)},
+    {x:Math.round(c.x+10), y:Math.round(c.y-10)},
+    {x:Math.round(c.x-18), y:Math.round(c.y+8)},
+    {x:Math.round(c.x+10), y:Math.round(c.y+8)},
+    {x:Math.round(c.x-4), y:Math.round(c.y-18)},
+  ];
+  for(const cand of candidates){
+    const x=Math.max(PX, Math.min(PX+PW-8, cand.x));
+    const y=Math.max(PY+2, Math.min(PY+PH-8, cand.y));
+    const box={x,y,w:8,h:8};
+    if(collidesZoneObstacles(x,y,8,8)) continue;
+    if(ov(box,{x:player.x,y:player.y,w:player.w,h:player.h})) continue;
+    if(enemies.some(e=>ov(box,{x:e.x,y:e.y,w:e.w,h:e.h}))) continue;
+    enemies.push({x,y,w:8,h:8,speed:0.30,dir:'left',
+      atkT:0,atkCD:140,walkF:0,hp:1,points:3,giant:false,wizard:true,hurtT:0,shootCD:64,
+      shadowBossWizard:true});
+    return true;
+  }
+  return false;
+}
+
+function ensureCrawlerWizardRespawns(){
+  if(!shadowBoss || shadowBossDefeated) return;
+  const desired = shadowBoss.phase===1 ? 1 : 2;
+  let alive = countShadowBossWizards();
+  for(let i=shadowWizardRespawns.length-1;i>=0;i--){
+    shadowWizardRespawns[i]--;
+    if(shadowWizardRespawns[i] <= 0){
+      if(alive < desired && spawnWizardNearShadow()){
+        shadowWizardRespawns.splice(i,1);
+        alive++;
+      } else {
+        shadowWizardRespawns[i] = 30;
+      }
+    }
+  }
+}
+
 function spawnWizardNearDragon(){
   const b=dragonBoss;
   if(!b || countDragonFightWizards()>=DRAGON_MAX_WIZARDS) return;
@@ -1992,36 +2311,24 @@ function spawnNormalFromDragon(){
 }
 
 function spawnDragonBoss(){
-  if(currentZone!==2 || dragonBoss || bossDefeated) return;
-  chest=null; keyDrop=null;
+  if((currentZone!==1 && currentZone!==2) || dragonBoss || bossDefeated) return;
+  if(currentZone===1 && zone1MiniBossDefeated) return;
+  chest=null; clearKeyDrops();
   enemies=[]; pSpawns=[]; fireballs=[]; dragonFlames=[]; dragonSwipe=null;
+  const zone1Mini=currentZone===1;
+  const phaseHp=zone1Mini ? ZONE1_DRAGON_PHASE_HITS : DRAGON_PHASE_HITS;
   dragonBoss={
     x:GW/2-18, y:PY+8, w:36, h:28,
     dir:'left', speed:0.18, walkF:0,
-    variant:'classic', phaseHits:DRAGON_PHASE_HITS,
-    phase:1, hp:DRAGON_PHASE_HITS, maxHp:DRAGON_PHASE_HITS,
+    phase:1, hp:phaseHp, maxHp:phaseHp,
+    phaseHp,
     hurtT:0, atkT:0, atkName:'', howlT:0,
     fireballCD:110, fireblastCD:145, tailCD:52,
     summonT:DRAGON_SUMMON_INTERVAL, spawnLock:36,
+    zone1Mini,
+    points:zone1Mini?1000:100,
   };
-  floatTexts.push({x:GW/2,y:PY+12,text:'BOSS: SKELETON DRAGON',life:85,max:85,col:C.FR1});
-}
-
-function spawnZone1BoneDragon(){
-  if(currentZone!==1 || dragonBoss || bossDefeated) return;
-  chest=null; keyDrop=null;
-  enemies=[]; pSpawns=[]; fireballs=[]; dragonFlames=[]; dragonSwipe=null;
-  const phaseHits=Math.max(1, Math.ceil(DRAGON_PHASE_HITS/2));
-  dragonBoss={
-    x:GW/2-18, y:PY+8, w:36, h:28,
-    dir:'left', speed:0.18, walkF:0,
-    variant:'bone', phaseHits,
-    phase:1, hp:phaseHits, maxHp:phaseHits,
-    hurtT:0, atkT:0, atkName:'', howlT:0,
-    fireballCD:110, fireblastCD:145, tailCD:52,
-    summonT:DRAGON_SUMMON_INTERVAL, spawnLock:36,
-  };
-  floatTexts.push({x:GW/2,y:PY+12,text:'BOSS: BONE DRAGON',life:85,max:85,col:C.BN1});
+  floatTexts.push({x:GW/2,y:PY+12,text:(zone1Mini?'MINIBOSS: BONE DRAGON':'BOSS: SKELETON DRAGON'),life:85,max:85,col:C.FR1});
 }
 
 function rollFireballSpeed(base){
@@ -2086,8 +2393,8 @@ function startDragonPhase2(){
   const b=dragonBoss;
   if(!b) return;
   b.phase=2;
-  b.hp=b.phaseHits||DRAGON_PHASE_HITS;
-  b.maxHp=b.phaseHits||DRAGON_PHASE_HITS;
+  b.hp=b.phaseHp||DRAGON_PHASE_HITS;
+  b.maxHp=b.phaseHp||DRAGON_PHASE_HITS;
   b.howlT=0;
   b.spawnLock=50;
   b.fireballCD=36;
@@ -2109,17 +2416,20 @@ function defeatDragonBoss(){
     parts.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
       life:24+(Math.random()*16|0),max:40,col:Math.random()<0.45?C.WH:(Math.random()<0.6?C.BN1:C.FR1)});
   }
-  score+=100;
+  score+=b.points||100;
   clearDragonHazards();
   enemies=[];
   pSpawns=[];
   chest=null;
-  const wasBone=b.variant==='bone';
-  bossDefeated=true;
-  bossClearTimer=wasBone ? 0 : 120;
+  if(b.zone1Mini){
+    zone1MiniBossDefeated=true;
+    // Do NOT set bossDefeated or bossClearTimer — zone 1 resumes normal spawning
+  } else {
+    bossDefeated=true;
+    bossClearTimer=120;
+  }
   dragonBoss=null;
-  floatTexts.push({x:GW/2,y:PY+16,text:wasBone?'BONE DRAGON SLAIN!':'DRAGON SLAIN!',life:95,max:95,col:wasBone?C.BN1:C.FR1});
-  if(wasBone) awardWhirlwindSlash('BONE DRAGON DROP');
+  floatTexts.push({x:GW/2,y:PY+16,text:'DRAGON SLAIN!',life:95,max:95,col:C.FR1});
 }
 
 function damageDragonBoss(amount=1, fromShockwave=false){
@@ -2293,12 +2603,13 @@ function startShadowPhase2(){
   b.counterT=0;
   b.lungeCD=48;
   b.slashCD=22;
+  while(countShadowBossWizards()<2 && spawnWizardNearShadow()){}
   floatTexts.push({x:GW/2,y:PY+18,text:'PHASE 2',life:70,max:70,col:C.FR1});
 }
 
 function spawnShadowBoss(){
   if(currentZone!==3 || shadowBoss || shadowBossDefeated) return;
-  chest=null; keyDrop=null;
+  chest=null; clearKeyDrops();
   enemies=[]; pSpawns=[]; fireballs=[];
   shadowWaves=[];
   shadowBoss={
@@ -2309,6 +2620,8 @@ function spawnShadowBoss(){
     lungeCD:72, slashCD:30, counterT:0, waveT:SHADOW_WAVE_INTERVAL,
     lungeVX:0, lungeVY:0
   };
+  shadowWizardRespawns=[];
+  spawnWizardNearShadow();
   floatTexts.push({x:GW/2,y:PY+12,text:'BOSS: CORRUPTED CRAWLER',life:95,max:95,col:C.MG2});
 }
 
@@ -2323,6 +2636,8 @@ function updateShadowBoss(){
   b.walkF++;
 
   const box={x:player.x,y:player.y,w:player.w,h:player.h};
+
+  ensureCrawlerWizardRespawns();
 
   if(b.howlT>0){
     b.howlT--;
@@ -2444,8 +2759,10 @@ function defeatShadowBoss(){
       life:24+(Math.random()*16|0),max:40,col:Math.random()<0.4?C.MG2:(Math.random()<0.7?C.FR1:C.WH)});
   }
   score+=150;
-  spawnKeyDrop(Math.round(c.x)-3,Math.round(c.y)-3,'zone3Door');
+  spawnKeyDrop(Math.round(c.x)-3,Math.round(c.y)-3,'zone3');
   shadowWaves=[];
+  shadowWizardRespawns=[];
+  enemies=enemies.filter(e=>!e.shadowBossWizard);
   shadowBossDefeated=true;
   shadowBoss=null;
   runCompleted=true;
@@ -2466,27 +2783,37 @@ function handleEnemyDefeat(i,e,fromShockwave){
     spawnHeartDrop(e.x+Math.floor(e.w/2)-3,e.y+Math.floor(e.h/2)-3);
   } else if(e.wizard){
     wizardKillCount++;
+    if(e.shadowBossWizard && shadowBoss && !shadowBossDefeated){
+      shadowWizardRespawns.push(CRAWLER_WIZARD_RESPAWN_FRAMES);
+    }
     floatTexts.push({x:e.x+4,y:e.y-4,text:'+3',life:45,max:45,col:C.MG2});
   } else {
     normalKillCount++;
+    if(Math.random()<POTION_DROP_CHANCE){
+      spawnPotionDrop(e.x+Math.floor(e.w/2)-3,e.y+Math.floor(e.h/2)-3);
+      floatTexts.push({x:e.x+4,y:e.y-4,text:'POTION',life:42,max:42,col:C.HP1});
+    }
   }
   enemies.splice(i,1);
   score+=e.points;
   killCount++;
-  if(currentZone===1){
-    const kx=e.x+Math.floor(e.w/2)-3, ky=e.y+Math.floor(e.h/2)-3;
-    if(killCount>=ZONE1_DOOR_KEY_KILLS && !zone1DoorKeyDropped && !player.hasZone2Key && !keyDrop){
-      zone1DoorKeyDropped=true;
-      spawnKeyDrop(kx,ky,'zone2Door');
-      floatTexts.push({x:e.x+e.w/2,y:e.y-10,text:'ZONE 2 KEY!',life:56,max:56,col:C.FR1});
-    } else if(killCount>=ZONE1_SECRET_KEY_KILLS && !zone1SecretKeyDropped && !player.hasSecret1Key && !keyDrop){
-      zone1SecretKeyDropped=true;
-      spawnKeyDrop(kx,ky,'secret1Door');
-      floatTexts.push({x:e.x+e.w/2,y:e.y-10,text:'SECRET KEY!',life:56,max:56,col:C.MG2});
-    }
+  if(currentZone===1 && killCount===ZONE1_ZONE2_KEY_KILLS && !player.zone1DoorKey && !hasKeyDropKind('zone1Door')){
+    spawnKeyDrop(e.x+Math.floor(e.w/2)-3,e.y+Math.floor(e.h/2)-3,'zone1Door');
+    floatTexts.push({x:e.x+e.w/2,y:e.y-10,text:'ZONE 2 KEY!',life:52,max:52,col:C.FR1});
   }
-  if(!dragonBoss && !shadowBoss){
-    if(killCount>=100){
+  if(currentZone===1 && killCount===ZONE1_SECRET_KEY_KILLS && !player.secret1Key && !hasKeyDropKind('secret1')){
+    spawnKeyDrop(e.x+Math.floor(e.w/2)-3,e.y+Math.floor(e.h/2)-3,'secret1');
+    floatTexts.push({x:e.x+e.w/2,y:e.y-10,text:'SECRET KEY!',life:52,max:52,col:C.MG2});
+  }
+  if(currentZone===2 && getZoneProgressKills(2)===ZONE2_KEY_KILLS && !player.zone2Key && !hasKeyDropKind('zone2')){
+    spawnKeyDrop(e.x+Math.floor(e.w/2)-3,e.y+Math.floor(e.h/2)-3,'zone2');
+    floatTexts.push({x:e.x+e.w/2,y:e.y-10,text:'KEY!',life:46,max:46,col:C.BN1});
+  }
+  if(currentZone===1 && killCount===ZONE1_DRAGON_MINIBOSS_KILLS && !dragonBoss && !bossDefeated && !zone1MiniBossDefeated){
+    pendingZone1DragonSpawn=true;
+  }
+  if(!dragonBoss && !shadowBoss && !pendingZone1DragonSpawn){
+    if(currentZone===1 && killCount>=ZONE1_ZONE2_KEY_KILLS){
       if(nextGiantAt-killCount>10) nextGiantAt=killCount+10;
       for(const spawn of pSpawns){
         spawn.t=Math.min(spawn.t, spawn.giant ? giantSpawnDelay() : regularSpawnDelay());
@@ -2574,6 +2901,49 @@ function syncVisibleHearts(){
   player.visibleHearts = Math.max(player.visibleHearts||3, Math.min(5, Math.ceil(player.hp/2)));
 }
 
+function getDodgeDistance(){
+  if(!player) return STEP_BASE_DISTANCE;
+  if(!player.shadowStep) return STEP_BASE_DISTANCE;
+  return STEP_SHADOW_BASE_DISTANCE + Math.max(0, (player.stepLevel||1)-1) * STEP_DISTANCE_PER_UPGRADE;
+}
+function getDodgeCooldownFrames(){
+  if(!player || !player.shadowStep) return STEP_BASE_COOLDOWN_FRAMES;
+  return Math.max(
+    STEP_MIN_COOLDOWN_FRAMES,
+    STEP_SHADOW_BASE_COOLDOWN_FRAMES - Math.max(0, (player.stepLevel||1)-1) * STEP_COOLDOWN_REDUCTION_PER_UPGRADE
+  );
+}
+function performDodge(){
+  const p=player;
+  if(!p || p.dead || dodgeCooldownT>0) return false;
+  let dx=0, dy=0;
+  if(p.dir==='left') dx=-1;
+  else if(p.dir==='right') dx=1;
+  else if(p.dir==='up') dy=-1;
+  else dy=1;
+  const dist=Math.round(getDodgeDistance());
+  for(let i=0;i<dist;i++){
+    const nx=Math.max(PX,Math.min(PX+PW-p.w,p.x+dx));
+    const ny=Math.max(PY,Math.min(PY+PH-p.h,p.y+dy));
+    if(collidesZoneObstacles(nx,ny,p.w,p.h)) break;
+    p.x=nx;
+    p.y=ny;
+  }
+  dodgeCooldownT=getDodgeCooldownFrames();
+  if(p.shadowStep) p.dodgeInvulnT=Math.max(p.dodgeInvulnT||0, SHADOW_STEP_INVULN_FRAMES);
+  floatTexts.push({x:p.x+4,y:p.y-5,text:p.shadowStep?'SHADOW STEP':'STEP',life:22,max:22,col:p.shadowStep?C.MG2:C.SI1});
+  return true;
+}
+function useHealthPotion(){
+  if(!player || potionCount<=0 || isHealthFull()) return false;
+  potionCount=Math.max(0, potionCount-1);
+  player.hp=Math.min(player.maxHp, player.hp + 2);
+  syncVisibleHearts();
+  burst(player.x+4, player.y+4);
+  floatTexts.push({x:player.x+4,y:player.y-6,text:'+POTION',life:34,max:34,col:C.HP1});
+  return true;
+}
+
 
 function grantHeartReward(x,y){
   if(isHealthFull()){
@@ -2606,6 +2976,7 @@ function triggerShieldShockwave(cx,cy){
   }
   for(let i=enemies.length-1;i>=0;i--){
     const e=enemies[i];
+    if(!e) continue;
     const ex=e.x+e.w/2, ey=e.y+e.h/2;
     const dist=Math.hypot(ex-cx, ey-cy);
     if(dist<=shockwaveRadius + e.w/2){
@@ -2654,6 +3025,18 @@ function breakZone1Decor(idx){
   }
 }
 
+
+function breakZone2Decor(idx){
+  if(currentZone!==2) return;
+  if(!zone2Broken || zone2Broken[idx]) return;
+  const r=ZONE2_DECOR_BREAK_RECTS[idx];
+  zone2Broken[idx]=true;
+  burstDecor(r.x+r.w/2, r.y+r.h/2);
+  if(Math.random()<BREAKABLE_HALF_HEART_DROP_CHANCE){
+    spawnHalfHeartDrop(r.x+Math.floor(r.w/2)-3, r.y+Math.floor(r.h/2)-3);
+  }
+}
+
 function breakZone3Decor(idx){
   if(currentZone!==3) return;
   if(!zone3Broken || zone3Broken[idx]) return;
@@ -2680,15 +3063,22 @@ function applyUpgrade(type){
   } else if(type==='sword'){
     p.swordLevel=(p.swordLevel||0)+1;
     p.swordReach+=6;
-    p.swordWidth=Math.min(4,(p.swordWidth||0)+1);
+    p.swordWidth=Math.max(1,p.swordWidth||1);
   } else if(type==='shield'){
     p.shieldLevel=(p.shieldLevel||0)+1;
     p.shield=true;
     p.shieldBreakT=0;
-    if(easyModeShieldT>0) easyModeShieldRestore=true;
   } else if(type==='speed'){
     p.speedLevel=(p.speedLevel||0)+1;
     p.speed=Math.min(MAX_PLAYER_SPEED, p.speed+SPEED_UP_STEP);
+  } else if(type==='shadowstep'){
+    if(!p.shadowStep){
+      p.shadowStep=true;
+      p.stepLevel=1;
+      queueShadowStepDialog();
+    } else {
+      p.stepLevel=(p.stepLevel||1)+1;
+    }
   } else if(type==='points'){
     const picked=currentUpgradeBtns.find(btn=>btn.type==='points');
     const gain=picked && picked.pointValue ? picked.pointValue : choosePointReward();
@@ -2710,6 +3100,7 @@ function beginRunFromIntro(){
 }
 function startGame(){
     resetGame();
+  syncNameGodMode();
   clearGameplayKeys();
   introFadeT=0;
   startupDialogPending=!!newGamePlus;
@@ -2729,6 +3120,7 @@ function promptForPlayerName(){
   const clean=entered.trim();
   currentPlayerName=clean||'Player';
   savePlayerName(currentPlayerName);
+  syncNameGodMode();
 }
 function openScoreboard(){
     scoreboardEntries=loadScores();
@@ -2793,12 +3185,20 @@ document.addEventListener('keydown',e=>{
   }
 
   if(gState==='retry_confirm'){
-    if(e.key==='e' || e.key==='E' || e.key==='t' || e.key==='T'){
-      retryEasyModeChecked=!retryEasyModeChecked;
-    } else if(e.key==='Enter' || e.key==='y' || e.key==='Y' || e.key===' '){
+    if(e.key==='Enter' || e.key==='y' || e.key==='Y' || e.key===' '){
       restoreRetryCheckpoint();
     } else if(e.key==='Escape' || e.key==='n' || e.key==='N' || e.key==='Backspace'){
       gState='gameover';
+    }
+    return;
+  }
+
+  if(gState==='secret2_sword_confirm'){
+    if(e.key==='Enter' || e.key==='y' || e.key==='Y' || e.key===' '){
+      claimSecret2MasterSword();
+    } else if(e.key==='Escape' || e.key==='n' || e.key==='N' || e.key==='Backspace'){
+      clearGameplayKeys();
+      gState='playing';
     }
     return;
   }
@@ -2819,6 +3219,13 @@ document.addEventListener('keydown',e=>{
     return;
   }
 
+  if(gState==='playing' && (e.key==='Shift' || e.key==='ShiftLeft' || e.key==='ShiftRight')){
+    if(performDodge()) return;
+  }
+  if(gState==='playing' && (e.key==='p' || e.key==='P')){
+    if(useHealthPotion()) return;
+  }
+
   if(gState==='playing' && (e.key==='Enter' || e.key==='e' || e.key==='E')){
     if(canInteractSecret2Npc()){
       startSecret2NpcDialog();
@@ -2826,6 +3233,10 @@ document.addEventListener('keydown',e=>{
     }
     if(canInteractSecret2Sword()){
       startSecret2SwordDialog();
+      return;
+    }
+    if(canInteractZone3Tree()){
+      startZone3TreeDialog();
       return;
     }
     if(e.key==='Enter'){
@@ -2939,6 +3350,25 @@ canvas.addEventListener('click',e=>{
     return;
   }
 
+  if(gState==='playing'){
+    const numHearts=Math.max(3, Math.min(5, player ? (player.visibleHearts||3) : 3));
+    const dodgeRect={x:GW-41,y:2,w:8,h:8};
+    const whirlRect={x:GW-31,y:2,w:8,h:8};
+    const potionRect={x:3,y:11,w:8,h:8};
+    if(pointInBtn(lx,ly,dodgeRect)){
+      performDodge();
+      return;
+    }
+    if(potionCount>0 && pointInBtn(lx,ly,potionRect)){
+      useHealthPotion();
+      return;
+    }
+    if(whirlwindUnlocked && pointInBtn(lx,ly,whirlRect)){
+      performWhirlwindSlash();
+      return;
+    }
+  }
+
   if(gState==='title'){
     if(pointInBtn(lx,ly,MENU_PLAY)) startGame();
     else if(pointInBtn(lx,ly,MENU_SCORE)) openScoreboard();
@@ -2962,10 +3392,17 @@ canvas.addEventListener('click',e=>{
   }
 
   if(gState==='retry_confirm'){
-    if(pointInBtn(lx,ly,RETRY_CONFIRM_EASYMODE_BOX) || pointInBtn(lx,ly,{x:RETRY_CONFIRM_EASYMODE_BOX.x+8,y:RETRY_CONFIRM_EASYMODE_BOX.y-2,w:42,h:10})){
-      retryEasyModeChecked=!retryEasyModeChecked;
-    } else if(pointInBtn(lx,ly,RETRY_CONFIRM_YES_BTN)) restoreRetryCheckpoint();
+    if(pointInBtn(lx,ly,RETRY_CONFIRM_YES_BTN)) restoreRetryCheckpoint();
     else if(pointInBtn(lx,ly,RETRY_CONFIRM_NO_BTN)) gState='gameover';
+    return;
+  }
+
+  if(gState==='secret2_sword_confirm'){
+    if(pointInBtn(lx,ly,SECRET2_SWORD_CONFIRM_YES_BTN)) claimSecret2MasterSword();
+    else if(pointInBtn(lx,ly,SECRET2_SWORD_CONFIRM_NO_BTN)){
+      clearGameplayKeys();
+      gState='playing';
+    }
     return;
   }
 
@@ -3011,6 +3448,7 @@ function update(){
     return;
   }
   if(gState!=='playing') return;
+  if(pendingRewardDialogs.length && openQueuedRewardDialog()) return;
 
   // Spawn timers
   if(!isSecretZone(currentZone)){
@@ -3022,10 +3460,14 @@ function update(){
         doSpawn(g, wiz);
       }
     }
-    if(currentZone===1 && killCount>=ZONE1_BONE_DRAGON_KILLS && enemies.length===0 && pSpawns.length===0 && !dragonBoss && !bossDefeated){
-      spawnZone1BoneDragon();
+    if(currentZone===1 && pendingZone1DragonSpawn && !dragonBoss && !bossDefeated && !zone1MiniBossDefeated){
+      pendingZone1DragonSpawn=false;
+      spawnDragonBoss();
     }
     if(currentZone===2 && getZoneProgressKills(2)>=DRAGON_BOSS_TRIGGER_KILLS && !dragonBoss && !bossDefeated){
+      spawnDragonBoss();
+    }
+    if(currentZone===1 && killCount>=ZONE1_DRAGON_MINIBOSS_KILLS && !dragonBoss && !bossDefeated && !zone1MiniBossDefeated){
       spawnDragonBoss();
     }
     if(currentZone===3 && killCount>=ZONE3_BOSS_TRIGGER_KILLS && enemies.length===0 && pSpawns.length===0 && !shadowBoss && !shadowBossDefeated){
@@ -3061,16 +3503,6 @@ function update(){
     p.visibleHearts=Math.max(p.visibleHearts||3, Math.min(5, Math.ceil(p.hp/2)));
   }
 
-  if(easyModeShieldT>0){
-    easyModeShieldT--;
-    p.shield=true;
-    p.shieldBreakT=0;
-    if(easyModeShieldT<=0){
-      p.shield=!!easyModeShieldRestore;
-      easyModeShieldRestore=false;
-    }
-  }
-
   if(p.shieldBreakT>0) p.shieldBreakT--;
 
   for(let i=heartDrops.length-1;i>=0;i--){
@@ -3080,6 +3512,14 @@ function update(){
       if(h.ttl<=0) heartDrops.splice(i,1);
     }
   }
+  for(let i=potionDrops.length-1;i>=0;i--){
+    const d=potionDrops[i];
+    if(typeof d.ttl==='number'){
+      d.ttl--;
+      if(d.ttl<=0) potionDrops.splice(i,1);
+    }
+  }
+  if(zone3TreeShakeT>0) zone3TreeShakeT--;
 
   // Movement
   let dx=0,dy=0;
@@ -3134,24 +3574,19 @@ function update(){
   }
 
   // Key pickup + door unlock to zone 2
-  if(keyDrop && ov({x:p.x,y:p.y,w:p.w,h:p.h},{x:keyDrop.x,y:keyDrop.y,w:keyDrop.w,h:keyDrop.h})){
-    const keyKind=keyDrop.kind||'generic';
-    let keyText='KEY';
-    let keyCol=C.BN1;
-    if(keyKind==='zone2Door'){
-      p.hasZone2Key=true;
-      keyText='ZONE 2 KEY';
-      keyCol=C.FR1;
-    } else if(keyKind==='secret1Door'){
-      p.hasSecret1Key=true;
-      keyText='SECRET KEY';
-      keyCol=C.MG2;
-      secret1UnlockAlertShown=false;
-    } else {
-      p.hasKey=true;
+  if(hasAnyKeyDrop()){
+    const drops=getKeyDropList();
+    for(let i=drops.length-1;i>=0;i--){
+      const drop=drops[i];
+      if(!ov({x:p.x,y:p.y,w:p.w,h:p.h},{x:drop.x,y:drop.y,w:drop.w,h:drop.h})) continue;
+      if(drop.kind==='zone1Door') p.zone1DoorKey=true;
+      else if(drop.kind==='secret1'){ p.secret1Key=true; breakZone1Decor(0); }
+      else if(drop.kind==='zone2') p.zone2Key=true;
+      else p.hasKey=true;
+      drops.splice(i,1);
+      floatTexts.push({x:p.x+4,y:p.y-6,text:drop.kind==='secret1'?'SECRET KEY':(drop.kind==='zone1Door'?'ZONE 2 KEY':'KEY'),life:40,max:40,col:drop.kind==='secret1'?C.MG2:C.BN1});
     }
-    keyDrop=null;
-    floatTexts.push({x:p.x+4,y:p.y-6,text:keyText,life:52,max:52,col:keyCol});
+    keyDrop=drops;
   }
   if(zone1SecretEntranceReady() && zone1Broken[0] && ov({x:p.x,y:p.y,w:p.w,h:p.h}, SECRET1_ENTRANCE_RECT)){
     openZoneTransition(ZONE_SECRET1,{
@@ -3162,7 +3597,7 @@ function update(){
     });
     return;
   }
-  if(currentZone===1 && p.hasZone2Key && ov({x:p.x,y:p.y,w:p.w,h:p.h}, ZONE1_DOOR_RECT)){
+  if(currentZone===1 && p.zone1DoorKey && ov({x:p.x,y:p.y,w:p.w,h:p.h}, ZONE1_DOOR_RECT)){
     openZoneTransition(2);
     return;
   }
@@ -3224,6 +3659,23 @@ function update(){
     }
   }
 
+  // Potion pickups stay on the field until the player can carry one again
+  if(potionCount < POTION_MAX_COUNT){
+    for(let i=potionDrops.length-1;i>=0;i--){
+      const d=potionDrops[i];
+      if(ov({x:p.x,y:p.y,w:p.w,h:p.h},{x:d.x,y:d.y,w:d.w,h:d.h})){
+        potionCount=Math.min(POTION_MAX_COUNT, potionCount+1);
+        burst(d.x+3.5, d.y+3.5);
+        floatTexts.push({x:d.x+3,y:d.y-5,text:'POTION',life:34,max:34,col:C.HP1});
+        if(!potionDialogSeenThisRun){
+          potionDialogSeenThisRun=true;
+          queuePotionAcquireDialog();
+        }
+        potionDrops.splice(i,1);
+      }
+    }
+  }
+
   // Attack
   const spcNow=!!(keys[' ']);
   const spcJust=spcNow&&!prevSpc;
@@ -3234,6 +3686,8 @@ function update(){
 
   if(whirlwindCooldownT>0) whirlwindCooldownT--;
   if(whirlwindSlashT>0) whirlwindSlashT--;
+  if(dodgeCooldownT>0) dodgeCooldownT--;
+  if(p.dodgeInvulnT>0) p.dodgeInvulnT--;
 
   if(whirlwindUnlocked){
     if(spcJust && p.atkCD<=0 && p.atkT<=0){
@@ -3360,16 +3814,13 @@ function drawDragonBoss(b){
   const x=Math.round(b.x), y=Math.round(b.y);
   const flip=b.dir!=='right';
   const bob=(Math.floor(b.walkF/10)%2);
-  const boneVariant=b.variant==='bone';
-  const wingOuter=boneVariant ? C.BN2 : C.BN1;
-  const wingMid=boneVariant ? C.BN1 : C.BN3;
-  const wingLight=boneVariant ? C.WH : C.W3;
-  const wingMem=boneVariant ? C.BN3 : C.SI3;
-  const bodyOuter=boneVariant ? C.BN1 : C.W3;
-  const bodyMain=boneVariant ? C.WH : C.WH;
-  const ribCol=boneVariant ? C.BN2 : C.BN1;
-  const ribShade=boneVariant ? C.BN3 : C.BN2;
-  const jawCol=boneVariant ? C.BN2 : C.BN3;
+  const zone1Mini=!!b.zone1Mini;
+  const boneDark=zone1Mini ? '#6f675d' : C.BN1;
+  const boneMid=zone1Mini ? '#948876' : C.BN2;
+  const boneLite=zone1Mini ? '#b4a48c' : C.BN3;
+  const bonePale=zone1Mini ? '#d3c6ae' : C.W3;
+  const boneBright=zone1Mini ? '#e5dcc6' : C.WH;
+  const wingShade=zone1Mini ? '#5b5b5b' : C.SI3;
   function px(dx,dy,w,h,col,alpha=1){
     const rx=flip ? x+b.w-dx-w : x+dx;
     const ry=y+dy+bob;
@@ -3389,11 +3840,11 @@ function drawDragonBoss(b){
     ctx.globalAlpha=1;
   }
 
-  // ragged skeletal wings behind the body
-  px(2,5,1,11,wingOuter); px(3,5,4,1,wingMid); px(3,8,5,1,wingLight); px(2,12,6,1,wingMid); px(3,15,5,1,wingLight);
-  px(4,6,1,10,ribShade); px(6,7,1,8,ribShade); px(7,9,3,1,wingMem,0.75); px(7,13,2,1,wingMem,0.65);
-  px(28,5,1,11,wingOuter); px(24,5,4,1,wingMid); px(23,8,5,1,wingLight); px(22,12,6,1,wingMid); px(23,15,5,1,wingLight);
-  px(26,6,1,10,ribShade); px(24,7,1,8,ribShade); px(20,9,3,1,wingMem,0.75); px(21,13,2,1,wingMem,0.65);
+  // ragged skeletal wings behind the body, using the same dark-bone palette as the other skeletons
+  px(2,5,1,11,boneDark); px(3,5,4,1,boneLite); px(3,8,5,1,bonePale); px(2,12,6,1,boneLite); px(3,15,5,1,bonePale);
+  px(4,6,1,10,boneMid); px(6,7,1,8,boneMid); px(7,9,3,1,wingShade,0.75); px(7,13,2,1,wingShade,0.65);
+  px(28,5,1,11,boneDark); px(24,5,4,1,boneLite); px(23,8,5,1,bonePale); px(22,12,6,1,boneLite); px(23,15,5,1,bonePale);
+  px(26,6,1,10,boneMid); px(24,7,1,8,boneMid); px(20,9,3,1,wingShade,0.75); px(21,13,2,1,wingShade,0.65);
 
   // tail vertebrae
   const tailSegs=flip
@@ -3401,56 +3852,51 @@ function drawDragonBoss(b){
     : [[1,14,4,2],[5,15,3,2],[8,16,3,2],[11,17,3,1],[14,18,2,1]];
   for(let i=0;i<tailSegs.length;i++){
     const [dx,dy,w,h]=tailSegs[i];
-    px(dx,dy,w,h,i%2===0?bodyOuter:ribShade);
-    if(w>2) px(dx+1,dy,1,h,wingOuter,0.9);
+    px(dx,dy,w,h,i%2===0?bonePale:boneMid);
+    if(w>2) px(dx+1,dy,1,h,boneDark,0.9);
   }
-  if(flip) px(33,15,2,1,wingOuter); else px(0,15,2,1,wingOuter);
+  if(flip) px(33,15,2,1,boneDark); else px(0,15,2,1,boneDark);
 
   // hind / fore legs
-  px(9,18,2,6,bodyOuter);  px(10,23,1,2,wingOuter);
-  px(15,19,2,5,bodyOuter); px(16,23,1,2,wingOuter);
-  px(21,18,2,6,bodyOuter); px(22,23,1,2,wingOuter);
-  px(25,17,2,6,bodyOuter); px(26,22,1,2,wingOuter);
-  px(8,20,4,1,wingMid); px(20,20,5,1,wingMid);
+  px(9,18,2,6,bonePale);  px(10,23,1,2,boneDark);
+  px(15,19,2,5,bonePale); px(16,23,1,2,boneDark);
+  px(21,18,2,6,bonePale); px(22,23,1,2,boneDark);
+  px(25,17,2,6,bonePale); px(26,22,1,2,boneDark);
+  px(8,20,4,1,boneLite); px(20,20,5,1,boneLite);
 
   // body / rib cage - closer to the existing skeleton silhouettes and colors
-  px(9,9,18,8,bodyOuter);
-  px(10,10,16,6,bodyMain);
-  px(11,11,14,4,bodyOuter);
-  px(12,8,10,1,wingOuter);
-  px(12,16,13,1,wingMid);
+  px(9,9,18,8,bonePale);
+  px(10,10,16,6,boneBright);
+  px(11,11,14,4,bonePale);
+  px(12,8,10,1,boneDark);
+  px(12,16,13,1,boneLite);
   for(let i=0;i<6;i++){
-    px(12+i*2,9,1,8,ribCol);
-    if(i<5) px(13+i*2,11,1,3,ribShade,0.8);
+    px(12+i*2,9,1,8,boneDark);
+    if(i<5) px(13+i*2,11,1,3,boneMid,0.8);
   }
-  px(14,12,8,1,wingMid);
-  px(15,13,6,1,wingMid);
+  px(14,12,8,1,boneLite);
+  px(15,13,6,1,boneLite);
 
   // neck vertebrae
-  px(24,7,2,2,bodyOuter); px(25,6,2,2,bodyMain); px(26,5,2,2,bodyOuter); px(27,4,2,2,bodyMain);
+  px(24,7,2,2,bonePale); px(25,6,2,2,boneBright); px(26,5,2,2,bonePale); px(27,4,2,2,boneBright);
 
   // skull head / jaw
-  px(27,4,6,5,bodyOuter);
-  px(28,5,4,3,bodyMain);
-  px(31,6,3,2,bodyOuter);
-  px(32,7,2,1,wingOuter);
-  px(29,9,4,1,wingOuter);
-  px(28,3,1,2,wingOuter);
-  px(30,2,2,1,wingOuter);
-  px(29,10,3,1,jawCol);
-  px(31,10,2,1,jawCol);
-  if(boneVariant){
-    px(28,2,1,2,wingOuter);
-    px(32,2,1,2,wingOuter);
-    px(26,6,1,2,wingMid);
-  }
+  px(27,4,6,5,bonePale);
+  px(28,5,4,3,boneBright);
+  px(31,6,3,2,bonePale);
+  px(32,7,2,1,boneDark);
+  px(29,9,4,1,boneDark);
+  px(28,3,1,2,boneDark);
+  px(30,2,2,1,boneDark);
+  px(29,10,3,1,boneLite);
+  px(31,10,2,1,boneLite);
   if(b.atkName==='tail'){
-    px(28,10,4,1,C.BN1);
-    px(31,9,2,1,C.BN1);
+    px(28,10,4,1,boneDark);
+    px(31,9,2,1,boneDark);
   }
 
   // eye socket glow
-  const eyeCol=b.howlT>0 ? C.MG2 : (boneVariant ? C.BN1 : C.RD);
+  const eyeCol=C.RD;
   px(30,6,1,1,eyeCol,1);
   px(31,6,1,1,eyeCol,(b.atkName==='fireball' || b.atkName==='fireblast') ? 1 : 0.82);
 
@@ -3588,69 +4034,32 @@ function drawZone3DoorBlockage(){
   fr(doorX-8,PY+15,24,2,'#332920');
 }
 
-function drawZone3BrokenTreeCluster(){
-  const mainX=PX+16, mainY=PY+PH-20;
-  const wallX=PX+4, wallY=PY+PH-24;
 
-  // warm ground shadows / disturbed earth
+function drawZone3BrokenTreeCluster(){
+  const shake=zone3TreeShakeT>0 ? (((zone3TreeShakeT%4)<2)?-1:1) : 0;
+  const mainX=PX+21+shake, mainY=PY+PH-18;
+
   ctx.globalAlpha=0.20;
-  fr(PX+1,PY+PH-12,24,3,'#5a4330');
-  fr(PX,PY+PH-20,14,2,'#4a3526');
+  fr(PX+9,PY+PH-12,24,3,'#5a4330');
+  fr(PX+14,PY+PH-20,16,2,'#4a3526');
   ctx.globalAlpha=1;
 
-  // exposed bricks from the uprooted wall-side tree
-  fr(PX, wallY+4, 6, 8, '#5d4a39');
-  fr(PX+1, wallY+5, 5, 1, '#87705a');
-  fr(PX+1, wallY+8, 5, 1, '#87705a');
-  fr(PX+1, wallY+11, 5, 1, '#87705a');
-  fr(PX+2, wallY+6, 1, 6, '#3a2d22');
-  fr(PX+4, wallY+5, 1, 7, '#3a2d22');
+  // chopped stump: upper half removed
+  fr(mainX-5, mainY-1, 10, 9, C.TB2);
+  fr(mainX-4, mainY, 8, 7, C.TB);
+  fr(mainX-5, mainY+1, 10, 1, C.BN3);
+  fr(mainX-2, mainY+1, 1, 5, C.BN3);
+  fr(mainX+2, mainY+2, 1, 4, C.BN3);
+  fr(mainX-4, mainY-2, 8, 2, '#2c2219');
+  fr(mainX-3, mainY-3, 2, 1, C.BN3);
+  fr(mainX+1, mainY-3, 2, 1, C.BN3);
+  fr(mainX-1, mainY-2, 1, 1, '#8b7350');
+  fr(mainX+1, mainY-1, 1, 1, '#8b7350');
 
-  // second dead tree at the wall
-  fr(wallX-2, wallY+12, 10, 5, '#2d241c');
-  fr(wallX,   wallY-1, 5, 18, C.TB2);
-  fr(wallX+1, wallY,   3, 16, C.TB);
-  fr(wallX+2, wallY+1, 1, 14, C.BN3);
-  fr(wallX-2, wallY+11, 3, 2, C.BN3);
-  fr(wallX+4, wallY+9, 4, 2, C.BN3);
-  fr(wallX+3, wallY-4, 1, 4, C.BN3);
-  fr(wallX+3, wallY-5, 4, 1, C.BN3);
-  fr(wallX+1, wallY-2, 2, 2, '#8a6e48');
-
-  // root mass along the wall
-  const wallRoots=[
-    [PX+1, PY+PH-18],[PX+4, PY+PH-17],[PX+7, PY+PH-16],[PX+10, PY+PH-15]
-  ];
-  for(const [rx,ry] of wallRoots){
-    fr(rx,ry,3,1,C.TB2);
-    fr(rx+1,ry-1,1,1,'#8b7350');
-  }
-
-  // main broken half-tree moved into the corner
-  fr(mainX-8, mainY+11, 18, 6, '#2d241b');
-  fr(mainX-5, mainY-11, 10, 27, C.TB2);
-  fr(mainX-4, mainY-10, 8, 25, C.TB);
-  fr(mainX-1, mainY-9, 1, 22, C.BN3);
-  fr(mainX+2, mainY-6, 1, 15, C.BN3);
-  fr(mainX-5, mainY+5, 10, 2, C.BN3);
-
-  // snapped top / broken half
-  fr(mainX-1, mainY-17, 3, 6, C.BN3);
-  fr(mainX-4, mainY-20, 9, 3, C.TB2);
-  fr(mainX-5, mainY-22, 6, 2, C.BN3);
-  fr(mainX+2, mainY-19, 4, 2, C.BN3);
-  fr(mainX+4, mainY-23, 1, 5, C.BN3);
-
-  // dead branch nubs
-  fr(mainX-10, mainY-7, 6, 1, C.BN3);
-  fr(mainX+4,  mainY-6, 6, 1, C.BN3);
-  fr(mainX+8,  mainY-8, 1, 4, C.BN3);
-
-  // roots and rubble fanning into the room
   const roots=[
-    [[mainX-2,mainY+15],[mainX-6,mainY+18],[mainX-11,mainY+20],[mainX-16,mainY+22]],
-    [[mainX+1,mainY+15],[mainX+5,mainY+18],[mainX+10,mainY+20],[mainX+15,mainY+22]],
-    [[mainX-4,mainY+13],[mainX-9,mainY+14],[mainX-14,mainY+15]],
+    [[mainX-2,mainY+8],[mainX-7,mainY+10],[mainX-12,mainY+12]],
+    [[mainX+1,mainY+8],[mainX+6,mainY+10],[mainX+11,mainY+12]],
+    [[mainX-4,mainY+6],[mainX-9,mainY+7],[mainX-14,mainY+8]],
   ];
   for(const root of roots){
     for(const [rx,ry] of root){
@@ -3659,28 +4068,29 @@ function drawZone3BrokenTreeCluster(){
     }
   }
 
-  // rock and rubble pile near the sealed-up corner
-  const rubble=[
-    [PX+8,PY+PH-9,4,3,'#6b5947'],
-    [PX+13,PY+PH-7,5,3,'#5d4d3d'],
-    [PX+19,PY+PH-10,4,3,'#786552'],
-    [PX+22,PY+PH-8,3,2,'#4c4034'],
-  ];
-  for(const [rx,ry,rw,rh,col] of rubble){
-    fr(rx,ry,rw,rh,col);
-    fr(rx,ry,rw,1,'#90785e');
+  if(zone3TreeAwake){
+    fr(mainX-2,mainY+1,1,1,C.WH);
+    fr(mainX+1,mainY+1,1,1,C.WH);
+    fr(mainX-2,mainY+2,1,1,C.MG2);
+    fr(mainX+1,mainY+2,1,1,C.MG2);
+    fr(mainX-1,mainY+4,2,1,'#2c2219');
   }
+
+  fr(mainX-10, mainY+9, 2,1, C.BN3);
+  fr(mainX-7,  mainY+11,1,1, C.TB);
+  fr(mainX+8,  mainY+10,2,1, C.BN3);
+  fr(mainX+5,  mainY+12,1,1, C.TB2);
 }
 
 function drawDungeonZone3(){
-  const wallDark='#33271e';
-  const wallMid ='#4a3a2c';
-  const wallLight='#7e684f';
-  const wallMortar='#251d16';
-  const floorBase='#2d241d';
-  const floorLine='#43362a';
-  const floorAccent='#5d4b3a';
-  const floorGlow='#705d47';
+  const wallDark='#201710';
+  const wallMid ='#2f2219';
+  const wallLight='#5a4734';
+  const wallMortar='#17110d';
+  const floorBase='#17120f';
+  const floorLine='#241c17';
+  const floorAccent='#34281f';
+  const floorGlow='#584531';
 
   fr(0,0,GW,GH,wallDark);
   for(let y=0;y<GH;y+=4){
@@ -3694,11 +4104,11 @@ function drawDungeonZone3(){
   }
   for(let y=1;y<GH;y+=4) fr(0,y,GW,1,'#5b4937');
 
-  ctx.globalAlpha=0.10+0.04*Math.sin(frame*0.028);
-  ctx.fillStyle='#8c7557';
+  ctx.globalAlpha=0.05+0.02*Math.sin(frame*0.028);
+  ctx.fillStyle='#5d4734';
   ctx.fillRect(0, 0, GW*SCALE, Math.floor(GH*0.46)*SCALE);
-  ctx.globalAlpha=0.08+0.05*Math.sin(frame*0.034+1.4);
-  ctx.fillStyle='#5f4b37';
+  ctx.globalAlpha=0.04+0.03*Math.sin(frame*0.034+1.4);
+  ctx.fillStyle='#31261d';
   ctx.fillRect(0, Math.floor(GH*0.34)*SCALE, GW*SCALE, Math.floor(GH*0.66)*SCALE);
   ctx.globalAlpha=1;
 
@@ -3706,7 +4116,7 @@ function drawDungeonZone3(){
   for(let y=PY+5;y<PY+PH;y+=7) fr(PX,y,PW,1,floorLine);
   for(let x=PX+10;x<PX+PW;x+=14) fr(x,PY,1,PH,floorAccent);
 
-  ctx.globalAlpha=0.10+0.04*Math.sin(frame*0.03+0.8);
+  ctx.globalAlpha=0.04+0.02*Math.sin(frame*0.03+0.8);
   ctx.fillStyle=floorGlow;
   ctx.fillRect(PX*SCALE, PY*SCALE, PW*SCALE, PH*SCALE);
   ctx.globalAlpha=1;
@@ -3744,6 +4154,21 @@ function drawDungeonZone3(){
     fr(PX+PW-6,vy,1,4,'#5d4c39');
     fr(PX+PW-8,vy+2,2,1,'#8a7254');
   }
+
+  // bottom corners lit mostly by torch fire
+  drawTorch(PX+8, PY+PH-19);
+  ctx.globalAlpha=0.10+0.04*Math.sin(frame*0.18);
+  fr(PX+1, PY+PH-28, 18, 16, '#6a4322');
+  ctx.globalAlpha=1;
+  drawTorch(PX+PW-12, PY+PH-19);
+  ctx.globalAlpha=0.10+0.04*Math.sin(frame*0.18+1.3);
+  fr(PX+PW-24, PY+PH-28, 18, 16, '#6a4322');
+  ctx.globalAlpha=1;
+  drawFloorLantern(GW/2-24, PY+PH-15);
+  drawFloorLantern(GW/2+16, PY+PH-17);
+  if(!zone3Broken[3]) drawBarrel(PX+PW-25, PY+PH-13, 1); else drawDecorRubble(PX+PW-22, PY+PH-6, 3);
+  drawCrate(PX+PW-18, PY+PH-11, true);
+  if(!zone3Broken[4]) drawBarrel(PX+PW-10, PY+PH-12, 2); else drawDecorRubble(PX+PW-7, PY+PH-5, 3);
 
   fr(PX-1,PY-1,PW+2,1,wallLight);
   fr(PX-1,PY-1,1,PH+2,wallLight);
@@ -3829,6 +4254,31 @@ function drawDungeonSecret1(){
     fr(sx+1,sy-1,1,1,C.WH);
     ctx.globalAlpha=1;
   }
+
+  // stone pillars around the fountain area
+  drawStonePillar(fx-31, fy-18);
+  drawStonePillar(fx+26, fy-18);
+  drawStonePillar(fx-31, fy+8);
+  drawStonePillar(fx+26, fy+8);
+
+  // torchlight near the room corners
+  drawTorch(PX+6, PY+10);
+  drawTorch(PX+PW-10, PY+10);
+  drawTorch(PX+6, PY+PH-14);
+  drawTorch(PX+PW-10, PY+PH-14);
+
+  // sun-speckled dust through the opening above the fountain
+  ctx.globalAlpha=0.28;
+  fr(fx-9 + Math.round(Math.sin(frame*0.04)*2), fy-11, 1, 1, '#f9fff2');
+  fr(fx+2 + Math.round(Math.cos(frame*0.05)*2), fy-8, 1, 1, '#f9fff2');
+  fr(fx+7 + Math.round(Math.sin(frame*0.03+0.8)*2), fy-2, 1, 1, '#f9fff2');
+  fr(fx-13 + Math.round(Math.cos(frame*0.06+1.1)*2), fy+1, 1, 1, '#f9fff2');
+  ctx.globalAlpha=1;
+
+  // larger decorative rocks with varied gray tones
+  drawRockCluster(PX+8, PY+PH-18, 0);
+  drawRockCluster(PX+PW-17, PY+PH-19, 1);
+  drawRockCluster(PX+14, PY+11, 2);
 
   const dx=SECRET1_EXIT_DOOR_RECT.x, dy=SECRET1_EXIT_DOOR_RECT.y;
   fr(dx-1,dy,12,10,C.WH);
@@ -4098,6 +4548,7 @@ function drawZone2Tree(){
   }
 }
 
+
 function drawDungeonZone2(){
   const wallA='#24313a';
   const wallB='#1c2730';
@@ -4113,8 +4564,6 @@ function drawDungeonZone2(){
   const crackA='#0b1015';
 
   fr(0,0,GW,GH,wallB);
-
-  // wall courses
   for(let y=0;y<GH;y+=4){
     fr(0,y,GW,1,wallC);
     const off=(Math.floor(y/4)%2)*4;
@@ -4130,7 +4579,28 @@ function drawDungeonZone2(){
   for(let y=PY+5;y<PY+PH;y+=7) fr(PX,y,PW,1,floorC);
   for(let x=PX+10;x<PX+PW;x+=14) fr(x,PY,1,PH,floorB);
 
-  // wall cracks / splits
+  fr(PX, PY, PW, 16, '#2c4156');
+  for(let x=PX+1; x<PX+PW-1; x+=4){
+    if(((x-PX)/4)%3===1) continue;
+    const height = 2 + ((x*5)%4);
+    const bend = (x%8===0)?1:0;
+    fr(x, PY+16-height, 1, height, mossC);
+    fr(x+1, PY+16-height+bend, 1, Math.max(1,height-1), mossA);
+    if(x%12===0) fr(x-1, PY+15-height, 1, 1, '#88a2b8');
+    if(x%16===0) fr(x+2, PY+17-height, 1, 1, mossB);
+  }
+
+  if(!zone2Broken[0]) drawBrokenBookshelf(GW/2-14, PY+7, 0); else drawDecorRubble(GW/2-11, PY+23, 0);
+  if(!zone2Broken[1]) drawBrokenBookshelf(GW/2-6,  PY+7, 0); else drawDecorRubble(GW/2-3,  PY+23, 0);
+  if(!zone2Broken[2]) drawBrokenBookshelf(GW/2+2,  PY+7, 0); else drawDecorRubble(GW/2+5,  PY+23, 0);
+  if(!zone2Broken[3]) drawBrokenBookshelf(GW/2+10, PY+7, 1); else drawDecorRubble(GW/2+13, PY+23, 0);
+
+  if(!zone2Broken[4]) drawCrate(PX+PW-30, PY+12, true); else drawDecorRubble(PX+PW-26, PY+19, 3);
+  if(!zone2Broken[5]) drawBarrel(PX+PW-22, PY+10, 2); else drawDecorRubble(PX+PW-19, PY+18, 3);
+  if(!zone2Broken[6]) drawBarrel(PX+PW-14, PY+12, 1); else drawDecorRubble(PX+PW-11, PY+19, 3);
+
+  drawFloorLantern(GW/2-23, PY+23);
+
   const wallCracks = [
     [[PX+9,PY+10],[PX+10,PY+13],[PX+8,PY+16],[PX+10,PY+20],[PX+9,PY+24]],
     [[PX+PW-15,PY+8],[PX+PW-16,PY+11],[PX+PW-14,PY+14],[PX+PW-15,PY+18],[PX+PW-13,PY+21]],
@@ -4145,7 +4615,6 @@ function drawDungeonZone2(){
     }
   }
 
-  // floor cracks / root splits
   const floorCracks = [
     [[PX+14,PY+PH-28],[PX+18,PY+PH-25],[PX+23,PY+PH-22],[PX+29,PY+PH-20]],
     [[PX+PW-18,PY+PH-30],[PX+PW-23,PY+PH-27],[PX+PW-28,PY+PH-24],[PX+PW-33,PY+PH-22]],
@@ -4160,11 +4629,9 @@ function drawDungeonZone2(){
     }
   }
 
-  // creeping vines and decayed growth on walls
   for(let vy=PY+8;vy<PY+PH-8;vy+=10){
     fr(PX+3,vy,1,5,vineA);
     fr(PX+4,vy+2,1,2,vineB);
-    
   }
   for(let vy=PY+12;vy<PY+PH-12;vy+=12){
     fr(PX+PW-5,vy,1,4,vineA);
@@ -4173,16 +4640,44 @@ function drawDungeonZone2(){
   fr(PX+8,PY+12,3,1,mossA); fr(PX+PW-12,PY+16,4,1,mossB);
   fr(GW/2-18,PY+8,5,2,mossA); fr(GW/2+14,PY+12,4,2,mossB);
 
-  // thin decaying grass around floor edges / cracks
   const edgeGrass=[
     [PX+6,PY+PH-12],[PX+12,PY+PH-10],[PX+20,PY+PH-14],[PX+PW-22,PY+PH-13],[PX+PW-12,PY+PH-9],
-    [GW/2-25,PY+PH-16],[GW/2-18,PY+PH-12],[GW/2+18,PY+PH-14],[GW/2+26,PY+PH-11]
+    [GW/2-25,PY+PH-16],[GW/2-18,PY+PH-12],[GW/2+18,PY+PH-14],[GW/2+26,PY+PH-11],
+    [PX+24,PY+PH-20],[PX+36,PY+PH-26],[PX+PW-36,PY+PH-22],[GW/2+28,PY+PH-24]
   ];
   for(const [gx,gy] of edgeGrass){
     fr(gx,gy,1,4,mossC);
     fr(gx+1,gy+1,1,3,mossA);
     if((gx+gy)%2===0) fr(gx-1,gy+2,1,2,mossB);
   }
+
+  const floorGrassPatches=[
+    [PX+9,PY+33],[PX+14,PY+41],[PX+22,PY+48],[PX+31,PY+38],[PX+39,PY+54],
+    [GW/2-24,PY+43],[GW/2-12,PY+52],[GW/2+6,PY+46],[GW/2+20,PY+56],
+    [PX+PW-40,PY+36],[PX+PW-31,PY+47],[PX+PW-20,PY+40],[PX+PW-14,PY+54]
+  ];
+  for(const [gx,gy] of floorGrassPatches){
+    fr(gx,gy,1,3,mossC);
+    fr(gx+1,gy+1,1,2,mossA);
+    if((gx+gy)%3===0) fr(gx-1,gy+2,1,1,mossB);
+  }
+
+  // extra bookshelves tucked into the back grass and side wall pockets
+  if(!zone2Broken[7]) drawBrokenBookshelf(PX+6, PY+7, 0); else drawDecorRubble(PX+9, PY+23, 0);
+  if(!zone2Broken[8]) drawBrokenBookshelf(PX+14, PY+7, 0); else drawDecorRubble(PX+17, PY+23, 0);
+  if(!zone2Broken[9]) drawBrokenBookshelf(PX+PW-20, PY+7, 1); else drawDecorRubble(PX+PW-17, PY+23, 0);
+  if(!zone2Broken[10]) drawBrokenBookshelf(PX+PW-12, PY+7, 1); else drawDecorRubble(PX+PW-9, PY+23, 0);
+
+  // mushrooms around the tree and along the grassy back wall
+  const mushSpots=[
+    [GW/2-18,PY+15],[GW/2-10,PY+17],[GW/2+12,PY+15],[GW/2+20,PY+18],
+    [GW/2-8,PY+PH-22],[GW/2+7,PY+PH-24],[GW/2-15,PY+PH-12],[GW/2+15,PY+PH-13],
+    [PX+PW-30,PY+18],[PX+PW-22,PY+20]
+  ];
+  mushSpots.forEach(([mx,my],idx)=>drawMushroom(mx,my,idx%2===0?'#c84a8d':'#9b4bd1'));
+
+  drawZone2TriHole(PX+15, PY+PH-24, false);
+  drawZone2TriHole(PX+PW-27, PY+PH-25, true);
 
   for(const d of BONE_DECALS){
     ctx.globalAlpha=0.36;
@@ -4447,37 +4942,48 @@ function drawBrokenBookshelf(lx,ly,variant=0){
   fr(lx+1,ly+9,4,1,C.BN3);
   fr(lx+1,ly+14,4,1,C.BN3);
 
-  // damage variation
   if(variant===1){
-    fr(lx+3,ly+1,2,3,C.DK);
-    fr(lx+4,ly+6,1,3,C.DK);
+    // more open gaps on the newer right-side shelf
+    fr(lx+2,ly+1,2,4,C.DK);
+    fr(lx+1,ly+6,3,2,C.DK);
+    fr(lx+3,ly+11,2,2,C.DK);
+
+    // a few remaining books tucked to one side
+    fr(lx+4,ly+2,1,2,C.SI2);
+    fr(lx+4,ly+6,1,2,C.BN2);
+    fr(lx+1,ly+11,1,2,C.TB);
+
+    // lots more books spilled on the floor
+    fr(lx-2,ly+17,2,1,C.BN2);
+    fr(lx,ly+18,2,1,C.TB);
+    fr(lx+2,ly+17,1,2,C.GR);
+    fr(lx+4,ly+18,2,1,C.SI2);
+    fr(lx+6,ly+17,1,2,C.BN2);
+    fr(lx+1,ly+19,2,1,C.TB2);
   } else {
+    // damage variation
     fr(lx+1,ly+11,2,2,C.DK);
     fr(lx+2,ly+2,1,2,C.DK);
-  }
 
-  // books on shelves
-  fr(lx+1,ly+2,1,2,C.GR);
-  fr(lx+2,ly+2,1,2,C.BN2);
-  fr(lx+3,ly+2,1,2,C.SI2);
-  fr(lx+4,ly+2,1,2,C.TB);
+    // books on shelves
+    fr(lx+1,ly+2,1,2,C.GR);
+    fr(lx+2,ly+2,1,2,C.BN2);
+    fr(lx+3,ly+2,1,2,C.SI2);
+    fr(lx+4,ly+2,1,2,C.TB);
 
-  fr(lx+1,ly+6,1,2,C.BN2);
-  fr(lx+2,ly+6,1,2,C.TB);
-  fr(lx+3,ly+6,1,2,C.GR);
-  fr(lx+4,ly+6,1,2,C.BN2);
+    fr(lx+1,ly+6,1,2,C.BN2);
+    fr(lx+2,ly+6,1,2,C.TB);
+    fr(lx+3,ly+6,1,2,C.GR);
+    fr(lx+4,ly+6,1,2,C.BN2);
 
-  fr(lx+1,ly+11,1,2,C.SI2);
-  fr(lx+2,ly+11,1,2,C.BN2);
-  fr(lx+3,ly+11,1,2,C.TB);
+    fr(lx+1,ly+11,1,2,C.SI2);
+    fr(lx+2,ly+11,1,2,C.BN2);
+    fr(lx+3,ly+11,1,2,C.TB);
 
-  // books on floor
-  fr(lx-1,ly+17,2,1,C.BN2);
-  fr(lx+2,ly+18,1,1,C.TB);
-  fr(lx+5,ly+17,1,2,C.GR);
-  if(variant===1){
-    fr(lx+6,ly+18,1,1,C.SI2);
-    fr(lx+1,ly+19,2,1,C.TB2);
+    // books on floor
+    fr(lx-1,ly+17,2,1,C.BN2);
+    fr(lx+2,ly+18,1,1,C.TB);
+    fr(lx+5,ly+17,1,2,C.GR);
   }
 }
 
@@ -4507,6 +5013,123 @@ function drawDecorRubble(cx,cy,kind){
     fr(cx-1,cy+1,1,2,C.TB);
     fr(cx+2,cy+1,1,1,C.TB2);
   }
+}
+
+
+function drawCrate(lx,ly,broken=false){
+  ctx.globalAlpha=0.20;
+  fr(lx-1,ly+7,9,1,'#6b4a2c');
+  ctx.globalAlpha=1;
+  fr(lx,ly,7,7,C.TB2);
+  fr(lx+1,ly+1,5,5,C.TB);
+  fr(lx,ly+3,7,1,C.BN3);
+  fr(lx+3,ly,1,7,C.BN3);
+  fr(lx+1,ly+1,5,1,'#8b7350');
+  if(broken){
+    fr(lx+4,ly+4,2,2,C.DK);
+    fr(lx+6,ly+5,1,1,C.BN3);
+    fr(lx-1,ly+5,1,1,C.BN3);
+  }
+}
+
+function drawBrokenWeaponRack(lx,ly,small=false){
+  const h = small ? 8 : 10;
+  ctx.globalAlpha=0.18;
+  fr(lx-1,ly+h,10,1,'#5b3f29');
+  ctx.globalAlpha=1;
+  fr(lx,ly,1,h,C.BN3);
+  fr(lx+6,ly+1,1,h-1,C.BN3);
+  fr(lx,ly+2,7,1,C.TB2);
+  fr(lx+1,ly+5,6,1,C.TB);
+  fr(lx+2,ly+7,4,1,C.TB2);
+  // snapped rails and scattered weapons
+  fr(lx+4,ly+2,3,1,C.DK);
+  fr(lx+1,ly+h+1,2,1,C.BN3);
+  fr(lx+4,ly+h,2,1,C.SI2);
+  fr(lx+6,ly+h+1,1,2,C.TB);
+  fr(lx+3,ly+h+2,1,1,C.BN2);
+  if(!small){
+    fr(lx+2,ly+1,1,5,C.SI2);
+    fr(lx+5,ly+2,1,4,C.BN2);
+  }
+}
+
+function drawTrainingDummy(lx,ly){
+  ctx.globalAlpha=0.20;
+  fr(lx-2,ly+10,10,2,'#6b4a2c');
+  ctx.globalAlpha=1;
+  fr(lx+2,ly+1,2,10,'#8b7350');
+  fr(lx,ly+9,6,1,C.BN3);
+  fr(lx-1,ly+10,8,1,C.TB2);
+  fr(lx+1,ly,4,1,'#d2c48b');
+  fr(lx,ly+1,6,5,'#bda66d');
+  fr(lx+1,ly+2,4,3,'#d7c58f');
+  fr(lx+2,ly+1,1,5,'#e5d7a8');
+  fr(lx-2,ly+3,3,1,C.TB);
+  fr(lx+5,ly+3,3,1,C.TB);
+  fr(lx-1,ly+4,2,1,C.TB2);
+  fr(lx+5,ly+4,2,1,C.TB2);
+}
+
+function drawFloorLantern(lx,ly){
+  const glow=0.17 + 0.05*Math.sin(frame*0.05 + lx*0.08 + ly*0.05);
+  ctx.globalAlpha=0.18+glow;
+  fr(lx-4,ly-3,12,10,C.FR2);
+  ctx.globalAlpha=0.10+glow*0.8;
+  fr(lx-2,ly-2,8,8,C.FR1);
+  ctx.globalAlpha=0.05+glow*0.4;
+  fr(lx-6,ly-5,16,14,'#d8f6ff');
+  ctx.globalAlpha=1;
+  fr(lx+1,ly+1,4,4,'#3d4649');
+  fr(lx+2,ly+2,2,2,'#f7d889');
+  fr(lx+2,ly,2,1,'#6c7377');
+  fr(lx+1,ly+5,4,1,'#1a1f22');
+  if(Math.sin(frame*0.05 + lx*0.08)>0.25) fr(lx+2,ly+2,1,1,C.WH);
+}
+
+
+function drawMushroom(lx,ly,cap='#c84a8d', stem='#d9d0c3'){
+  fr(lx+1,ly+2,1,2,stem);
+  fr(lx,ly+1,3,1,cap);
+  fr(lx+1,ly,1,1,'#f2d6e8');
+}
+function drawZone2TriHole(lx,ly,flip=false){
+  const edgeA='#a3adb6', edgeB='#858f98', edgeC='#68727a', edgeD='#4d565e';
+  fr(lx-2,ly+1,1,1,edgeD); fr(lx-1,ly,2,1,edgeB); fr(lx,ly-1,2,1,edgeA);
+  fr(lx+2,ly-1,2,1,edgeB); fr(lx+4,ly,1,1,edgeC); fr(lx+5,ly+1,1,1,edgeD);
+  fr(lx-1,ly+2,1,1,edgeC); fr(lx+5,ly+2,1,1,edgeC); fr(lx,ly+4,2,1,edgeD);
+  fr(lx+2,ly+4,2,1,edgeB); fr(lx+4,ly+3,1,1,edgeD);
+  fr(lx-3,ly+2,1,1,edgeB); fr(lx+6,ly+2,1,1,edgeB);
+  fr(lx-2,ly+3,2,1,edgeD); fr(lx+5,ly+3,2,1,edgeD);
+  fr(lx+1,ly+5,1,1,edgeC); fr(lx+3,ly+5,1,1,edgeC);
+  if(!flip){
+    fr(lx+1,ly+1,2,1,'#06080a');
+    fr(lx+1,ly+2,3,1,'#050608');
+    fr(lx+2,ly+3,1,1,'#050608');
+  } else {
+    fr(lx+2,ly+1,2,1,'#06080a');
+    fr(lx+1,ly+2,3,1,'#050608');
+    fr(lx+2,ly+3,1,1,'#050608');
+  }
+  fr(lx+2,ly+2,1,1,'#1d252c');
+  fr(lx-1,ly+1,1,2,'#57616a');
+  fr(lx+4,ly+1,1,2,'#57616a');
+  fr(lx+1,ly+4,3,1,'#57616a');
+}
+
+function drawStonePillar(px,py){
+  fr(px,py,5,12,'#6f757c');
+  fr(px+1,py+1,3,10,'#969ca2');
+  fr(px,py,5,1,'#b7bcc1');
+  fr(px,py+11,5,1,'#555c63');
+  fr(px+2,py+2,1,8,'#c7ccd0');
+}
+
+function drawRockCluster(rx,ry,size=0){
+  const cols=[['#666c73','#8a9096'],['#575e66','#7b838b'],['#6f767d','#949aa0']][size%3];
+  fr(rx,ry,6,4,cols[0]);
+  fr(rx+1,ry+1,4,2,cols[1]);
+  fr(rx+2,ry,2,1,'#4d535a');
 }
 
 function drawZone1DoorDecor(){
@@ -4563,6 +5186,14 @@ function drawZone1DoorDecor(){
   fr(carpetX+2, PY+28, 1, 1, '#4d120f');
   fr(carpetX+8, PY+28, 1, 1, '#4d120f');
 
+  // opposite-side runner pieces pulling toward the room center
+  fr(carpetX-24, PY+48, 9, 3, '#6a1f1b');
+  fr(carpetX-22, PY+51, 10, 4, '#7f2b24');
+  fr(carpetX-18, PY+55, 7, 3, '#8d3329');
+  fr(carpetX+27, PY+48, 9, 3, '#6a1f1b');
+  fr(carpetX+26, PY+51, 10, 4, '#7f2b24');
+  fr(carpetX+27, PY+55, 7, 3, '#8d3329');
+
   // hidden crack for Secret Zone 1 sits behind the left bookshelf
   drawZone1SecretCrack(zone1SecretEntranceReady(), zone1Broken[0]);
 
@@ -4572,6 +5203,9 @@ function drawZone1DoorDecor(){
 
   if(!zone1Broken[1]) drawBrokenBookshelf(PX+PW-8, PY+20, 1);
   else drawDecorRubble(PX+PW-5, PY+37, 1);
+
+  // broken rack beside the added right shelf
+  drawBrokenWeaponRack(PX+PW-17, PY+28, true);
 
   // lone broken barrel near the upper-right
   if(!zone1Broken[3]) drawBarrel(PX+PW-14, PY+8, 4);
@@ -4596,6 +5230,10 @@ function drawZone1DoorDecor(){
   // another corner keeps signs of former life
   if(!zone1Broken[2]) drawBrokenRoundTableSet(PX+10,PY+11);
   else drawDecorRubble(PX+17, PY+22, 2);
+
+  // bottom-left training nook
+  drawBrokenWeaponRack(PX+10, PY+PH-17, false);
+  drawTrainingDummy(PX+20, PY+PH-18);
 
 }
 
@@ -4642,6 +5280,13 @@ function drawZoneFrontOverlays(){
     return;
   }
   if(currentZone===2){
+    const shelfClips=[
+      [GW/2-14,PY+12,6,12,0],[GW/2-6,PY+12,6,12,1],[GW/2+2,PY+12,6,12,2],[GW/2+10,PY+12,6,12,3],
+      [PX+6,PY+12,6,12,7],[PX+14,PY+12,6,12,8],[PX+PW-20,PY+12,6,12,9],[PX+PW-12,PY+12,6,12,10],
+    ];
+    for(const [sx,sy,sw,sh,idx] of shelfClips){
+      if(!zone2Broken[idx]) withClipRect(sx,sy,sw,sh,()=>drawBrokenBookshelf(sx, PY+7, sx<GW/2?0:1));
+    }
     withClipRect(GW/2-14,PY+30,29,24,()=>drawZone2Tree());
     return;
   }
@@ -4649,12 +5294,12 @@ function drawZoneFrontOverlays(){
     if(!zone3Broken[0]) withClipRect(PX+2,PY+22,6,11,()=>drawBrokenBookshelf(PX+2, PY+22, 0));
     if(!zone3Broken[1]) withClipRect(PX+PW-8,PY+20,6,11,()=>drawBrokenBookshelf(PX+PW-8, PY+20, 1));
     if(!zone3Broken[2]) withClipRect(GW/2-8,PY+35,16,7,()=>drawBrokenRoundTableSet(GW/2-4, PY+35));
-    withClipRect(PX,PY+PH-31,26,25,()=>drawZone3BrokenTreeCluster());
+    withClipRect(PX+8,PY+PH-28,28,22,()=>drawZone3BrokenTreeCluster());
     return;
   }
   if(currentZone===ZONE_SECRET2){
     const cx=GW/2, cy=PY+43;
-    withClipRect(cx-7, cy-15, 14, 18, ()=>drawSecret2SwordOverlay(cx, cy));
+    if(!masterSwordOwned) withClipRect(cx-7, cy-15, 14, 18, ()=>drawSecret2SwordOverlay(cx, cy));
   }
 }
 
@@ -4673,6 +5318,7 @@ function render(){
     return;}
   if(gState==='scoreboard'){rScoreboard();return;}
   if(gState==='retry_confirm'){rRetryConfirm();return;}
+  if(gState==='secret2_sword_confirm'){drawDungeon(); rPlay(); rSecret2SwordConfirm(); return;}
   drawDungeon();
   rPlay();
   if(gState==='gameover') rOver();
@@ -4728,6 +5374,31 @@ function rPlay(){
     ds(S.shieldIcon, 3+numHearts*9+2, 2);
   }
 
+  // Tiny translucent inventory for run items
+  const inventoryIcons=[];
+  if(masterSwordOwned) inventoryIcons.push({spr:S.upSword, scale:0.68, alpha:0.92, passive:true});
+  if(potionCount>0) inventoryIcons.push({spr:S.potionIcon, scale:0.74, alpha:0.92, count:potionCount});
+  if(inventoryIcons.length){
+    const invX=3, invY=11, slotW=7, gap=1;
+    const invW=inventoryIcons.length*(slotW+gap)-gap+4;
+    ctx.save();
+    ctx.globalAlpha=0.22;
+    fr(invX-1,invY-1,invW,9,'#ced9df');
+    ctx.globalAlpha=0.38;
+    fr(invX,invY,invW-2,7,'#0c0f12');
+    inventoryIcons.forEach((icon,idx)=>{
+      const sx=invX+1+idx*(slotW+gap);
+      ctx.globalAlpha=0.10;
+      fr(sx-1,invY+1,slotW,5,'#d8e4ea');
+      ctx.globalAlpha=icon.alpha;
+      dsScale(icon.spr,sx,invY+1,icon.scale);
+      if(icon.count){
+        pt(String(icon.count), (sx+5)*SCALE, (invY+2)*SCALE, 4, C.BN1, 'center', C.DK);
+      }
+    });
+    ctx.restore();
+  }
+
   // Score
   pt(String(score),(GW-5)*SCALE,4*SCALE,7,C.BN1,'right',C.W3);
   if(newGamePlus) pt('NG+',78*SCALE,4*SCALE,5,C.SH,'left',C.W3);
@@ -4742,7 +5413,7 @@ function rPlay(){
     fr(bx,by,fill,bh,dragonBoss.phase===2?C.FR1:C.BN1);
     ctx.restore();
 
-    pt(dragonBoss.variant==='bone' ? 'BONE DRAGON' : 'DRAGON', GW*SCALE/2, 15, 5, C.WH, 'center', C.DK);
+    pt('DRAGON', GW*SCALE/2, 15, 5, C.WH, 'center', C.DK);
     if(dragonBoss.phase===2){
       pt('PHASE 2', GW*SCALE/2, 21, 4, C.BN1, 'center', C.DK);
     }
@@ -4767,22 +5438,41 @@ function rPlay(){
   } else if(currentZone===3 && shadowBossDefeated){
     pt('CORRUPTION SILENCED', GW*SCALE/2, 8, 5, C.MG2, 'center', C.DK);
   }
-  if(p.hasKey){
+  if(playerHasAnyKey(p)){
     ds(S.key,GW-18,2);
-  } else if(keyDrop){
+  } else if(hasAnyKeyDrop()){
     ctx.globalAlpha=0.28+0.12*Math.sin(frame*0.14);
     fr(GW-18,2,7,7,C.FR1);
     ctx.globalAlpha=1;
   }
+  {
+    const iconX=GW-33, iconY=2;
+    const pulse=dodgeCooldownT>0 ? 0.26 : (0.44+0.12*Math.sin(frame*0.12));
+    const edge=p.shadowStep ? C.MG2 : C.SI2;
+    const spr=p.shadowStep ? S.shadowStepIcon : S.stepIcon;
+    ctx.save();
+    ctx.globalAlpha=pulse;
+    fr(iconX-1,iconY-1,9,9,edge);
+    ctx.globalAlpha=0.55;
+    fr(iconX,iconY,7,7,C.DK);
+    ctx.globalAlpha=dodgeCooldownT>0 ? 0.44 : 0.72;
+    ds(spr, iconX, iconY);
+    ctx.restore();
+    if(dodgeCooldownT>0){
+      pt(String(Math.max(1, Math.ceil(dodgeCooldownT/60))), (iconX+3)*SCALE, (iconY+8)*SCALE, 4, C.BN1, 'center', C.DK);
+    }
+  }
   if(whirlwindUnlocked){
-    const iconX=GW-31, iconY=2;
-    const pulse=whirlwindCooldownT>0 ? 0.35 : (0.65+0.20*Math.sin(frame*0.12));
+    const iconX=GW-23, iconY=2;
+    const pulse=whirlwindCooldownT>0 ? 0.28 : (0.48+0.12*Math.sin(frame*0.12));
+    ctx.save();
     ctx.globalAlpha=pulse;
     fr(iconX-1,iconY-1,9,9,C.SH2);
-    ctx.globalAlpha=1;
+    ctx.globalAlpha=0.55;
     fr(iconX,iconY,7,7,C.DK);
-    fr(iconX+3,iconY+1,1,5,C.SH);
-    fr(iconX+1,iconY+3,5,1,C.SH);
+    ctx.globalAlpha=whirlwindCooldownT>0 ? 0.42 : 0.68;
+    ds(S.whirlwindIcon, iconX, iconY);
+    ctx.restore();
     if(whirlwindCooldownT>0){
       pt(String(Math.max(1, Math.ceil(whirlwindCooldownT/60))), (iconX+3)*SCALE, (iconY+8)*SCALE, 4, C.BN1, 'center', C.DK);
     }
@@ -4815,14 +5505,26 @@ function rPlay(){
     ds(sprite,h.x,Math.round(h.y+bob));
     ctx.globalAlpha=1;
   }
+  for(const d of potionDrops){
+    const bob=Math.sin(frame*0.11 + (d.bobSeed||0))*0.6;
+    const alpha=getGroundItemAlpha(d);
+    ctx.globalAlpha=(0.18+0.10*Math.sin(frame*0.14))*alpha;
+    fr(d.x-1,d.y-1,d.w+2,d.h+2,C.HP1);
+    ctx.globalAlpha=alpha;
+    ds(S.potionIcon,d.x,Math.round(d.y+bob));
+    ctx.globalAlpha=1;
+  }
 
   // Key drop
-  if(keyDrop){
+  if(hasAnyKeyDrop()){
     const bob=Math.floor(frame/14)%2;
-    ctx.globalAlpha=0.18+0.12*Math.sin(frame*0.16);
-    fr(keyDrop.x-1,keyDrop.y-1,keyDrop.w+2,keyDrop.h+2,C.FR1);
-    ctx.globalAlpha=1;
-    ds(S.key,keyDrop.x,keyDrop.y+bob);
+    for(const drop of getKeyDropList()){
+      const col=drop.kind==='secret1' ? C.MG2 : (drop.kind==='zone1Door' ? C.FR1 : C.BN1);
+      ctx.globalAlpha=0.18+0.12*Math.sin(frame*0.16);
+      fr(drop.x-1,drop.y-1,drop.w+2,drop.h+2,col);
+      ctx.globalAlpha=1;
+      ds(S.key,drop.x,drop.y+bob);
+    }
   }
 
   // Particles
@@ -4892,6 +5594,11 @@ function rPlay(){
     const flip=e.dir==='right';
 
     if(e.giant){
+      if(currentZone===3){
+        ctx.globalAlpha=0.12+0.06*Math.sin(frame*0.12 + rx*0.1);
+        fr(rx-3,ry-3,e.w+6,e.h+6,C.FR1);
+        ctx.globalAlpha=1;
+      }
       // Red hit flash behind sprite
       if(e.hurtT>0){
         ctx.globalAlpha=0.55;
@@ -4907,6 +5614,11 @@ function rPlay(){
         fr(rx+h*5+1,ry-4,4,2,h<e.hp?C.GR:C.W3);
       }
     } else {
+      if(currentZone===3 && !e.wizard){
+        ctx.globalAlpha=0.10+0.05*Math.sin(frame*0.16 + rx*0.1);
+        fr(rx-2,ry-2,e.w+4,e.h+4,C.FR1);
+        ctx.globalAlpha=1;
+      }
       if(e.hurtT>0){
         ctx.globalAlpha=0.5;
         fr(rx,ry,e.w,e.h,C.RD);
@@ -4938,7 +5650,17 @@ function rPlay(){
     const spr=p.dir==='up'?S.plrU:p.dir==='down'?S.plrD:S.plrR;
 
     // Shield visual (drawn before sprite so it appears around it)
-    if(p.shield){
+    if(currentZone===3){
+      const glow=0.14+0.06*Math.sin(frame*0.18);
+      ctx.globalAlpha=glow;
+      fr(p.x-4,p.y-4,p.w+8,p.h+8,p.shadowStep?C.MG2:C.SH);
+      ctx.globalAlpha=1;
+    }
+    if((p.dodgeInvulnT||0)>0){
+      const pulse=0.40+0.25*Math.sin(frame*0.35);
+      frBorder(p.x-2,p.y-2,p.w+4,p.h+4,C.MG2,pulse);
+      frBorder(p.x-3,p.y-3,p.w+6,p.h+6,C.SH,pulse*0.45);
+    } else if(p.shield){
       const pulse=0.5+0.3*Math.sin(frame*0.28);
       frBorder(p.x-2,p.y-2,p.w+4,p.h+4,C.SH,pulse);
       frBorder(p.x-3,p.y-3,p.w+6,p.h+6,C.SH2,pulse*0.4);
@@ -5002,6 +5724,9 @@ function rPlay(){
       drawInteractPrompt(SECRET2_NPC_RECT.x + SECRET2_NPC_RECT.w/2, SECRET2_NPC_RECT.y - 6);
     }
   }
+  if(gState==='playing' && currentZone===3 && canInteractZone3Tree()){
+    drawInteractPrompt(ZONE3_TREE_INTERACT_RECT.x + ZONE3_TREE_INTERACT_RECT.w/2, ZONE3_TREE_INTERACT_RECT.y - 4);
+  }
 
   if(currentZone===1 && secret1UnlockAlertT>0){
     const pulse=0.55+0.45*Math.sin(frame*0.18);
@@ -5041,6 +5766,7 @@ function _upBtn(btn){
   if(btn.icon==='shieldIcon') ds(S.shieldIcon,btn.x+4,btn.y+4);
   else if(btn.icon==='upSword') ds(S.upSword,btn.x+2,btn.y+3);
   else if(btn.icon==='upSpeed') ds(S.upSpeed,btn.x+2,btn.y+3);
+  else if(btn.icon==='shadowStepIcon') ds(S.shadowStepIcon,btn.x+3,btn.y+4);
   else if(btn.icon==='pointsIcon'){
     pt('+', (btn.x+6)*SCALE, (btn.y+1)*SCALE, 10, C.FR1, 'center', C.DK);
     pt('PTS', (btn.x+6)*SCALE, (btn.y+10)*SCALE, 6, C.BN1, 'center', C.DK);
@@ -5541,29 +6267,35 @@ function rZoneTransition(){
 function rDialog(){
   const page=dialogPages[dialogPageIndex]||['....'];
   const whisperCol='#5f7f9d';
+  const isSwordDialog=dialogMode==='sword';
+  const isRewardDialog=dialogMode==='reward';
 
   ctx.fillStyle='rgba(8,6,3,0.72)';
   ctx.fillRect(0,0,GW*SCALE,GH*SCALE);
 
-  if(dialogMode==='sword'){
-    drawPanelFrame(6,59,108,49,{edge:C.BN2,fill:'rgba(4,4,5,0.92)',inner:'rgba(53,39,28,0.10)',glow:C.MG});
-    ptHeavy(dialogTitle||'MASTER SWORD',GW*SCALE/2,65*SCALE,7,C.BN1,'center',C.DK);
-    ctx.fillStyle=C.BN2;
-    ctx.globalAlpha=0.35;
-    ctx.fillRect(8*SCALE,72*SCALE,104*SCALE,SCALE);
-    ctx.globalAlpha=1;
-  } else {
-    drawPanelFrame(8,66,104,42,{edge:C.BN2,fill:'rgba(4,4,5,0.92)',inner:'rgba(53,39,28,0.10)',glow:C.MG});
-    ptHeavy(dialogTitle||'WOUNDED STRANGER',GW*SCALE/2,76*SCALE,7,C.BN1,'center',C.DK);
-    ctx.fillStyle=C.BN2;
-    ctx.globalAlpha=0.35;
-    ctx.fillRect(14*SCALE,87*SCALE,92*SCALE,SCALE);
-    ctx.globalAlpha=1;
-  }
+  const longestLine=Math.max(dialogTitle?dialogTitle.length:0, ...page.map(line=>String(line||'').length));
+  const lineH=isSwordDialog ? 8 : (isRewardDialog ? 8 : 7);
+  const charW=isSwordDialog ? 5.2 : (isRewardDialog ? 5.0 : 4.8);
+  const minW=isRewardDialog ? 62 : 58;
+  const maxW=isRewardDialog ? 112 : 108;
+  const panelW=Math.max(minW, Math.min(maxW, Math.round(longestLine*charW)+24));
+  const panelH=Math.max(isRewardDialog ? 44 : 38, 24 + page.length*lineH + 10);
+  const panelX=Math.round((GW-panelW)/2);
+  const panelY=isRewardDialog ? Math.round((GH-panelH)/2)-4 : Math.max(42, GH-panelH-10);
+  const panelGlow=isRewardDialog ? C.SH : C.MG;
+  const fill=isRewardDialog ? 'rgba(4,4,5,0.96)' : 'rgba(4,4,5,0.92)';
+  const inner=isRewardDialog ? 'rgba(40,52,62,0.14)' : 'rgba(53,39,28,0.10)';
+
+  drawPanelFrame(panelX,panelY,panelW,panelH,{edge:C.BN2,fill,inner,glow:panelGlow});
+  ptHeavy(dialogTitle||(isRewardDialog?'REWARD':'WOUNDED STRANGER'),GW*SCALE/2,(panelY+7)*SCALE,7,C.BN1,'center',C.DK);
+  ctx.fillStyle=C.BN2;
+  ctx.globalAlpha=0.35;
+  ctx.fillRect((panelX+4)*SCALE,(panelY+14)*SCALE,(panelW-8)*SCALE,SCALE);
+  ctx.globalAlpha=1;
 
   for(let i=0;i<page.length;i++){
     const line=page[i];
-    const y=(dialogMode==='sword' ? 78+i*8 : 91+i*7)*SCALE;
+    const y=(panelY+19+i*lineH)*SCALE;
 
     if(line==='......' || line==='.....' || line==='....'){
       pt(line,GW*SCALE/2,y,6,whisperCol,'center',C.DK);
@@ -5591,8 +6323,6 @@ function rDialog(){
       const pulse=0.72 + 0.28*Math.sin(frame*0.16);
       const baseX=GW*SCALE/2;
       const baseY=y+bob;
-
-      // RGB pulsing text / glow
       const r1=Math.round(155 + 100*Math.sin(frame*0.08));
       const g1=Math.round(120 + 110*Math.sin(frame*0.08 + 2.09));
       const b1=Math.round(155 + 100*Math.sin(frame*0.08 + 4.18));
@@ -5601,7 +6331,6 @@ function rDialog(){
       const b2=Math.round(180 + 70*Math.sin(frame*0.11 + 4.5));
       const rgbA=`rgb(${r1},${g1},${b1})`;
       const rgbB=`rgb(${r2},${g2},${b2})`;
-
       ctx.save();
       ctx.globalAlpha=0.24 + 0.14*pulse;
       ptHeavy(line,baseX,baseY,6,rgbA,'center',C.DK);
@@ -5610,8 +6339,6 @@ function rDialog(){
       ctx.globalAlpha=1;
       ptHeavy(line,baseX,baseY,6,'rgb(235,225,190)','center',rgbA);
       ctx.restore();
-
-      // particle effect 1: soft orbiting blue motes
       for(let j=0;j<4;j++){
         const ang=frame*0.045 + j*1.57;
         const px=Math.round((GW/2 + Math.cos(ang)*10 + Math.sin(frame*0.03+j)*2)*SCALE);
@@ -5622,8 +6349,6 @@ function rDialog(){
         ctx.fillStyle='rgb(225,245,255)';
         ctx.fillRect(px+1,py-1,1,1);
       }
-
-      // particle effect 2: lighter blue twinkles / drifting sparks
       for(let j=0;j<3;j++){
         const ang=frame*0.06 + j*2.2 + 1.1;
         const px=Math.round((GW/2 + Math.cos(ang)*6 - Math.sin(frame*0.025+j)*5)*SCALE);
@@ -5634,12 +6359,11 @@ function rDialog(){
         ctx.fillStyle='rgb(185,235,255)';
         ctx.fillRect(px-1,py+1,3,1);
       }
-
       ctx.globalAlpha=1;
       continue;
     }
 
-    if(dialogMode==='sword'){
+    if(isSwordDialog){
       ctx.save();
       ctx.textBaseline='top';
       ctx.textAlign='center';
@@ -5655,10 +6379,18 @@ function rDialog(){
       continue;
     }
 
+    if(isRewardDialog){
+      const isNameLine=(line==='MASTER SWORD' || line==='WHIRLWIND SLASH' || line==='SHADOW STEP' || line==='HEALTH POTION');
+      const fs=isNameLine ? 8 : 6;
+      const col=isNameLine ? C.SH : C.BN1;
+      ptHeavy(line,GW*SCALE/2,y,fs,col,'center',C.DK);
+      continue;
+    }
+
     pt(line,GW*SCALE/2,y,6,C.BN1,'center',C.DK);
   }
 
-  pt('ENTER',GW*SCALE/2,112*SCALE,4,C.BN1,'center',C.DK);
+  pt('ENTER',GW*SCALE/2,(panelY+panelH-6)*SCALE,4,C.BN1,'center',C.DK);
   ctx.textAlign='left';
 }
 
@@ -5666,53 +6398,64 @@ function rPaused(){
   ctx.fillStyle='rgba(8,6,3,0.62)';
   ctx.fillRect(0,0,GW*SCALE,GH*SCALE);
 
-  drawPanelFrame(18,34,84,52,{edge:C.BN2,fill:'rgba(4,4,5,0.82)',inner:'rgba(53,39,28,0.10)',glow:C.FR1});
+  const p=player||{};
+  const itemRows=[];
+  if(masterSwordOwned) itemRows.push({spr:S.upSword,label:'MASTER SWORD',col:C.SH});
+  if(potionCount>0) itemRows.push({spr:S.potionIcon,label:'POTION x'+potionCount,col:C.HP1});
+  if(playerHasAnyKey(p)) itemRows.push({spr:S.key,label:(p.secret1Key?'SECRET KEY':(p.zone1DoorKey?'ZONE 2 KEY':'KEY')),col:C.BN1});
+  if(p.shield) itemRows.push({spr:S.shieldIcon,label:'MAGIC SHIELD',col:C.SH});
+  if(!itemRows.length) itemRows.push({spr:S.mskull,label:'NONE',col:C.BN1});
 
-  ctx.globalAlpha=0.22;
-  ctx.fillStyle=C.BN2;
-  ctx.fillRect(29*SCALE,58*SCALE,62*SCALE,6*SCALE);
-  ctx.fillRect(29*SCALE,66*SCALE,62*SCALE,6*SCALE);
-  ctx.globalAlpha=1;
+  const skillRows=[
+    {spr:S.upSword,label:'SWORD x'+Math.max(1,(p.swordLevel||0)+1),col:C.BN1},
+    {spr:p.shadowStep?S.shadowStepIcon:S.stepIcon,label:(p.shadowStep?'SHADOW STEP':'STEP')+' x'+Math.max(1,p.shadowStep?(p.stepLevel||1):1),col:p.shadowStep?C.MG2:C.SI1},
+    {spr:S.upSpeed,label:'SPEED x'+Math.max(1,(p.speedLevel||0)+1),col:C.FR1},
+  ];
+  if(whirlwindUnlocked) skillRows.push({spr:S.whirlwindIcon,label:'WHIRLWIND',col:C.SH});
 
-  // Horizontal separator below title
-  ctx.fillStyle=C.BN2;
-  ctx.globalAlpha=0.45;
-  ctx.fillRect(22*SCALE,54*SCALE,76*SCALE,SCALE);
-  ctx.globalAlpha=0.18;
-  ctx.fillRect(24*SCALE,55*SCALE,72*SCALE,SCALE);
-  ctx.globalAlpha=1;
+  // Two-column layout: ITEMS left, SKILLS right, shared row step
+  const STEP=11, HDR_Y=63, ROW_START=71;
+  const abbrevItem=s=>s.replace('MASTER SWORD','M.SWORD').replace('MAGIC SHIELD','M.SHIELD')
+    .replace('SECRET KEY','SCRT KEY').replace('ZONE 2 KEY','ZN2 KEY');
+  const abbrevSkill=s=>s.replace('SHADOW STEP','SHDW STEP').replace('WHIRLWIND','WHIRL');
 
-  // Side tick marks flanking the separator
-  fr(18,54,3,1,C.BN2); fr(99,54,3,1,C.BN2);
+  const realItems=itemRows.filter(r=>r.label!=='NONE');
+  const maxRows=Math.max(realItems.length, skillRows.length);
 
-  // Small skull above PAUSED text
+  // Shrink panel to fit content: bottom = ROW_START + maxRows*STEP + 4 padding
+  const panelBottom=ROW_START + maxRows*STEP + 4;
+  drawPanelFrame(12,14,96,panelBottom-14,{edge:C.BN2,fill:'rgba(4,4,5,0.84)',inner:'rgba(53,39,28,0.10)',glow:C.FR1});
+
+  // Skull top ornament
   ctx.globalAlpha=0.18+0.10*Math.sin(frame*0.07);
   ctx.fillStyle=C.FR1;
-  ctx.fillRect(55*SCALE,34*SCALE,10*SCALE,6*SCALE);
+  ctx.fillRect(55*SCALE,14*SCALE,10*SCALE,6*SCALE);
   ctx.globalAlpha=1;
-  ds(S.mskull,57,35);
+  ds(S.mskull,57,15);
 
-  // Corner chain pixel ornament
-  ctx.globalAlpha=0.30;
-  for(let ci=0;ci<3;ci++){
-    fr(20+ci*2,36,1,1,C.BN2); fr(96-ci*2,36,1,1,C.BN2);
-    fr(20+ci*2,84,1,1,C.BN2); fr(96-ci*2,84,1,1,C.BN2);
+  ptHeavy('PAUSED',GW*SCALE/2,26*SCALE,12,C.FR1,'center',C.DK);
+  if(devGodMode) pt('DEV GOD ON',GW*SCALE/2,37*SCALE,5,C.MG2,'center',C.W3);
+  ptHeavy('ENTER / ESC',GW*SCALE/2,48*SCALE,6,C.BN1,'center',C.DK);
+  ptHeavy('TO RESUME',GW*SCALE/2,55*SCALE,6,C.BN1,'center',C.DK);
+
+  // Separators and header decorations
+  ctx.fillStyle=C.BN2; ctx.globalAlpha=0.45;
+  ctx.fillRect(18*SCALE,42*SCALE,84*SCALE,SCALE);
+  ctx.fillRect(18*SCALE,60*SCALE,84*SCALE,SCALE);
+  ctx.globalAlpha=1;
+  fr(12,42,3,1,C.BN2); fr(105,42,3,1,C.BN2);
+  fr(12,60,3,1,C.BN2); fr(105,60,3,1,C.BN2);
+
+  ptHeavy('ITEMS',18*SCALE,HDR_Y*SCALE,5,C.BN1,'left',C.DK);
+  ptHeavy('SKILLS',64*SCALE,HDR_Y*SCALE,5,C.BN1,'left',C.DK);
+
+  for(let i=0;i<maxRows;i++){
+    const y=ROW_START+i*STEP;
+    const item=realItems[i];
+    if(item){ ds(item.spr,16,y-1); pt(abbrevItem(item.label),24*SCALE,y*SCALE,4,item.col,'left',C.DK); }
+    const skill=skillRows[i];
+    if(skill){ const sOff=(skill.spr===S.stepIcon||skill.spr===S.shadowStepIcon)?y:y-1; ds(skill.spr,62,sOff); pt(abbrevSkill(skill.label),70*SCALE,y*SCALE,4,skill.col,'left',C.DK); }
   }
-  ctx.globalAlpha=1;
-
-  ptHeavy('PAUSED',GW*SCALE/2,42*SCALE,12,C.FR1,'center',C.DK);
-  if(devGodMode) pt('DEV GOD ON',GW*SCALE/2,52*SCALE,5,C.MG2,'center',C.W3);
-  ptHeavy('ENTER / ESC',GW*SCALE/2,58*SCALE,6,C.BN1,'center',C.DK);
-  ptHeavy('TO RESUME',GW*SCALE/2,66*SCALE,6,C.BN1,'center',C.DK);
-
-  const p=player||{};
-  // Upgrade counters moved here
-  ds(S.upSword,27,74);
-  pt('x'+(p.swordLevel||0),37*SCALE,75*SCALE,5,C.BN1,'left',C.DK);
-  ds(S.upSpeed,53,74);
-  pt('x'+(p.speedLevel||0),63*SCALE,75*SCALE,5,C.FR1,'left',C.DK);
-  ds(S.shieldIcon,79,75);
-  pt('x'+(p.shieldLevel||0),87*SCALE,75*SCALE,5,C.SI1,'left',C.DK);
 
   ctx.textAlign='left';
 }
@@ -5777,34 +6520,41 @@ function rOver(){
   ctx.textAlign='left';
 }
 
+function rSecret2SwordConfirm(){
+  ctx.fillStyle='rgba(8,6,3,0.78)';
+  ctx.fillRect(0,0,GW*SCALE,GH*SCALE);
+
+  drawPanelFrame(16,26,88,74,{edge:C.BN2,fill:'rgba(3,3,4,0.96)',inner:'rgba(56,39,25,0.12)',glow:C.SH});
+  ptHeavy('MASTER SWORD',GW*SCALE/2,34*SCALE,8,C.SH,'center',C.DK);
+  ptHeavy('THE BLADE HUMS WITH',GW*SCALE/2,52*SCALE,5,C.BN1,'center',C.DK);
+  ptHeavy('ANCIENT POWER . . .',GW*SCALE/2,62*SCALE,5,C.BN1,'center',C.DK);
+  ptHeavy('PULL THE SWORD?',GW*SCALE/2,74*SCALE,6,C.WH,'center',C.DK);
+
+  rMenuBtn(SECRET2_SWORD_CONFIRM_YES_BTN,'YES');
+  rMenuBtn(SECRET2_SWORD_CONFIRM_NO_BTN,'NO');
+  pt('ENTER / Y = YES',GW*SCALE/2,108*SCALE,4,C.BN1,'center',C.DK);
+  ctx.textAlign='left';
+}
+
 function rRetryConfirm(){
   ctx.fillStyle='rgba(8,6,3,0.90)';
   ctx.fillRect(0,0,GW*SCALE,GH*SCALE);
 
-  drawPanelFrame(14,20,92,92,{edge:C.BN2,fill:'rgba(3,3,4,0.96)',inner:'rgba(56,39,25,0.12)',glow:C.SH});
-  ptHeavy('RETRY',GW*SCALE/2,30*SCALE,11,C.SH,'center',C.DK);
+  drawPanelFrame(18,28,84,70,{edge:C.BN2,fill:'rgba(3,3,4,0.96)',inner:'rgba(56,39,25,0.12)',glow:C.SH});
+  ptHeavy('RETRY',GW*SCALE/2,36*SCALE,10,C.SH,'center',C.DK);
 
-  const zoneName=getRetryZoneLabel(retryCheckpoint ? retryCheckpoint.zone : currentZone).toUpperCase();
+  const zoneName=getRetryZoneLabel(retryCheckpoint ? retryCheckpoint.zone : currentZone);
   if(retryPromptMode==='cost'){
-    ptHeavy('SACRIFICE 30% POINTS',GW*SCALE/2,49*SCALE,5,C.BN1,'center',C.DK);
-    ptHeavy('TO RETRY '+zoneName+'?',GW*SCALE/2,61*SCALE,7,C.BN1,'center',C.DK);
+    ptHeavy('SACRIFICE 30% POINTS',GW*SCALE/2,56*SCALE,5,C.BN1,'center',C.DK);
+    ptHeavy('TO RESTART '+zoneName.toUpperCase()+'?',GW*SCALE/2,66*SCALE,5,C.BN1,'center',C.DK);
   } else {
-    ptHeavy('YOU DIED AGAIN?!',GW*SCALE/2,49*SCALE,7,C.BN1,'center',C.DK);
-    ptHeavy("EHH. . DON'T WORRY ABOUT IT.",GW*SCALE/2,62*SCALE,5,C.BN1,'center',C.DK);
+    ptHeavy("EHH.. DON'T WORRY",GW*SCALE/2,56*SCALE,5,C.BN1,'center',C.DK);
+    ptHeavy('ABOUT IT.',GW*SCALE/2,66*SCALE,5,C.BN1,'center',C.DK);
   }
-
-  fr(RETRY_CONFIRM_EASYMODE_BOX.x,RETRY_CONFIRM_EASYMODE_BOX.y,RETRY_CONFIRM_EASYMODE_BOX.w,RETRY_CONFIRM_EASYMODE_BOX.h,C.DK);
-  fr(RETRY_CONFIRM_EASYMODE_BOX.x+1,RETRY_CONFIRM_EASYMODE_BOX.y+1,RETRY_CONFIRM_EASYMODE_BOX.w-2,RETRY_CONFIRM_EASYMODE_BOX.h-2,C.W3);
-  if(retryEasyModeChecked){
-    fr(RETRY_CONFIRM_EASYMODE_BOX.x+2,RETRY_CONFIRM_EASYMODE_BOX.y+2,2,2,C.SH);
-    fr(RETRY_CONFIRM_EASYMODE_BOX.x+3,RETRY_CONFIRM_EASYMODE_BOX.y+3,2,2,C.BN1);
-  }
-  pt('EASY MODE', (RETRY_CONFIRM_EASYMODE_BOX.x+10)*SCALE, RETRY_CONFIRM_EASYMODE_BOX.y*SCALE, 5, C.BN1, 'left', C.DK);
-  pt('MAGIC SHIELD 20s', (RETRY_CONFIRM_EASYMODE_BOX.x+10)*SCALE, (RETRY_CONFIRM_EASYMODE_BOX.y+7)*SCALE, 4, C.SH, 'left', C.DK);
 
   rMenuBtn(RETRY_CONFIRM_YES_BTN,'YES');
   rMenuBtn(RETRY_CONFIRM_NO_BTN,'NO');
-  pt('E = TOGGLE   ENTER / Y = YES',GW*SCALE/2,111*SCALE,4,C.BN1,'center',C.DK);
+  pt('ENTER / Y = YES',GW*SCALE/2,108*SCALE,4,C.BN1,'center',C.DK);
   ctx.textAlign='left';
 }
 
