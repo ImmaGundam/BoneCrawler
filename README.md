@@ -1,6 +1,6 @@
 # BoneCrawler
 
-Dark Fantasy Arcade-Survival Action Game made in HTML5 canvas with vanilla JavaScript that runs in your browser.<br>Kill skeletons, get a high score and survive the dungeon!<br><br>
+NES-Style Dark Fantasy Arcade-Survival Action Game made in HTML5 canvas with vanilla JavaScript that runs in your browser.<br>Kill skeletons, get a high score and survive the dungeon!<br><br>
 Playable online @<br>
 <i><a href="https://bonecrawler.com" target="_blank">bonecrawler.com</a><br>
 or<br>
@@ -99,11 +99,12 @@ In main menu, enter "immagundam" to enable god mode.<br>
 ## Controls
 
 <div align="center">
-<img width="303" height="650" alt="image" src="https://github.com/user-attachments/assets/ee142ff1-29a4-42b5-952e-9add24a25ba9" /><br>
+<img width="303" height="650" alt="image" src="https://github.com/user-attachments/assets/ee142ff1-29a4-42b5-952e-9add24a25ba9" />
 </div>
-### <i>Warning:<br>
-Game contains: undead enemies, dark fantasy themes & atmosphere, a scary dragon, depictions of violence and the belief of magic. There's also a pixel guy who might be dead.</i>
-<i>- This game is made to be difficult. Everything is still a Work In Progress -</i><br>
+<br>
+<b>Warning:</b><br>
+<i>Game contains: undead enemies, dark fantasy themes & atmosphere, a scary dragon, depictions of violence and the belief of magic. There's also a pixel guy who might be dead.</i><br>
+<i>* This game is made to be difficult. Everything is still a Work In Progress *</i><br>
 Thank you for playing!<br>
 
 <hr>
