@@ -1,4 +1,4 @@
-<!-- BoneCrawler.com - version 2.5.2 -->
+<!-- BoneCrawler.com - version 2.5.3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1145,7 +1145,9 @@ let currentPlayerName=loadPlayerName()||'Player';
 let scoreboardEntries=loadScores();
 let scoreboardPage=0;
 let runStartMs=0, runSaved=false, runTimeMs=0, pauseStartedMs=0, runCompleted=false;
+let zone1KillStart=0;
 let zone2KillStart=0;
+let zone3KillStart=0;
 let introStartMs=0;
 let introPage=0;
 let introSeenThisPage=false;
@@ -1378,7 +1380,7 @@ function devAdvanceProgress(){
     return;
   }
   if(currentZone===3){
-    killCount=Math.max(killCount, ZONE3_BOSS_TRIGGER_KILLS);
+    killCount=Math.max(killCount, zone3KillStart + ZONE3_BOSS_TRIGGER_KILLS);
     chest=null; clearKeyDrops();
     enemies=[]; pSpawns=[]; fireballs=[];
     shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
@@ -1416,8 +1418,8 @@ function devSkipBossPhase(){
 function devGotoZone(zone){
   if(!player) return;
   const target=String(zone||'').toLowerCase();
-  const startKillByZone={zone1:0, secret1:100, zone2:100, zone3:ZONE3_BOSS_TRIGGER_KILLS, secret2:ZONE3_KEY_KILLS};
-  if(!(target in startKillByZone)) return;
+  const validZones={zone1:true, secret1:true, zone2:true, zone3:true, secret2:true};
+  if(!validZones[target]) return;
 
   gState='playing';
   pendingZoneTransition=0;
@@ -1432,10 +1434,6 @@ function devGotoZone(zone){
   secret1BlessingT=0;
   runCompleted=false;
 
-  killCount=startKillByZone[target];
-  normalKillCount=0;
-  giantKillCount=0;
-  wizardKillCount=0;
   nextWizardScore=Math.max(50, score>=50 ? score+35 : 50);
   zone1Broken=Array(ZONE1_DECOR_BREAK_RECTS.length).fill(false);
   zone1Rubble=[];
@@ -1445,8 +1443,9 @@ function devGotoZone(zone){
 
   if(target==='zone1'){
     currentZone=1;
-    nextChestAt=10;
-    nextGiantAt=20;
+    zone1KillStart=killCount;
+    nextChestAt=killCount + 10;
+    nextGiantAt=killCount + 20;
     player.x=GW/2-4;
     player.y=PY+PH-14;
     player.atkT=0; player.atkCD=10; player.hurtT=0;
@@ -1617,6 +1616,7 @@ function resetGame(){
   }
   enemies=[]; parts=[]; pSpawns=[]; frame=0; score=0; prevSpc=false;
   killCount=0; nextChestAt=10; nextGiantAt=20; chest=null; floatTexts=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; keyDrop=[]; fireballs=[]; nextWizardScore=50; currentZone=1;
+  zone1KillStart=0; zone2KillStart=0; zone3KillStart=0;
   normalKillCount=0; giantKillCount=0; wizardKillCount=0;
   pendingZoneTransition=0;
   zoneTransitionInfo=null;
@@ -1824,9 +1824,9 @@ function restoreRetryCheckpoint(){
   if(cp.zone===2) enterZone2();
   else enterZone3();
 
-  player.hp=Math.max(1, Math.min(cp.player.maxHp||player.maxHp, (cp.player.hp>0)?cp.player.hp:(cp.player.maxHp||player.maxHp)));
   player.maxHp=cp.player.maxHp||player.maxHp;
-  player.visibleHearts=cp.player.visibleHearts||player.visibleHearts;
+  player.hp=player.maxHp;
+  player.visibleHearts=Math.max(5, cp.player.visibleHearts||player.visibleHearts);
   player.swordReach=cp.player.swordReach||player.swordReach;
   player.swordLevel=cp.player.swordLevel||0;
   player.swordWidth=Math.max(1, cp.player.swordWidth||1);
@@ -1959,15 +1959,75 @@ function performWhirlwindSlash(){
 function qSpawn(delay, giant, wizard){ pSpawns.push({t:delay, giant:!!giant, wizard:!!wizard}); }
 
 function regularSpawnDelay(){
-  return killCount>=100 ? 56 : 112;
+  const progress=getZoneProgressKills(currentZone);
+  return progress>=100 ? 56 : 112;
 }
 
 function giantSpawnDelay(){
-  return killCount>=100 ? 60 : 120;
+  const progress=getZoneProgressKills(currentZone);
+  return progress>=100 ? 60 : 120;
 }
 
 function giantKillStep(){
-  return killCount>=100 ? 10 : 20;
+  const progress=getZoneProgressKills(currentZone);
+  return progress>=100 ? 10 : 20;
+}
+
+function getDefaultEnemyMoveRate(){
+  return Math.min(0.68,0.22+Math.sqrt(score)*0.035);
+}
+
+function getZone2EnemyProgressionValue(){
+  return Math.max(0, getZoneProgressKills(2));
+}
+
+function getZone2BaseEnemyMoveRate(){
+  const defaultRate=getDefaultEnemyMoveRate();
+  const progress=getZone2EnemyProgressionValue();
+  return defaultRate * (1.25 + progress*0.0025);
+}
+
+function createZone2EnemyGameObject(kind, x, y){
+  const progress=getZone2EnemyProgressionValue();
+  const base=getZone2BaseEnemyMoveRate();
+
+  if(kind==='normalEnemy1'){
+    return {
+      x,y,w:9,h:9,speed:Math.max(0.16, base),dir:'left',
+      atkT:0,atkCD:92+(Math.random()*55|0),walkF:0,
+      hp:1,points:1,giant:false,hurtT:0,variant:'old',enemyType:'normalEnemy1'
+    };
+  }
+  if(kind==='normalEnemy2'){
+    return {
+      x,y,w:9,h:9,speed:Math.max(0.16, base),dir:'left',
+      atkT:0,atkCD:92+(Math.random()*55|0),walkF:0,
+      hp:1,points:1,giant:false,hurtT:0,variant:'new',enemyType:'normalEnemy2'
+    };
+  }
+  if(kind==='normalEnemy3'){
+    return {
+      x,y,w:9,h:9,speed:Math.max(0.16, base*0.5),dir:'left',
+      atkT:0,atkCD:92+(Math.random()*55|0),walkF:0,
+      hp:1,points:1,giant:false,hurtT:0,variant:'classic',enemyType:'normalEnemy3'
+    };
+  }
+  if(kind==='giantEnemy1'){
+    const giantStage=(giantKillCount|0)<=0 ? 0.5 : Math.max(0.35, 1 - progress*0.003);
+    return {
+      x,y,w:18,h:18,speed:Math.max(0.18, base*giantStage),dir:'left',
+      atkT:0,atkCD:95+(Math.random()*50|0),walkF:0,
+      hp:3,points:5,giant:true,hurtT:0,variant:'new',enemyType:'giantEnemy1'
+    };
+  }
+  if(kind==='wizardEnemy1'){
+    return {
+      x,y,w:8,h:8,speed:Math.max(0.16, base*0.45),dir:'left',
+      atkT:0,atkCD:160+(Math.random()*60|0),walkF:0,
+      hp:1,points:3,giant:false,wizard:true,hurtT:0,shootCD:0,enemyType:'wizardEnemy1'
+    };
+  }
+  return null;
 }
 
 function doSpawn(giant, wizard){
@@ -1977,20 +2037,32 @@ function doSpawn(giant, wizard){
   else if(side===1){x=PX+PW+2;y=PY+Math.random()*(PH-8);}
   else if(side===2){x=PX+Math.random()*(PW-8);y=PY+PH+4;}
   else{x=PX-10;y=PY+Math.random()*(PH-8);}
-  const spd=Math.min(0.68,0.22+Math.sqrt(score)*0.035);
+  const spd=getDefaultEnemyMoveRate();
+  if(currentZone===2){
+    if(wizard){
+      enemies.push(createZone2EnemyGameObject('wizardEnemy1', x, y));
+    } else if(giant){
+      enemies.push(createZone2EnemyGameObject('giantEnemy1', x, y));
+    } else {
+      const normalTypes=['normalEnemy1','normalEnemy2','normalEnemy3'];
+      const normalType=normalTypes[(Math.random()*normalTypes.length)|0];
+      enemies.push(createZone2EnemyGameObject(normalType, x, y));
+    }
+    return;
+  }
   if(wizard){
     enemies.push({x,y,w:8,h:8,speed:spd*0.45,dir:'left',
       atkT:0,atkCD:160+(Math.random()*60|0),walkF:0,
-      hp:1,points:3,giant:false,wizard:true,hurtT:0,shootCD:0});
+      hp:1,points:3,giant:false,wizard:true,hurtT:0,shootCD:0,enemyType:'wizardEnemy1'});
   } else if(giant){
     enemies.push({x,y,w:18,h:18,speed:spd*0.65,dir:'left',
       atkT:0,atkCD:95+(Math.random()*50|0),walkF:0,
-      hp:3,points:5,giant:true,hurtT:0,variant:Math.random()<0.5?'old':'new'});
+      hp:3,points:5,giant:true,hurtT:0,variant:Math.random()<0.5?'old':'new',enemyType:'giantEnemy1'});
   } else {
     const normalVariants=['old','new','classic'];
     enemies.push({x,y,w:9,h:9,speed:spd,dir:'left',
       atkT:0,atkCD:92+(Math.random()*55|0),walkF:0,
-      hp:1,points:1,giant:false,hurtT:0,variant:normalVariants[(Math.random()*normalVariants.length)|0]});
+      hp:1,points:1,giant:false,hurtT:0,variant:normalVariants[(Math.random()*normalVariants.length)|0],enemyType:'normalEnemy1'});
   }
 }
 
@@ -2139,7 +2211,9 @@ function getZoneKillTarget(zone=currentZone){
 }
 
 function getZoneProgressKills(zone=currentZone){
+  if(zone===1) return Math.max(0, killCount-zone1KillStart);
   if(zone===2) return Math.max(0, killCount-zone2KillStart);
+  if(zone===3) return Math.max(0, killCount-zone3KillStart);
   return killCount;
 }
 
@@ -2183,6 +2257,7 @@ function enterZone3(){
   shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
   parts=[];
+  zone3KillStart=killCount;
   zone3Broken=Array(ZONE3_DECOR_BREAK_RECTS.length).fill(false);
   nextChestAt=Math.max(nextChestAt, killCount + ZONE3_FIRST_CHEST_DELAY);
   nextGiantAt=Math.max(nextGiantAt, killCount + 10);
@@ -2573,6 +2648,8 @@ function defeatDragonBoss(){
       life:24+(Math.random()*16|0),max:40,col:Math.random()<0.45?C.WH:(Math.random()<0.6?C.BN1:C.FR1)});
   }
   score+=b.points||100;
+  killCount++;
+  giantKillCount++;
   clearDragonHazards();
   enemies=[];
   pSpawns=[];
@@ -2915,6 +2992,8 @@ function defeatShadowBoss(){
       life:24+(Math.random()*16|0),max:40,col:Math.random()<0.4?C.MG2:(Math.random()<0.7?C.FR1:C.WH)});
   }
   score+=150;
+  killCount++;
+  wizardKillCount++;
   spawnKeyDrop(Math.round(c.x)-3,Math.round(c.y)-3,'zone3');
   shadowWaves=[];
   shadowWizardRespawns=[];
@@ -3670,7 +3749,7 @@ function update(){
     if(currentZone===1 && killCount>=ZONE1_DRAGON_MINIBOSS_KILLS && !dragonBoss && !bossDefeated && !zone1MiniBossDefeated){
       spawnDragonBoss();
     }
-    if(currentZone===3 && killCount>=ZONE3_BOSS_TRIGGER_KILLS && enemies.length===0 && pSpawns.length===0 && !shadowBoss && !shadowBossDefeated){
+    if(currentZone===3 && getZoneProgressKills(3)>=ZONE3_BOSS_TRIGGER_KILLS && enemies.length===0 && pSpawns.length===0 && !shadowBoss && !shadowBossDefeated){
       spawnShadowBoss();
     }
     if(!dragonBoss && !shadowBoss && getZoneProgressKills(currentZone)<getZoneKillTarget(currentZone) && enemies.length<maxEnemies()&&pSpawns.length===0){
@@ -5595,9 +5674,13 @@ function rPlay(){
     ctx.restore();
   }
 
-  // Score + kill count stacked right side of HUD
-  pt(String(score),(GW-5)*SCALE,4*SCALE,5,C.BN1,'right',C.W3);
-  pt('KL:'+killCount,(GW-5)*SCALE,11*SCALE,4,C.SI1,'right',C.W3);
+  // Score + kill count aligned in two clean HUD rows, slightly larger for readability
+  const hudLabelX=(GW-29)*SCALE;
+  const hudValueX=(GW-4)*SCALE;
+  ptHeavy('Score:',hudLabelX,3*SCALE,5,C.BN1,'left',C.DK);
+  ptHeavy(String(score),hudValueX,3*SCALE,5,C.BN1,'right',C.DK);
+  ptHeavy('Kills:',hudLabelX,10*SCALE,5,C.BN1,'left',C.DK);
+  ptHeavy(String(killCount),hudValueX,10*SCALE,5,C.BN1,'right',C.DK);
   if(newGamePlus) pt('NG+',78*SCALE,4*SCALE,5,C.SH,'left',C.W3);
   if(devGodMode) pt('GOD',3*SCALE,(GH-4)*SCALE,5,C.MG2,'left',C.W3);
   if(dragonBoss && !bossDefeated){
@@ -6744,6 +6827,5 @@ function rRetryConfirm(){
 function loop(){ update(); render(); requestAnimationFrame(loop); }
 document.fonts.ready.then(()=>{ loop(); }).catch(()=>{ loop(); });
 </script>
-<script async src="https://vibejam.cc/2026/widget.js"></script>
 </body>
 </html>
