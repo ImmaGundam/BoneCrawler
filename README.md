@@ -10,29 +10,27 @@ or<br>
 The king requests our services again. Complete this job and you'll earn your stay.
 
 <div align="center">
-<img width="auto" height="300" src="https://github.com/user-attachments/assets/5a9bad07-ab0d-45d8-b14d-bcf7da8ff028" /><br>
-<img width="auto" height="300" src="https://github.com/user-attachments/assets/9363ef25-60d9-43bc-b15b-b0902df9d971" /><br>
+<img width="auto" height="300" src="https://github.com/user-attachments/assets/d8d6ebe8-204d-488e-bf0f-466dcaaa20d5" />
+<img width="auto" height="300" src="https://github.com/user-attachments/assets/cd4394b6-35ad-4757-a14e-80b957d2a8f6" /><br>
 
 Chests drop Upgrades! Plan your upgrades carefully so you don't get overwhelmed!
 
-<img width="auto" height="200" src="https://github.com/user-attachments/assets/e391be6d-dcaa-4ce0-a846-b4c9ed4d6fce" />
-<img width="auto" height="300" alt="image" src="https://github.com/user-attachments/assets/5eae93e6-7d48-447f-a75a-85ee1eec7b2c" />
+<img width="auto" height="200" src="https://github.com/user-attachments/assets/89008527-2a8b-424c-a360-3910f199b18f" /><br>
+<img width="auto" height="300" alt="image" src="https://github.com/user-attachments/assets/0eda3f3e-6da0-43d3-bba4-1e2f7c87431e" />
 </div>
 
 ## How to Play
 - Dodge waves of skeletons that hone in and attack you.
 - Clear zones to earn points! Each Zone will Rank you!
 - There are 3 zones, 2 secret rooms, 3 bosses and a tiny fantasy dungeon to explore and discover secrets.<br><br>
-Gameplay is made for short runs (5-10 minutes). Die a few times in a few minutes and try again later, or keep dying for a few hours in a "one more try" loop.<br>
+Gameplay is made for short runs (10-20 minutes). Die a few times in a few minutes and try again later, or keep dying for a few hours in a "one more try" loop.<br>
+## You got this, Bonecrawler.
+
+![cheatcodes](https://github.com/user-attachments/assets/9785201b-cd45-4f16-affc-83b63e1053f6)
+
+
 <div align="center">
-### <b><u><i>You got this, Bonecrawler.</i></b></u><br><br>
-<img width="auto" height="300" alt="death" src="https://github.com/user-attachments/assets/e746a6d8-43c8-41d3-b0c0-fe0a8ca3a56c" />
 
-<img width="auto" height="150" src="https://github.com/user-attachments/assets/3cc4ab59-db34-4455-bc15-9e12b90e4ba8" /><br>
-
-<img width="auto" height="250" alt="Screenshot 2026-04-05 215322" src="https://github.com/user-attachments/assets/23588fad-4399-4b44-aa35-48a5f80efe73" />
-
-<img width="auto" height="250" alt="score1" src="https://github.com/user-attachments/assets/075b5e88-b225-4efa-a24f-c6426413c8dc" />
 </div>
 
 
@@ -110,7 +108,7 @@ Thank you for playing!<br>
 <hr>
 
 <div align="center">
-  <h3>If you enjoy this project, consider supporting future game development</h3>
+  <h4>If you enjoy this project, <a href="https://immagundam.itch.io/bonecrawler">consider supporting</a> future game development.</h4>
   <p>
     Your support helps fund future updates, new games, art, assets, music, and more development time.
   </p>
@@ -132,5 +130,6 @@ Thank you for playing!<br>
   <p><strong>Thank you for helping keep indie development going.</strong></p>
   <img width="auto" height="300" src="https://github.com/user-attachments/assets/aac597fc-9d92-4bf3-9e5a-46500586418c" /><br>
 </div>
+
 
 ##### <i>You may NOT redistribute, reupload, mirror, or host this Software, in whole or in part, on any website, platform, or service without explicit written permission from the copyright holder.</i>
