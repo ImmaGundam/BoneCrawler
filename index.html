@@ -1,4 +1,4 @@
-<!-- BoneCrawler.com - version 2.5.3 -->
+<!-- BoneCrawler.com - version 2.5.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,7 +30,7 @@ linear-gradient(180deg,#16201b 0%,#0e1311 46%,#0b0b09 100%);border:1px solid rgb
 .menu-credit{display:none}.menu-credit.hidden{display:none}
 .menu-about-btn{position:absolute;top:8px;left:8px;z-index:6;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(196,168,99,.34);border-radius:999px;background:rgba(6,9,7,.84);box-shadow:0 0 0 1px rgba(18,26,20,.92) inset,0 0 10px rgba(0,0,0,.24);color:#d4c89a;font:700 11px/1 Arial,sans-serif;text-shadow:0 1px 0 rgba(0,0,0,.75);cursor:pointer;user-select:none;-webkit-user-select:none}.menu-about-btn.hidden{display:none}.menu-about-btn:hover{background:rgba(14,20,15,.92)}.menu-about-btn:active{transform:translateY(1px)}
 .about-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;z-index:40;background:rgba(0,0,0,.72)}.about-modal.hidden{display:none}.about-card{width:min(92vw,360px);background:linear-gradient(180deg,rgba(9,12,10,.98),rgba(4,6,5,.98));border:1px solid rgba(193,165,103,.42);box-shadow:0 0 0 1px rgba(28,46,37,.95) inset,0 0 0 3px rgba(12,24,20,.92),0 18px 50px rgba(0,0,0,.72);border-radius:10px;padding:14px 14px 12px;position:relative;color:#d4c89a;text-shadow:1px 1px 0 #070b06}.about-card::before{content:"";position:absolute;inset:6px;border-radius:6px;pointer-events:none;border:1px solid rgba(164,189,171,.12)}.about-close{position:absolute;top:8px;right:10px;appearance:none;border:none;background:none;color:#8ea4b4;cursor:pointer;font:700 14px/1 Arial,sans-serif;opacity:.72}.about-close:hover{opacity:1}.about-title{text-align:center;font-size:11px;letter-spacing:.12em;margin:0 0 12px;color:#e6d7ab}.about-body{display:flex;flex-direction:column;gap:10px;font-size:11px;line-height:1.45}.about-line{color:#d4c89a}.about-line strong{color:#e6d7ab}.about-link{color:#9cb6c8;text-decoration:none}.about-link:hover{text-decoration:underline}.about-license{display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border:1px solid rgba(193,165,103,.34);border-radius:7px;background:rgba(14,20,15,.88);color:#d4c89a;text-decoration:none;font-size:10px;letter-spacing:.08em;width:fit-content}.about-license:hover{background:rgba(22,30,23,.95)}
-.screen-wrap-holder{display:flex;justify-content:center;align-items:flex-start;width:100%;transition:width .18s ease,height .18s ease}
+.screen-wrap-holder{display:flex;justify-content:center;align-items:flex-start;width:100%;overflow:visible;transition:none}
 .screen-wrap{transform:scale(var(--game-zoom,1));transform-origin:top center;transition:transform .18s ease}
 .zoom-strip{width:min(92vw,344px);padding:6px 9px;border:1px solid #2b3f20;background:rgba(4,7,4,0.58);box-shadow:0 0 0 1px rgba(10,18,9,0.82) inset;color:#b7c5d1;text-shadow:1px 1px 0 #050806;display:flex;justify-content:center;align-items:center;gap:9px;min-height:14px;opacity:.86;flex-wrap:wrap}
 .zoom-label{color:#d4c89a;font-size:8px;letter-spacing:1.2px}
@@ -171,7 +171,7 @@ body.has-titlebar{padding-top:calc(20px + 28px);}
 .player-about-body .about-link{color:#9db3c0;text-decoration:none}
 .player-about-body .about-link:hover{text-decoration:underline}
 .player-card.is-hidden{display:none}
-@media (max-width:980px){.player-shell{grid-template-columns:1fr;justify-items:center}.player-menu{width:min(100%,360px)}.player-stage{width:100%;justify-content:center;grid-column:auto}.player-balance-spacer{display:none}}
+@media (max-width:980px){.player-shell{gap:16px}.player-menu{width:min(100%,300px)}}
 @media (max-width:520px){body{padding:16px 8px}.player-shell{gap:14px}.player-card,.player-menu .zoom-strip,.player-menu .info-panel{padding-left:12px;padding-right:12px}.player-menu .zoom-btn{min-width:46px;padding:6px 7px;font-size:8px}.player-menu .info-panel summary{padding:12px 40px 9px 24px;font-size:9px}.player-menu .info-panel summary::before{left:10px;top:15px}.player-menu .panel-dismiss{right:10px;top:11px}.player-menu details .panel-dismiss{top:12px;right:10px}.player-menu .info-panel .panel-body{padding:2px 10px 11px 10px}.player-menu .panel-head{font-size:8px}.player-menu .panel-line,.player-about-body,.player-about-actions .about-license,.player-about-actions .about-link-button{font-size:7px}}</style>
 </head>
 <body>
@@ -657,6 +657,12 @@ const nameModalOk = document.getElementById('nameModalOk');
 const nameModalCancel = document.getElementById('nameModalCancel');
 const touchUiAvailable = !!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
 let lastTouchPauseUiState = '';
+const PLAYER_SHELL_SIDE_WIDTH = 300;
+const PLAYER_SHELL_GAP = 22;
+const PLAYER_SHELL_STACK_ENTER_BUFFER = 8;
+const PLAYER_SHELL_STACK_EXIT_BUFFER = 56;
+let playerShellLayoutFrame = 0;
+let playerShellPostLayoutFrame = 0;
 function nearestDisplayZoom(value){
   let best=DISPLAY_ZOOM_LEVELS[0];
   for(const level of DISPLAY_ZOOM_LEVELS){
@@ -664,15 +670,58 @@ function nearestDisplayZoom(value){
   }
   return best;
 }
+function getPlayerStageWidth(){
+  if(!screenWrapHolder || !screenWrap) return 0;
+  const styledWidth = Number.parseFloat(screenWrapHolder.style.width || '0');
+  if(Number.isFinite(styledWidth) && styledWidth > 0) return Math.ceil(styledWidth);
+  const holderRectWidth = screenWrapHolder.getBoundingClientRect().width;
+  if(holderRectWidth > 0) return Math.ceil(holderRectWidth);
+  return Math.ceil((screenWrap.offsetWidth || 0) * displayZoom);
+}
+function queuePlayerShellLayout(){
+  if(playerShellLayoutFrame) cancelAnimationFrame(playerShellLayoutFrame);
+  playerShellLayoutFrame = requestAnimationFrame(()=>{
+    playerShellLayoutFrame = 0;
+    syncPlayerShellLayout();
+  });
+}
+function queuePostShellLayoutZoomSync(){
+  if(playerShellPostLayoutFrame) cancelAnimationFrame(playerShellPostLayoutFrame);
+  playerShellPostLayoutFrame = requestAnimationFrame(()=>{
+    playerShellPostLayoutFrame = 0;
+    syncDisplayZoomLayout();
+  });
+}
 function syncPlayerShellLayout(){
   if(!playerShell || !screenWrapHolder) return;
   const menuHidden = !playerMenu || playerMenu.classList.contains('is-hidden');
-  const menuWidth = menuHidden ? 0 : Math.ceil(playerMenu.offsetWidth || 300);
-  const holderWidth = Math.ceil(screenWrapHolder.offsetWidth || 0);
-  const shellParentWidth = Math.ceil((playerShell.parentElement && playerShell.parentElement.clientWidth) || window.innerWidth || 0);
-  const available = Math.max(320, shellParentWidth - 24);
-  const required = menuHidden ? holderWidth : (holderWidth + menuWidth + 300 + 44);
-  playerShell.classList.toggle('stack-game', menuHidden || available < required);
+  const stageWidth = getPlayerStageWidth();
+  const parentWidth = Math.ceil((playerShell.parentElement && playerShell.parentElement.clientWidth) || document.documentElement.clientWidth || window.innerWidth || 0);
+  const shellWidth = Math.min(1440, Math.max(0, parentWidth));
+
+  // Use the desktop side-layout widths here rather than the menu's current rendered
+  // width. When the menu is stacked it can temporarily grow wider, which prevented
+  // the shell from ever qualifying to return to the side layout.
+  const sideMenuWidth = menuHidden ? 0 : PLAYER_SHELL_SIDE_WIDTH;
+  const mirroredSideWidth = menuHidden ? 0 : PLAYER_SHELL_SIDE_WIDTH;
+  const required = menuHidden ? stageWidth : (stageWidth + sideMenuWidth + mirroredSideWidth + (PLAYER_SHELL_GAP * 2));
+  const wasStacked = playerShell.classList.contains('stack-game');
+  let shouldStack = !!menuHidden;
+
+  if(!menuHidden){
+    const enterStackAt = required + PLAYER_SHELL_STACK_ENTER_BUFFER;
+    const exitStackAt = required + PLAYER_SHELL_STACK_EXIT_BUFFER;
+    shouldStack = wasStacked ? (shellWidth < exitStackAt) : (shellWidth <= enterStackAt);
+  }
+
+  playerShell.classList.toggle('stack-game', shouldStack);
+
+  if(wasStacked !== shouldStack){
+    // Re-measure the zoomed game box after the grid actually changes.
+    // Without this second pass, the holder can keep the narrow stacked width
+    // for one frame when the menu returns to the side.
+    queuePostShellLayoutZoomSync();
+  }
 }
 
 function syncPlayerMenuVisibility(){
@@ -684,20 +733,21 @@ function syncPlayerMenuVisibility(){
   ].filter(Boolean).length;
 
   playerMenu.classList.toggle('is-hidden', visiblePanels===0);
-  requestAnimationFrame(syncPlayerShellLayout);
+  queuePlayerShellLayout();
 }
 function syncDisplayZoomLayout(){
   if(!screenWrap || !screenWrapHolder) return;
-  screenWrapHolder.style.width = Math.ceil(screenWrap.offsetWidth*displayZoom)+'px';
-  screenWrapHolder.style.height = Math.ceil(screenWrap.offsetHeight*displayZoom)+'px';
-  requestAnimationFrame(syncPlayerShellLayout);
+  const baseWidth = Math.ceil(screenWrap.offsetWidth || 0);
+  const baseHeight = Math.ceil(screenWrap.offsetHeight || 0);
+  screenWrapHolder.style.width = Math.ceil(baseWidth * displayZoom)+'px';
+  screenWrapHolder.style.height = Math.ceil(baseHeight * displayZoom)+'px';
+  queuePlayerShellLayout();
 }
 function setDisplayZoom(value, persist=true){
   displayZoom = nearestDisplayZoom(value);
   document.documentElement.style.setProperty('--game-zoom', String(displayZoom));
   zoomBtns.forEach(btn=>btn.classList.toggle('active', Number(btn.dataset.zoom)===displayZoom));
   syncDisplayZoomLayout();
-  requestAnimationFrame(syncDisplayZoomLayout);
   if(persist){
     try{ localStorage.setItem(DISPLAY_ZOOM_KEY, String(displayZoom)); }catch(_err){}
   }
@@ -708,13 +758,12 @@ const savedDisplayZoom = (()=>{
 if(zoomBtns.length){
   zoomBtns.forEach(btn=>btn.addEventListener('click', ()=>setDisplayZoom(Number(btn.dataset.zoom)||1)));
 }
-window.addEventListener('resize', ()=>{ syncDisplayZoomLayout(); syncPlayerMenuVisibility(); syncPlayerShellLayout(); });
+window.addEventListener('resize', ()=>{ syncDisplayZoomLayout(); syncPlayerMenuVisibility(); queuePlayerShellLayout(); });
 setDisplayZoom(savedDisplayZoom, false);
-syncDisplayZoomLayout();
 syncPlayerMenuVisibility();
 syncPlayerShellLayout();
-// Force synchronous layout pass so panels never overlap game on initial paint
-requestAnimationFrame(()=>{ syncDisplayZoomLayout(); syncPlayerShellLayout(); });
+// Force a second pass after initial paint so the menu snaps under the game immediately on narrow widths
+requestAnimationFrame(()=>{ syncDisplayZoomLayout(); syncPlayerMenuVisibility(); syncPlayerShellLayout(); });
 panelDismiss.addEventListener('click', (ev)=>{
   ev.preventDefault();
   ev.stopPropagation();
@@ -1064,7 +1113,7 @@ function pointInBtn(mx,my,btn){
   return mx>=btn.x&&mx<=btn.x+btn.w&&my>=btn.y&&my<=btn.y+btn.h;
 }
 function clearGameplayKeys(){
-  const reset=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','a','A','s','S','d','D','w','W',' ','Shift','p','P'];
+  const reset=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyS','KeyD','KeyW','Space','ShiftLeft','ShiftRight','KeyP','KeyE','Enter','Escape'];
   for(const k of reset) keys[k]=false;
   prevSpc=false;
   mouseAttackQueued=false;
@@ -1984,7 +2033,7 @@ function getZone2EnemyProgressionValue(){
 function getZone2BaseEnemyMoveRate(){
   const defaultRate=getDefaultEnemyMoveRate();
   const progress=getZone2EnemyProgressionValue();
-  return defaultRate * (1.25 + progress*0.0025);
+  return defaultRate * (1.25 + progress*0.0020);
 }
 
 function createZone2EnemyGameObject(kind, x, y){
@@ -1993,21 +2042,21 @@ function createZone2EnemyGameObject(kind, x, y){
 
   if(kind==='normalEnemy1'){
     return {
-      x,y,w:9,h:9,speed:Math.max(0.16, base),dir:'left',
+      x,y,w:9,h:9,speed:Math.max(0.55, base),dir:'left',
       atkT:0,atkCD:92+(Math.random()*55|0),walkF:0,
       hp:1,points:1,giant:false,hurtT:0,variant:'old',enemyType:'normalEnemy1'
     };
   }
   if(kind==='normalEnemy2'){
     return {
-      x,y,w:9,h:9,speed:Math.max(0.16, base),dir:'left',
+      x,y,w:9,h:9,speed:Math.max(0.14, base),dir:'left',
       atkT:0,atkCD:92+(Math.random()*55|0),walkF:0,
       hp:1,points:1,giant:false,hurtT:0,variant:'new',enemyType:'normalEnemy2'
     };
   }
   if(kind==='normalEnemy3'){
     return {
-      x,y,w:9,h:9,speed:Math.max(0.16, base*0.5),dir:'left',
+      x,y,w:9,h:9,speed:Math.max(0.016, base*0.5),dir:'left',
       atkT:0,atkCD:92+(Math.random()*55|0),walkF:0,
       hp:1,points:1,giant:false,hurtT:0,variant:'classic',enemyType:'normalEnemy3'
     };
@@ -3320,7 +3369,7 @@ function applyUpgrade(type){
     score+=gain;
     floatTexts.push({x:GW/2,y:PY+18,text:'+'+gain,life:48,max:48,col:C.FR1});
   }
-  prevSpc=keys[' ']||false; // prevent instant sword swing on resume
+  prevSpc=!!keys['Space']; // prevent instant sword swing on resume
   gState='playing';
 }
 
@@ -3400,46 +3449,52 @@ function scorePageEntries(){
 
 // ── Input ─────────────────────────────────────────────────────
 const keys={};
+function isKeyDown(...codes){
+  return codes.some(code=>!!keys[code]);
+}
 document.addEventListener('keydown',e=>{
-  keys[e.key]=true;
-  if([' ','Enter','Escape','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+  const code=e.code;
+  const key=e.key;
+  const keyLower=typeof key==='string' ? key.toLowerCase() : '';
+  keys[code]=true;
+  if(['Space','Enter','Escape','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(code)) e.preventDefault();
 
   if(gState==='dialog'){
-    if(e.key==='Enter' || e.key===' ' || e.key==='e' || e.key==='E') advanceDialog();
-    else if(e.key==='Escape') advanceDialog();
+    if(code==='Enter' || code==='Space' || code==='KeyE') advanceDialog();
+    else if(code==='Escape') advanceDialog();
     return;
   }
 
   if(gState==='paused'){
-    if(e.key==='Enter' || e.key==='Escape') resumeGame();
+    if(code==='Enter' || code==='Escape') resumeGame();
     return;
   }
 
   if(gState==='upgrade'){
-    if(e.key==='1' && currentUpgradeBtns[0]) applyUpgrade(currentUpgradeBtns[0].type);
-    else if(e.key==='2' && currentUpgradeBtns[1]) applyUpgrade(currentUpgradeBtns[1].type);
-    else if(e.key==='3' && currentUpgradeBtns[2]) applyUpgrade(currentUpgradeBtns[2].type);
+    if(key==='1' && currentUpgradeBtns[0]) applyUpgrade(currentUpgradeBtns[0].type);
+    else if(key==='2' && currentUpgradeBtns[1]) applyUpgrade(currentUpgradeBtns[1].type);
+    else if(key==='3' && currentUpgradeBtns[2]) applyUpgrade(currentUpgradeBtns[2].type);
     return;
   }
 
   if(gState==='zone_transition'){
-    if(e.key==='Enter' || e.key===' ' || e.key==='Escape') continueZoneTransition();
+    if(code==='Enter' || code==='Space' || code==='Escape') continueZoneTransition();
     return;
   }
 
   if(gState==='retry_confirm'){
-    if(e.key==='Enter' || e.key==='y' || e.key==='Y' || e.key===' '){
+    if(code==='Enter' || code==='Space' || keyLower==='y'){
       restoreRetryCheckpoint();
-    } else if(e.key==='Escape' || e.key==='n' || e.key==='N' || e.key==='Backspace'){
+    } else if(code==='Escape' || code==='Backspace' || keyLower==='n'){
       gState='gameover';
     }
     return;
   }
 
   if(gState==='secret2_sword_confirm'){
-    if(e.key==='Enter' || e.key==='y' || e.key==='Y' || e.key===' '){
+    if(code==='Enter' || code==='Space' || keyLower==='y'){
       claimSecret2MasterSword();
-    } else if(e.key==='Escape' || e.key==='n' || e.key==='N' || e.key==='Backspace'){
+    } else if(code==='Escape' || code==='Backspace' || keyLower==='n'){
       clearGameplayKeys();
       gState='playing';
     }
@@ -3447,7 +3502,7 @@ document.addEventListener('keydown',e=>{
   }
 
   if(gState==='intro'){
-    if(e.key==='Enter' || e.key===' ' || e.key==='Escape') beginRunFromIntro();
+    if(code==='Enter' || code==='Space' || code==='Escape') beginRunFromIntro();
     return;
   }
 
@@ -3456,20 +3511,20 @@ document.addEventListener('keydown',e=>{
   }
 
   if(gState==='scoreboard'){
-    if(e.key==='Escape' || e.key==='Backspace') gState='title';
-    else if(e.key==='ArrowLeft' && scoreboardPage>0) scoreboardPage--;
-    else if(e.key==='ArrowRight' && scoreboardPage<totalScorePages()-1) scoreboardPage++;
+    if(code==='Escape' || code==='Backspace') gState='title';
+    else if(code==='ArrowLeft' && scoreboardPage>0) scoreboardPage--;
+    else if(code==='ArrowRight' && scoreboardPage<totalScorePages()-1) scoreboardPage++;
     return;
   }
 
-  if(gState==='playing' && (e.key==='Shift' || e.key==='ShiftLeft' || e.key==='ShiftRight')){
+  if(gState==='playing' && !e.repeat && (code==='ShiftLeft' || code==='ShiftRight')){
     if(performDodge()) return;
   }
-  if(gState==='playing' && (e.key==='p' || e.key==='P')){
+  if(gState==='playing' && !e.repeat && code==='KeyP'){
     if(useHealthPotion()) return;
   }
 
-  if(gState==='playing' && (e.key==='Enter' || e.key==='e' || e.key==='E')){
+  if(gState==='playing' && (code==='Enter' || code==='KeyE')){
     if(canInteractSecret2Npc()){
       startSecret2NpcDialog();
       return;
@@ -3482,20 +3537,20 @@ document.addEventListener('keydown',e=>{
       startZone3TreeDialog();
       return;
     }
-    if(e.key==='Enter'){
+    if(code==='Enter'){
       pauseGame();
       return;
     }
   }
 
-  if(gState==='playing' && e.key==='Escape'){
+  if(gState==='playing' && code==='Escape'){
     pauseGame();
     return;
   }
 
   if(gState==='gameover'){
-    if(e.key==='Enter' || e.key===' ' || e.key==='r' || e.key==='R') openRetryPrompt();
-    else if(e.key==='Escape' || e.key==='Backspace' || e.key==='m' || e.key==='M'){
+    if(code==='Enter' || code==='Space' || keyLower==='r') openRetryPrompt();
+    else if(code==='Escape' || code==='Backspace' || keyLower==='m'){
       retryTaxPaid=false;
       retryPromptMode='';
       gState='title';
@@ -3503,7 +3558,11 @@ document.addEventListener('keydown',e=>{
     return;
   }
 });
-document.addEventListener('keyup',e=>{keys[e.key]=false;});
+document.addEventListener('keyup',e=>{keys[e.code]=false;});
+window.addEventListener('blur', clearGameplayKeys);
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) clearGameplayKeys();
+});
 canvas.addEventListener('mousedown',e=>{
   if(e.button!==0) return;
   if(gState!=='playing') return;
@@ -3806,10 +3865,10 @@ function update(){
   const inSecret1Water=currentZone===ZONE_SECRET1 && isSecret1WaterZone(waterBox);
   const terrainSpeedMult=inSecret1Water ? 0.58 : 1;
   const moveSpeed=(devGodMode ? p.speed*DEV_GOD_SPEED_MULT : p.speed)*terrainSpeedMult;
-  if(keys['ArrowLeft'] ||keys['a']){dx-=moveSpeed;p.dir='left';}
-  if(keys['ArrowRight']||keys['d']){dx+=moveSpeed;p.dir='right';}
-  if(keys['ArrowUp']   ||keys['w']){dy-=moveSpeed;p.dir='up';}
-  if(keys['ArrowDown'] ||keys['s']){dy+=moveSpeed;p.dir='down';}
+  if(isKeyDown('ArrowLeft','KeyA')){dx-=moveSpeed;p.dir='left';}
+  if(isKeyDown('ArrowRight','KeyD')){dx+=moveSpeed;p.dir='right';}
+  if(isKeyDown('ArrowUp','KeyW')){dy-=moveSpeed;p.dir='up';}
+  if(isKeyDown('ArrowDown','KeyS')){dy+=moveSpeed;p.dir='down';}
 
   if(touchMoveActive){
     const tdx=touchX-touchStartX;
@@ -3956,7 +4015,7 @@ function update(){
   }
 
   // Attack
-  const spcNow=!!(keys[' ']);
+  const spcNow=isKeyDown('Space');
   const spcJust=spcNow&&!prevSpc;
   const spcRelease=!spcNow&&prevSpc;
   const clickJust=mouseAttackQueued;
@@ -5934,7 +5993,7 @@ function rPlay(){
   // ── Player ──
   const flash=p.hurtT>0&&Math.floor(p.hurtT/4)%2===1;
   if(!flash){
-    const moving=keys['ArrowLeft']||keys['ArrowRight']||keys['ArrowUp']||keys['ArrowDown']||keys['a']||keys['s']||keys['w']||keys['d'];
+    const moving=isKeyDown('ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyS','KeyW','KeyD');
     const wb=moving?Math.floor(p.walkF/8)%2:0;
     const flip=p.dir==='left';
     const spr=p.dir==='up'?S.plrU:p.dir==='down'?S.plrD:S.plrR;
