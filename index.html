@@ -1,4 +1,4 @@
-<!-- BoneCrawler.com - jamesdeitz.dev - version 2.5.6 -->
+<!-- BoneCrawler.com - jamesdeitz.dev - version 2.5.7 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -902,7 +902,7 @@ function atkBox(e,reach){
 }
 
 // ── Upgrade menu buttons ─────────────────────────────────────
-const PLAYER_BASE_SPEED = 0.26;
+const PLAYER_BASE_SPEED = 0.28;
 const SPEED_UP_STEP = 0.12;
 const MAX_PLAYER_SPEED = 0.94;
 const MASTER_SWORD_START_LEVEL = 4;
@@ -1168,6 +1168,8 @@ const RETRY_CONFIRM_YES_BTN={x:24,y:92,w:28,h:10};
 const RETRY_CONFIRM_NO_BTN={x:68,y:92,w:28,h:10};
 const SECRET2_SWORD_CONFIRM_YES_BTN={x:24,y:92,w:28,h:10};
 const SECRET2_SWORD_CONFIRM_NO_BTN={x:68,y:92,w:28,h:10};
+const LEAVE_ZONE_CONFIRM_YES_BTN={x:24,y:92,w:28,h:10};
+const LEAVE_ZONE_CONFIRM_NO_BTN={x:68,y:92,w:28,h:10};
 const RETRY_POINT_SACRIFICE=0.30;
 const WHIRLWIND_HOLD_FRAMES=24;
 const WHIRLWIND_COOLDOWN_FRAMES=5*60;
@@ -1181,11 +1183,23 @@ let normalKillCount=0, giantKillCount=0, wizardKillCount=0;
 let zone3TreeHits=0, zone3TreeShakeT=0, zone3TreeAwake=false, zone3TreeMet=false;
 let pendingZoneTransition=0;
 let zoneTransitionInfo=null;
+let leaveZonePromptData=null;
 let dragonBoss=null, dragonFlames=[], dragonSwipe=null, bossDefeated=false, zone1MiniBossDefeated=false, pendingZone1DragonSpawn=false;
 let shadowBoss=null, shadowWaves=[], shadowBossDefeated=false, shadowWizardRespawns=[];
 let bossClearTimer=0;
 let secret1BlessingT=0;
 let secret2NpcMet=false;
+let secret1RatTalkCount=0;
+let secret1NodeSpoken=false;
+let zone1DoorKeyDialogShown=false;
+let zone1Kill90DialogShown=false;
+let zone1Kill109DialogShown=false;
+let zone2IntroDialogShown=false;
+let zone2Kill30DialogShown=false;
+let zone3IntroDialogShown=false;
+let zone3Kill80DialogShown=false;
+let zone3BossDefeatDialogShown=false;
+let startupDialogCompletedThisRun=false;
 let dialogPages=[];
 let dialogPageIndex=0;
 let dialogTitle='WOUNDED STRANGER';
@@ -1258,6 +1272,11 @@ const ZONE3_BOSS_TRIGGER_KILLS=ZONE3_KEY_KILLS;
 const SHADOW_PHASE_HITS=10;
 const SHADOW_HOWL_FRAMES=180;
 const SHADOW_WAVE_INTERVAL=18;
+const SHADOW_PHASE1_LUNGE_BONUS_DISTANCE=2;
+const SHADOW_PHASE2_LUNGE_BONUS_DISTANCE=1;
+const SHADOW_SCREECH_STARTUP_FRAMES=2*60;
+const SHADOW_SCREECH_DURATION_FRAMES=2*60;
+const SHADOW_SCREECH_WAVE_INTERVAL=18;
 const CRAWLER_WIZARD_RESPAWN_FRAMES=4*60;
 const ZONE_SECRET1=101;
 const ZONE_SECRET2=102;
@@ -1275,6 +1294,10 @@ const SECRET2_NPC_RECT={x:GW/2-18,y:PY+68,w:12,h:8};
 const SECRET2_SWORD_RECT={x:GW/2-6,y:PY+24,w:12,h:24};
 const ZONE3_TREE_RECT={x:PX+13,y:PY+PH-28,w:16,h:22};
 const ZONE3_TREE_INTERACT_RECT={x:PX+8,y:PY+PH-26,w:22,h:18};
+const ZONE3_SECRET2_PORTAL_RECT={x:GW/2-6,y:PY+57,w:12,h:12};
+const SECRET1_RAT_RECT={x:PX+10,y:PY+10,w:8,h:6};
+const SECRET1_RAT_INTERACT_RECT={x:PX+7,y:PY+7,w:15,h:12};
+const SECRET1_CHEESE_RECT={x:PX+20,y:PY+12,w:6,h:4};
 const SECRET2_RETURN_PORTAL_RECT={x:PX+PW-18,y:PY+70,w:12,h:12};
 const SECRET2_STONE_BLOCKERS=[
   {x:GW/2-5,y:PY+42,w:10,h:7},
@@ -1379,6 +1402,7 @@ function applyCheatCode(code){
   }
 }
 function openStartupGameDialog(){
+  startupDialogCompletedThisRun=false;
   dialogTitle='NODE';
   dialogMode='opening';
   dialogPages=STARTUP_GAME_DIALOG_PAGES.map(page=>( {
@@ -1707,11 +1731,23 @@ function resetGame(){
   normalKillCount=0; giantKillCount=0; wizardKillCount=0;
   pendingZoneTransition=0;
   zoneTransitionInfo=null;
+  leaveZonePromptData=null;
   dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
   secret1BlessingT=0;
   secret2NpcMet=false;
+  secret1RatTalkCount=0;
+  secret1NodeSpoken=false;
+  zone1DoorKeyDialogShown=false;
+  zone1Kill90DialogShown=false;
+  zone1Kill109DialogShown=false;
+  zone2IntroDialogShown=false;
+  zone2Kill30DialogShown=false;
+  zone3IntroDialogShown=false;
+  zone3Kill80DialogShown=false;
+  zone3BossDefeatDialogShown=false;
+  startupDialogCompletedThisRun=false;
   dialogPages=[];
   dialogPageIndex=0;
   dialogTitle='WOUNDED STRANGER';
@@ -1780,7 +1816,8 @@ function createZoneRetryCheckpoint(zone){
     potionCount:Math.max(0,potionCount|0),
     zone3TreeHits:Math.max(0, zone3TreeHits|0),
     zone3TreeAwake:!!zone3TreeAwake,
-    zone3TreeMet:!!zone3TreeMet
+    zone3TreeMet:!!zone3TreeMet,
+    secret1NodeSpoken:!!secret1NodeSpoken
   };
 }
 
@@ -1906,6 +1943,7 @@ function restoreRetryCheckpoint(){
   secret1BlessingT=0;
   dialogPages=[];
   dialogPageIndex=0;
+  leaveZonePromptData=null;
   pendingRewardDialogs=[];
   whirlwindChargeT=0;
   whirlwindSlashT=0;
@@ -1915,6 +1953,11 @@ function restoreRetryCheckpoint(){
   runStartMs=performance.now();
   runTimeMs=0;
   pauseStartedMs=0;
+  zone2IntroDialogShown=false;
+  zone2Kill30DialogShown=false;
+  zone3IntroDialogShown=false;
+  zone3Kill80DialogShown=false;
+  zone3BossDefeatDialogShown=false;
 
   if(cp.zone===2) enterZone2();
   else enterZone3();
@@ -1935,6 +1978,7 @@ function restoreRetryCheckpoint(){
   zone3TreeHits=Math.max(0, cp.zone3TreeHits|0);
   zone3TreeAwake=!!cp.zone3TreeAwake;
   zone3TreeMet=!!cp.zone3TreeMet;
+  secret1NodeSpoken=!!cp.secret1NodeSpoken;
   zone3TreeShakeT=0;
   player.shield=!!cp.player.shield;
   player.shieldLevel=cp.player.shieldLevel||0;
@@ -2402,6 +2446,7 @@ function ensureZoneMomentum(){
 }
 
 function enterZone2(){
+  secret1RatTalkCount=0;
   currentZone=2;
   chest=null; clearKeyDrops();
   enemies=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
@@ -2423,6 +2468,7 @@ function enterZone2(){
   createZoneRetryCheckpoint(2);
 }
 function enterZone3(){
+  secret1RatTalkCount=0;
   currentZone=3;
   chest=null; clearKeyDrops();
   enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
@@ -2431,6 +2477,9 @@ function enterZone3(){
   bossClearTimer=0;
   parts=[];
   zone3KillStart=killCount;
+  zone3IntroDialogShown=false;
+  zone3Kill80DialogShown=false;
+  zone3BossDefeatDialogShown=false;
   zone3Broken=Array(ZONE3_DECOR_BREAK_RECTS.length).fill(false);
   nextChestAt=Math.max(nextChestAt, killCount + ZONE3_FIRST_CHEST_DELAY);
   syncKillSpawnSchedulesFromCount();
@@ -2456,6 +2505,7 @@ function applySecretZone1Blessing(){
   floatTexts.push({x:GW/2,y:PY+24,text:'FAIRY BLESSING',life:90,max:90,col:C.MG2});
 }
 function enterSecretZone1(){
+  secret1RatTalkCount=0;
   currentZone=ZONE_SECRET1;
   chest=null; clearKeyDrops();
   enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
@@ -2477,6 +2527,7 @@ function enterSecretZone1(){
   secret1BlessingT=SECRET1_BLESSING_FRAMES;
 }
 function enterSecretZone2(){
+  secret1RatTalkCount=0;
   currentZone=ZONE_SECRET2;
   chest=null; clearKeyDrops();
   enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
@@ -2520,6 +2571,241 @@ function canInteractZone3Tree(){
   if(currentZone!==3 || !player || !zone3TreeAwake) return false;
   const p=player;
   return ov({x:p.x,y:p.y,w:p.w,h:p.h}, ZONE3_TREE_INTERACT_RECT);
+}
+function canInteractSecret1Rat(){
+  if(currentZone!==ZONE_SECRET1 || !player) return false;
+  const p=player;
+  return ov({x:p.x,y:p.y,w:p.w,h:p.h}, SECRET1_RAT_INTERACT_RECT);
+}
+function canInteractZone3Secret2Portal(){
+  if(currentZone!==3 || !player) return false;
+  if(!shadowBossDefeated || score<SECRET2_SCORE_REQ) return false;
+  const p=player;
+  const zone={x:ZONE3_SECRET2_PORTAL_RECT.x-4,y:ZONE3_SECRET2_PORTAL_RECT.y-4,w:ZONE3_SECRET2_PORTAL_RECT.w+8,h:ZONE3_SECRET2_PORTAL_RECT.h+8};
+  return ov({x:p.x,y:p.y,w:p.w,h:p.h}, zone);
+}
+function canInteractSecret2ReturnPortal(){
+  if(currentZone!==ZONE_SECRET2 || !player) return false;
+  const p=player;
+  const zone={x:SECRET2_RETURN_PORTAL_RECT.x-4,y:SECRET2_RETURN_PORTAL_RECT.y-4,w:SECRET2_RETURN_PORTAL_RECT.w+8,h:SECRET2_RETURN_PORTAL_RECT.h+8};
+  return ov({x:p.x,y:p.y,w:p.w,h:p.h}, zone);
+}
+function isNearRect(rect,pad=4){
+  if(!player || !rect) return false;
+  const p=player;
+  const zone={x:rect.x-pad,y:rect.y-pad,w:rect.w+pad*2,h:rect.h+pad*2};
+  return ov({x:p.x,y:p.y,w:p.w,h:p.h}, zone);
+}
+function getActiveZoneTransitionInteractable(){
+  if(!player) return null;
+  if(currentZone===1){
+    if(zone1SecretEntranceReady() && zone1Broken[0] && isNearRect(SECRET1_ENTRANCE_RECT,4)){
+      return {
+        id:'zone1_secret1',
+        rect:SECRET1_ENTRANCE_RECT,
+        promptX:SECRET1_ENTRANCE_RECT.x + SECRET1_ENTRANCE_RECT.w/2,
+        promptY:SECRET1_ENTRANCE_RECT.y - 4,
+        nextZone:ZONE_SECRET1,
+        transitionOpts:{fromZone:1}
+      };
+    }
+    if(player.zone1DoorKey && isNearRect(ZONE1_DOOR_RECT,4)){
+      return {
+        id:'zone1_zone2',
+        rect:ZONE1_DOOR_RECT,
+        promptX:ZONE1_DOOR_RECT.x + ZONE1_DOOR_RECT.w/2,
+        promptY:ZONE1_DOOR_RECT.y - 4,
+        nextZone:2,
+        transitionOpts:{fromZone:1}
+      };
+    }
+  }
+  if(currentZone===ZONE_SECRET1 && secret1BlessingT<=0 && isNearRect(SECRET1_EXIT_DOOR_RECT,4)){
+    return {
+      id:'secret1_exit',
+      rect:SECRET1_EXIT_DOOR_RECT,
+      promptX:SECRET1_EXIT_DOOR_RECT.x + SECRET1_EXIT_DOOR_RECT.w/2,
+      promptY:SECRET1_EXIT_DOOR_RECT.y - 4,
+      nextZone:2,
+      transitionOpts:{fromZone:ZONE_SECRET1, secret:true}
+    };
+  }
+  if(currentZone===3){
+    if(player.hasKey && isNearRect(ZONE3_DOOR_RECT,4)){
+      return {
+        id:'zone3_exit',
+        rect:ZONE3_DOOR_RECT,
+        promptX:ZONE3_DOOR_RECT.x + ZONE3_DOOR_RECT.w/2,
+        promptY:ZONE3_DOOR_RECT.y - 4,
+        nextZone:-1,
+        transitionOpts:{fromZone:3,title:'ZONE CLEAR',messageLines:['Well done,','Bonecrawler'],hideStats:false}
+      };
+    }
+    if(canInteractZone3Secret2Portal()){
+      return {
+        id:'zone3_secret2',
+        rect:ZONE3_SECRET2_PORTAL_RECT,
+        promptX:ZONE3_SECRET2_PORTAL_RECT.x + ZONE3_SECRET2_PORTAL_RECT.w/2,
+        promptY:ZONE3_SECRET2_PORTAL_RECT.y - 4,
+        nextZone:ZONE_SECRET2,
+        transitionOpts:{fromZone:3}
+      };
+    }
+  }
+  if(currentZone===ZONE_SECRET2 && canInteractSecret2ReturnPortal()){
+    return {
+      id:'secret2_return',
+      rect:SECRET2_RETURN_PORTAL_RECT,
+      promptX:SECRET2_RETURN_PORTAL_RECT.x + SECRET2_RETURN_PORTAL_RECT.w/2,
+      promptY:SECRET2_RETURN_PORTAL_RECT.y - 4,
+      nextZone:-1,
+      transitionOpts:{fromZone:3,title:'ZONE CLEAR',messageLines:['Well done,','Bonecrawler'],hideStats:false}
+    };
+  }
+  return null;
+}
+function getCurrentInteractionTarget(){
+  if(gState!=='playing') return null;
+  if(canInteractSecret2Sword()) return {type:'secret2Sword', promptX:SECRET2_SWORD_RECT.x + SECRET2_SWORD_RECT.w/2, promptY:SECRET2_SWORD_RECT.y - 3};
+  if(canInteractSecret2Npc()) return {type:'secret2Npc', promptX:SECRET2_NPC_RECT.x + SECRET2_NPC_RECT.w/2, promptY:SECRET2_NPC_RECT.y - 6};
+  if(canInteractZone3Tree()) return {type:'zone3Tree', promptX:ZONE3_TREE_INTERACT_RECT.x + ZONE3_TREE_INTERACT_RECT.w/2, promptY:ZONE3_TREE_INTERACT_RECT.y - 4};
+  if(canInteractSecret1Rat()) return {type:'secret1Rat', promptX:SECRET1_RAT_RECT.x + SECRET1_RAT_RECT.w/2, promptY:SECRET1_RAT_RECT.y - 5};
+  const transition=getActiveZoneTransitionInteractable();
+  if(transition) return {type:'transition', promptX:transition.promptX, promptY:transition.promptY, data:transition};
+  return null;
+}
+function openDialogSequence(title, pages, mode='npc'){
+  dialogTitle=title||'NODE';
+  dialogMode=mode;
+  dialogPages=(pages||[]).map(page=>Array.isArray(page) ? page.slice() : {speaker:String(page.speaker||title||'NODE').toUpperCase(),lines:(page.lines||[]).slice()});
+  dialogPageIndex=0;
+  clearGameplayKeys();
+  gState='dialog';
+}
+function startLeaveZoneConfirm(transition){
+  if(!transition) return;
+  leaveZonePromptData=transition;
+  clearGameplayKeys();
+  gState='leave_zone_confirm';
+}
+function confirmLeaveZone(){
+  if(gState!=='leave_zone_confirm' || !leaveZonePromptData) return;
+  const transition=leaveZonePromptData;
+  if(transition.id==='zone3_exit' || transition.id==='secret2_return') runCompleted=true;
+  leaveZonePromptData=null;
+  openZoneTransition(transition.nextZone, transition.transitionOpts||{});
+}
+function cancelLeaveZone(){
+  if(gState!=='leave_zone_confirm') return;
+  leaveZonePromptData=null;
+  clearGameplayKeys();
+  gState='playing';
+}
+function startSecret1RatDialog(){
+  if(currentZone!==ZONE_SECRET1) return;
+  let pages;
+  if(secret1RatTalkCount<=0){
+    pages=[
+      {speaker:'RAT',lines:['...']},
+      {speaker:'PLAYER',lines:['...']}
+    ];
+    secret1RatTalkCount=1;
+  } else {
+    pages=[
+      {speaker:'NODE',lines:["C'mon man, would you just", "play the game?"]},
+      {speaker:'PLAYER',lines:["You're a rat?"]},
+      {speaker:'NODE',lines:["Game's short, we ain't got time","discussin' this.","Dijya' even pay for this game?"]},
+      {speaker:'PLAYER',lines:['.. Maybe.']},
+      {speaker:'NODE',lines:["Sheesh. Go on, get otta' 'ere"]}
+    ];
+    secret1RatTalkCount=2;
+    secret1NodeSpoken=true;
+  }
+  openDialogSequence('NODE', pages, 'npc');
+}
+function handlePrimaryInteract(){
+  const target=getCurrentInteractionTarget();
+  if(!target) return false;
+  if(target.type==='secret2Npc') startSecret2NpcDialog();
+  else if(target.type==='secret2Sword') startSecret2SwordDialog();
+  else if(target.type==='zone3Tree') startZone3TreeDialog();
+  else if(target.type==='secret1Rat') startSecret1RatDialog();
+  else if(target.type==='transition') startLeaveZoneConfirm(target.data);
+  else return false;
+  return true;
+}
+function maybeTriggerScriptedZoneDialog(){
+  if(gState!=='playing') return false;
+  if(currentZone===1){
+    const progress=getZoneProgressKills(1);
+    if(!zone1DoorKeyDialogShown && hasKeyDropKind('zone1Door')){
+      zone1DoorKeyDialogShown=true;
+      openDialogSequence('NODE', [{speaker:'NODE',lines:['Grab the key!']}]);
+      return true;
+    }
+    if(!zone1Kill90DialogShown && progress>=90){
+      zone1Kill90DialogShown=true;
+      openDialogSequence('NODE', [{speaker:'NODE',lines:["There's a grate to the left..","It looks locked..","Maybe there's a way to unlock it?"]}]);
+      return true;
+    }
+    if(!zone1Kill109DialogShown && progress>=109){
+      zone1Kill109DialogShown=true;
+      openDialogSequence('NODE', [
+        {speaker:'NODE',lines:['I hear something..']},
+        {speaker:'NODE',lines:['.. keep fighting.']}
+      ]);
+      return true;
+    }
+  }
+  if(currentZone===2){
+    const progress=getZoneProgressKills(2);
+    if(!zone2IntroDialogShown){
+      zone2IntroDialogShown=true;
+      openDialogSequence('NODE', [
+        {speaker:'NODE',lines:['Seeesh. How many skellys was that?']},
+        {speaker:'PLAYER',lines:['Too many.']},
+        {speaker:'NODE',lines:['Yeah. Good job!','.... Now do it again!']},
+        {speaker:'PLAYER',lines:['Here they come..']}
+      ]);
+      return true;
+    }
+    if(!zone2Kill30DialogShown && progress>=25){
+      zone2Kill30DialogShown=true;
+      openDialogSequence('NODE', [
+        {speaker:'NODE',lines:['Shh.. do you hear that?','I smell a dragon!']},
+        {speaker:'PLAYER',lines:[secret1NodeSpoken ? 'Rats can smell dragons?' : 'Wait, what? Are you here?']},
+        {speaker:'NODE',lines:['....']},
+        {speaker:'PLAYER',lines:['Here we go again..']}
+      ]);
+      return true;
+    }
+  }
+  if(currentZone===3){
+    const progress=getZoneProgressKills(3);
+    if(!zone3IntroDialogShown){
+      zone3IntroDialogShown=true;
+      openDialogSequence('NODE', [
+        {speaker:'NODE',lines:['I smell an evil soul..',"it's in here somewhere"]}
+      ]);
+      return true;
+    }
+    if(!zone3Kill80DialogShown && progress>=80){
+      zone3Kill80DialogShown=true;
+      openDialogSequence('NODE', [
+        {speaker:'NODE',lines:["Don't give up!"]}
+      ]);
+      return true;
+    }
+    if(!zone3BossDefeatDialogShown && shadowBossDefeated){
+      zone3BossDefeatDialogShown=true;
+      openDialogSequence('NODE', [
+        {speaker:'NODE',lines:['Good job..',"You'll do good Bonecrawler."]},
+        {speaker:'NODE',lines:['See ya next game.']}
+      ]);
+      return true;
+    }
+  }
+  return false;
 }
 
 function startSecret2NpcDialog(){
@@ -2586,8 +2872,10 @@ function advanceDialog(){
   if(gState!=='dialog') return;
   dialogPageIndex++;
   if(dialogPageIndex>=dialogPages.length){
+    const wasOpening=dialogMode==='opening';
     dialogPages=[];
     dialogPageIndex=0;
+    if(wasOpening) startupDialogCompletedThisRun=true;
     clearGameplayKeys();
     gState='playing';
   }
@@ -2595,8 +2883,10 @@ function advanceDialog(){
 
 function skipDialog(){
   if(gState!=='dialog') return;
+  const wasOpening=dialogMode==='opening';
   dialogPages=[];
   dialogPageIndex=0;
+  if(wasOpening) startupDialogCompletedThisRun=true;
   clearGameplayKeys();
   gState='playing';
 }
@@ -3017,6 +3307,10 @@ function startShadowPhase2(){
   b.counterT=0;
   b.lungeCD=48;
   b.slashCD=22;
+  b.screechCD=90;
+  b.screechStartupT=0;
+  b.screechT=0;
+  b.screechWaveT=SHADOW_SCREECH_WAVE_INTERVAL;
   while(countShadowBossWizards()<2 && spawnWizardNearShadow()){}
   floatTexts.push({x:GW/2,y:PY+18,text:'PHASE 2',life:70,max:70,col:C.FR1});
 }
@@ -3032,6 +3326,7 @@ function spawnShadowBoss(){
     phase:1, hp:SHADOW_PHASE_HITS, maxHp:SHADOW_PHASE_HITS,
     hurtT:0, atkT:0, atkName:'', howlT:0,
     lungeCD:72, slashCD:30, counterT:0, waveT:SHADOW_WAVE_INTERVAL,
+    screechCD:0, screechStartupT:0, screechT:0, screechWaveT:SHADOW_SCREECH_WAVE_INTERVAL,
     lungeVX:0, lungeVY:0
   };
   shadowWizardRespawns=[];
@@ -3053,6 +3348,15 @@ function updateShadowBoss(){
 
   ensureCrawlerWizardRespawns();
 
+  for(let i=shadowWaves.length-1;i>=0;i--){
+    const sw=shadowWaves[i];
+    sw.r += (sw.maxR - sw.r) * 0.35;
+    const pcx=player.x+player.w/2, pcy=player.y+player.h/2;
+    const dist=Math.hypot(pcx-sw.x,pcy-sw.y);
+    if(Math.abs(dist-sw.r) <= 3) hurtPlayer(1);
+    if(--sw.life<=0) shadowWaves.splice(i,1);
+  }
+
   if(b.howlT>0){
     b.howlT--;
     b.waveT--;
@@ -3069,13 +3373,38 @@ function updateShadowBoss(){
     return;
   }
 
-  for(let i=shadowWaves.length-1;i>=0;i--){
-    const sw=shadowWaves[i];
-    sw.r += (sw.maxR - sw.r) * 0.35;
-    const pcx=player.x+player.w/2, pcy=player.y+player.h/2;
-    const dist=Math.hypot(pcx-sw.x,pcy-sw.y);
-    if(Math.abs(dist-sw.r) <= 3) hurtPlayer(1);
-    if(--sw.life<=0) shadowWaves.splice(i,1);
+  if(b.screechStartupT>0){
+    b.screechStartupT--;
+    if(frame%8===0){
+      const c=getShadowCenter(b);
+      parts.push({x:c.x+(Math.random()*8-4),y:c.y-1,vx:Math.random()*0.7-0.35,vy:-0.55-Math.random()*0.45,
+        life:18,max:26,col:Math.random()<0.5?C.FR1:C.MG2});
+    }
+    if(b.screechStartupT<=0){
+      b.screechT=SHADOW_SCREECH_DURATION_FRAMES;
+      b.screechWaveT=1;
+      b.atkName='screech';
+    }
+    return;
+  }
+
+  if(b.screechT>0){
+    b.screechT--;
+    b.screechWaveT--;
+    if(b.screechWaveT<=0){
+      spawnShadowWave();
+      b.screechWaveT=SHADOW_SCREECH_WAVE_INTERVAL;
+    }
+    if(frame%8===0){
+      const c=getShadowCenter(b);
+      parts.push({x:c.x+(Math.random()*9-4.5),y:c.y-2,vx:Math.random()*0.8-0.4,vy:-0.60-Math.random()*0.55,
+        life:18,max:24,col:Math.random()<0.5?C.FR1:C.WH});
+    }
+    if(b.screechT<=0){
+      b.atkName='';
+      b.screechCD=6*60;
+    }
+    return;
   }
 
   const c=getShadowCenter(b);
@@ -3121,10 +3450,21 @@ function updateShadowBoss(){
     return;
   }
 
+  if(b.phase===2 && b.atkT<=0 && b.screechCD<=0 && dist<66){
+    b.screechStartupT=SHADOW_SCREECH_STARTUP_FRAMES;
+    b.screechT=0;
+    b.screechWaveT=SHADOW_SCREECH_WAVE_INTERVAL;
+    b.atkName='screech';
+    return;
+  }
+
   if(b.atkT<=0 && b.lungeCD<=0 && dist<60){
     b.atkT=b.phase===1?14:16;
     b.atkName='lunge';
-    const sp=b.phase===1?1.15:1.35;
+    const duration=b.atkT;
+    const baseSpeed=b.phase===1?1.15:1.35;
+    const bonusDistance=b.phase===1?SHADOW_PHASE1_LUNGE_BONUS_DISTANCE:SHADOW_PHASE2_LUNGE_BONUS_DISTANCE;
+    const sp=baseSpeed + (bonusDistance/Math.max(1,duration));
     b.lungeVX=ddx/dist*sp;
     b.lungeVY=ddy/dist*sp;
     b.lungeCD=b.phase===1?76:54;
@@ -3483,7 +3823,7 @@ function applyUpgrade(type){
     grantHeartReward(GW/2, PY+22);
   } else if(type==='sword'){
     p.swordLevel=(p.swordLevel||0)+1;
-    p.swordReach+=6;
+    p.swordReach+=3;
     p.swordWidth=Math.max(1,p.swordWidth||1);
   } else if(type==='shield'){
     p.shieldLevel=(p.shieldLevel||0)+1;
@@ -3611,6 +3951,12 @@ document.addEventListener('keydown',e=>{
 
   if(gState==='paused'){
     if(code==='Enter' || code==='Escape') resumeGame();
+    else if(keyLower==='r') openRetryPrompt();
+    else if(keyLower==='m' || code==='Backspace'){
+      retryTaxPaid=false;
+      retryPromptMode='';
+      gState='title';
+    }
     return;
   }
 
@@ -3632,6 +3978,12 @@ document.addEventListener('keydown',e=>{
     } else if(code==='Escape' || code==='Backspace' || keyLower==='n'){
       gState='gameover';
     }
+    return;
+  }
+
+  if(gState==='leave_zone_confirm'){
+    if(code==='Enter' || code==='Space' || keyLower==='y') confirmLeaveZone();
+    else if(code==='Escape' || code==='Backspace' || keyLower==='n') cancelLeaveZone();
     return;
   }
 
@@ -3673,18 +4025,7 @@ document.addEventListener('keydown',e=>{
   }
 
   if(gState==='playing' && (code==='Enter' || code==='KeyE')){
-    if(canInteractSecret2Npc()){
-      startSecret2NpcDialog();
-      return;
-    }
-    if(canInteractSecret2Sword()){
-      startSecret2SwordDialog();
-      return;
-    }
-    if(canInteractZone3Tree()){
-      startZone3TreeDialog();
-      return;
-    }
+    if(handlePrimaryInteract()) return;
     if(code==='Enter'){
       pauseGame();
       return;
@@ -3796,11 +4137,8 @@ if(touchInteractBtn){
     e.preventDefault();
     e.stopPropagation();
     if(gState==='dialog'){ advanceDialog(); return; }
-    if(gState==='playing'){
-      if(canInteractSecret2Npc()){ startSecret2NpcDialog(); return; }
-      if(canInteractSecret2Sword()){ startSecret2SwordDialog(); return; }
-      if(canInteractZone3Tree()){ startZone3TreeDialog(); return; }
-    }
+    if(gState==='leave_zone_confirm'){ confirmLeaveZone(); return; }
+    if(gState==='playing') handlePrimaryInteract();
   };
   if(window.PointerEvent) touchInteractBtn.addEventListener('pointerdown', onInteractPress);
   else touchInteractBtn.addEventListener('touchstart', onInteractPress, {passive:false});
@@ -3883,6 +4221,12 @@ canvas.addEventListener('click',e=>{
     return;
   }
 
+  if(gState==='leave_zone_confirm'){
+    if(pointInBtn(lx,ly,LEAVE_ZONE_CONFIRM_YES_BTN)) confirmLeaveZone();
+    else if(pointInBtn(lx,ly,LEAVE_ZONE_CONFIRM_NO_BTN)) cancelLeaveZone();
+    return;
+  }
+
   if(gState==='secret2_sword_confirm'){
     if(pointInBtn(lx,ly,SECRET2_SWORD_CONFIRM_YES_BTN)) claimSecret2MasterSword();
     else if(pointInBtn(lx,ly,SECRET2_SWORD_CONFIRM_NO_BTN)){
@@ -3909,6 +4253,16 @@ canvas.addEventListener('click',e=>{
     if(pointInBtn(lx,ly,{x:7,y:105,w:24,h:9})) gState='title';
     else if(pointInBtn(lx,ly,{x:89,y:105,w:10,h:9}) && scoreboardPage>0) scoreboardPage--;
     else if(pointInBtn(lx,ly,{x:103,y:105,w:10,h:9}) && scoreboardPage<totalScorePages()-1) scoreboardPage++;
+    return;
+  }
+
+  if(gState==='paused'){
+    if(pointInBtn(lx,ly,GAMEOVER_RETRY)) openRetryPrompt();
+    else if(pointInBtn(lx,ly,GAMEOVER_MENU)){
+      retryTaxPaid=false;
+      retryPromptMode='';
+      gState='title';
+    }
     return;
   }
 
@@ -4066,9 +4420,11 @@ function update(){
       secret1UnlockAlertShown=true;
       secret1UnlockAlertT=135;
       floatTexts.push({x:GW/2,y:PY+60,text:'SECRET ZONE 1',life:72,max:72,col:C.MG2});
-      floatTexts.push({x:GW/2,y:PY+68,text:'UNLOCKED! (CLICK!)',life:72,max:72,col:C.BN1});
+      floatTexts.push({x:GW/2,y:PY+68,text:'UNLOCKED! (INTERACT)',life:72,max:72,col:C.BN1});
     }
   }
+
+  if(maybeTriggerScriptedZoneDialog()) return;
 
   // Key pickup + door unlock to zone 2
   if(hasAnyKeyDrop()){
@@ -4085,52 +4441,11 @@ function update(){
     }
     keyDrop=drops;
   }
-  if(zone1SecretEntranceReady() && zone1Broken[0] && ov({x:p.x,y:p.y,w:p.w,h:p.h}, SECRET1_ENTRANCE_RECT)){
-    openZoneTransition(ZONE_SECRET1,{
-      fromZone:1,
-      title:'ZONE 1 CLEAR',
-      messageLines:getRankInfo(score,1,2).lines,
-      hideStats:false
-    });
-    return;
-  }
-  if(currentZone===1 && p.zone1DoorKey && ov({x:p.x,y:p.y,w:p.w,h:p.h}, ZONE1_DOOR_RECT)){
-    openZoneTransition(2);
-    return;
-  }
-  if(currentZone===3 && p.hasKey && ov({x:p.x,y:p.y,w:p.w,h:p.h}, ZONE3_DOOR_RECT)){
-    if(score>=SECRET2_SCORE_REQ){
-      openZoneTransition(ZONE_SECRET2,{
-        fromZone:3,
-        title:'ZONE CLEAR',
-        messageLines:['Well done,','Bonecrawler'],
-        hideStats:false
-      });
-    } else {
-      finishRunVictory();
-    }
-    return;
-  }
   if(currentZone===ZONE_SECRET1){
     if(secret1BlessingT>0) secret1BlessingT--;
     if(secret1BlessingT===80){
       floatTexts.push({x:GW/2,y:PY+72,text:'THE FAIRIES SEND YOU ONWARD',life:70,max:70,col:C.MG2});
     }
-    if(secret1BlessingT<=0 && ov({x:p.x,y:p.y,w:p.w,h:p.h}, SECRET1_EXIT_DOOR_RECT)){
-      openZoneTransition(2,{secret:true,fromZone:ZONE_SECRET1});
-      return;
-    }
-  }
-
-  if(currentZone===ZONE_SECRET2 && ov({x:p.x,y:p.y,w:p.w,h:p.h}, SECRET2_RETURN_PORTAL_RECT)){
-    runCompleted=true;
-    openZoneTransition(-1,{
-      fromZone:3,
-      title:'ZONE CLEAR',
-      messageLines:['Well done,','Bonecrawler'],
-      hideStats:false
-    });
-    return;
   }
 
   // Chest collision → pause for upgrade
@@ -4465,6 +4780,15 @@ function drawShadowBoss(b){
     ctx.globalAlpha=1;
   }
 
+  if(b.screechStartupT>0 || b.screechT>0){
+    const pulse=0.22 + 0.10*Math.sin(frame*0.42);
+    ctx.globalAlpha=pulse;
+    fr(x-6,y-6,b.w+12,b.h+12,C.FR1);
+    ctx.globalAlpha=Math.max(0.10,pulse*0.65);
+    fr(x-8,y-8,b.w+16,b.h+16,C.MG2);
+    ctx.globalAlpha=1;
+  }
+
   if(b.howlT>0){
     ctx.globalAlpha=0.18 + 0.08*Math.sin(frame*0.45);
     fr(x-5,y-5,b.w+10,b.h+10,C.FR1);
@@ -4642,6 +4966,22 @@ function drawDungeonZone3(){
 
   drawZone3BrokenTreeCluster();
 
+  if(shadowBossDefeated && score>=SECRET2_SCORE_REQ){
+    const rx=ZONE3_SECRET2_PORTAL_RECT.x, ry=ZONE3_SECRET2_PORTAL_RECT.y;
+    const pulse=0.22 + 0.08*Math.sin(frame*0.12);
+    ctx.globalAlpha=pulse;
+    fr(rx-3,ry-3,ZONE3_SECRET2_PORTAL_RECT.w+6,ZONE3_SECRET2_PORTAL_RECT.h+6,C.MG2);
+    ctx.globalAlpha=0.30 + 0.10*Math.sin(frame*0.15+1.1);
+    fr(rx-1,ry-1,ZONE3_SECRET2_PORTAL_RECT.w+2,ZONE3_SECRET2_PORTAL_RECT.h+2,C.SH);
+    ctx.globalAlpha=1;
+    fr(rx+1,ry+1,10,10,'#36414b');
+    fr(rx+2,ry+2,8,8,'#101923');
+    fr(rx+3,ry+3,6,6,'#43295b');
+    fr(rx+4,ry+4,4,4,'#a75dff');
+    fr(rx+5 + Math.round(Math.sin(frame*0.09)),ry+5,1,1,'#f0ddff');
+    fr(rx+6 + Math.round(Math.cos(frame*0.11)),ry+6,1,1,C.MG2);
+  }
+
   // dead roots / dried growth where zone 1 and 2 aesthetics meet
   for(let vy=PY+10;vy<PY+PH-8;vy+=10){
     fr(PX+4,vy,1,5,'#715b42');
@@ -4771,6 +5111,26 @@ function drawDungeonSecret1(){
   fr(fx+7 + Math.round(Math.sin(frame*0.03+0.8)*2), fy-2, 1, 1, '#f9fff2');
   fr(fx-13 + Math.round(Math.cos(frame*0.06+1.1)*2), fy+1, 1, 1, '#f9fff2');
   ctx.globalAlpha=1;
+
+  // tiny rat and cheese in the upper-left corner
+  const ratX=SECRET1_RAT_RECT.x, ratY=SECRET1_RAT_RECT.y;
+  fr(SECRET1_CHEESE_RECT.x,SECRET1_CHEESE_RECT.y,SECRET1_CHEESE_RECT.w,SECRET1_CHEESE_RECT.h,'#f0d36a');
+  fr(SECRET1_CHEESE_RECT.x+1,SECRET1_CHEESE_RECT.y+1,SECRET1_CHEESE_RECT.w-2,SECRET1_CHEESE_RECT.h-2,'#ffd98e');
+  fr(SECRET1_CHEESE_RECT.x+1,SECRET1_CHEESE_RECT.y+1,1,1,'#b88b2d');
+  fr(SECRET1_CHEESE_RECT.x+3,SECRET1_CHEESE_RECT.y+2,1,1,'#b88b2d');
+  fr(ratX+1,ratY+2,5,2,'#7d7b86');
+  fr(ratX+2,ratY+1,3,2,'#9694a2');
+  fr(ratX+1,ratY+1,1,1,'#b7b5c2');
+  fr(ratX+5,ratY+1,1,1,'#b7b5c2');
+  fr(ratX,ratY+3,1,1,'#6d6b77');
+  fr(ratX+6,ratY+3,2,1,'#6d6b77');
+  fr(ratX+7,ratY+4,2,1,'#9694a2');
+  fr(ratX+3,ratY+2,1,1,C.DK);
+  if(secret1RatTalkCount>=2){
+    ctx.globalAlpha=0.18+0.05*Math.sin(frame*0.12);
+    fr(ratX-2,ratY-2,12,10,C.MG2);
+    ctx.globalAlpha=1;
+  }
 
   // larger decorative rocks with varied gray tones
   drawRockCluster(PX+8, PY+PH-18, 0);
@@ -5827,6 +6187,7 @@ function render(){
   }
   if(gState==='scoreboard'){rScoreboard();return;}
   if(gState==='retry_confirm'){rRetryConfirm();return;}
+  if(gState==='leave_zone_confirm'){drawDungeon(); rPlay(); rLeaveZoneConfirm(); return;}
   if(gState==='secret2_sword_confirm'){drawDungeon(); rPlay(); rSecret2SwordConfirm(); return;}
   drawDungeon();
   rPlay();
@@ -5883,6 +6244,7 @@ function rPlay(){
   const inventoryIcons=[];
   if(masterSwordOwned) inventoryIcons.push({spr:S.upSword, scale:0.68, alpha:0.92, passive:true});
   if(potionCount>0) inventoryIcons.push({spr:S.potionIcon, scale:0.74, alpha:0.92, count:potionCount});
+  if(playerHasAnyKey(p)) inventoryIcons.push({spr:S.key, scale:0.74, alpha:0.92, count:1});
   const invX=3, invY=11, slotW=7, gap=1;
   const hasInventory=inventoryIcons.length>0;
   const invW=hasInventory ? inventoryIcons.length*(slotW+gap)-gap+4 : 0;
@@ -5991,15 +6353,14 @@ function rPlay(){
     if(shadowBoss.phase===2){
       pt('PHASE 2', GW*SCALE/2, 21, 4, C.FR1, 'center', C.DK);
     }
-    if(shadowBoss.howlT>0) pt('HOWL', GW*SCALE/2, 15, 5, C.FR1, 'center', C.DK);
+    if(shadowBoss.screechStartupT>0 || shadowBoss.screechT>0) pt('SCREECH', GW*SCALE/2, 15, 5, C.FR1, 'center', C.DK);
+    else if(shadowBoss.howlT>0) pt('HOWL', GW*SCALE/2, 15, 5, C.FR1, 'center', C.DK);
   } else if(currentZone===2 && bossDefeated){
     pt('DRAGON SLAIN', GW*SCALE/2, 8, 5, C.FR1, 'center', C.DK);
   } else if(currentZone===3 && shadowBossDefeated){
     pt('CORRUPTION SILENCED', GW*SCALE/2, 8, 5, C.MG2, 'center', C.DK);
   }
-  if(playerHasAnyKey(p)){
-    ds(S.key,GW-18,2);
-  } else if(hasAnyKeyDrop()){
+  if(hasAnyKeyDrop()){
     ctx.globalAlpha=0.28+0.12*Math.sin(frame*0.14);
     fr(GW-18,2,7,7,C.FR1);
     ctx.globalAlpha=1;
@@ -6243,16 +6604,9 @@ function rPlay(){
     }
   }
 
-  if(gState==='playing' && currentZone===ZONE_SECRET2){
-    if(canInteractSecret2Sword()){
-      drawInteractPrompt(SECRET2_SWORD_RECT.x + SECRET2_SWORD_RECT.w/2, SECRET2_SWORD_RECT.y - 3);
-    }
-    if(canInteractSecret2Npc()){
-      drawInteractPrompt(SECRET2_NPC_RECT.x + SECRET2_NPC_RECT.w/2, SECRET2_NPC_RECT.y - 6);
-    }
-  }
-  if(gState==='playing' && currentZone===3 && canInteractZone3Tree()){
-    drawInteractPrompt(ZONE3_TREE_INTERACT_RECT.x + ZONE3_TREE_INTERACT_RECT.w/2, ZONE3_TREE_INTERACT_RECT.y - 4);
+  if(gState==='playing'){
+    const interactTarget=getCurrentInteractionTarget();
+    if(interactTarget) drawInteractPrompt(interactTarget.promptX, interactTarget.promptY);
   }
 
   if(currentZone===1 && secret1UnlockAlertT>0){
@@ -6818,9 +7172,12 @@ function rDialog(){
   const rawSpeaker=isObjectPage ? String(rawPage.speaker||'NODE').trim() : '';
   const pageSpeaker=rawSpeaker.toUpperCase();
   const openingPlayerSpeaker=((currentPlayerName||'Player').trim()||'Player');
-  const panelTitle=isOpeningDialog
-    ? ((pageSpeaker==='PLAYER' ? openingPlayerSpeaker : (pageSpeaker||'NODE')))
-    : (dialogTitle||(isRewardDialog?'REWARD':'WOUNDED STRANGER'));
+  const resolvedSpeaker=pageSpeaker==='PLAYER' ? openingPlayerSpeaker : (rawSpeaker||pageSpeaker||'NODE');
+  const panelTitle=isRewardDialog
+    ? (dialogTitle||'REWARD')
+    : (isOpeningDialog
+      ? resolvedSpeaker
+      : (isObjectPage ? resolvedSpeaker : (dialogTitle||(isRewardDialog?'REWARD':'WOUNDED STRANGER'))));
 
   ctx.fillStyle='rgba(8,6,3,0.72)';
   ctx.fillRect(0,0,GW*SCALE,GH*SCALE);
@@ -6947,68 +7304,61 @@ function rDialog(){
 }
 
 function rPaused(){
-  ctx.fillStyle='rgba(8,6,3,0.62)';
+  ctx.fillStyle='rgba(8,6,3,0.68)';
   ctx.fillRect(0,0,GW*SCALE,GH*SCALE);
 
   const p=player||{};
-  const itemRows=[];
-  if(masterSwordOwned) itemRows.push({spr:S.upSword,label:'MASTER SWORD',col:C.SH});
-  if(potionCount>0) itemRows.push({spr:S.potionIcon,label:'POTION x'+potionCount,col:C.HP1});
-  if(playerHasAnyKey(p)) itemRows.push({spr:S.key,label:(p.secret1Key?'SECRET KEY':(p.zone1DoorKey?'ZONE 2 KEY':'KEY')),col:C.BN1});
-  if(p.shield) itemRows.push({spr:S.shieldIcon,label:'MAGIC SHIELD',col:C.SH});
-  if(!itemRows.length) itemRows.push({spr:S.mskull,label:'NONE',col:C.BN1});
+  const items=[];
+  if(masterSwordOwned) items.push({spr:S.upSword,val:'x1',col:C.SH});
+  if(potionCount>0) items.push({spr:S.potionIcon,val:'x'+potionCount,col:C.HP1});
+  if(playerHasAnyKey(p)) items.push({spr:S.key,val:'x1',col:C.BN1});
+  if(p.shield) items.push({spr:S.shieldIcon,val:'x'+Math.max(1,p.shieldLevel||1),col:C.SH});
+  if(!items.length) items.push({spr:S.mskull,val:'x0',col:C.BN1});
 
-  const skillRows=[
-    {spr:S.upSword,label:'SWORD x'+Math.max(1,(p.swordLevel||0)+1),col:C.BN1},
-    {spr:p.shadowStep?S.shadowStepIcon:S.stepIcon,label:(p.shadowStep?'SHADOW STEP':'STEP')+' x'+Math.max(1,p.shadowStep?(p.stepLevel||1):1),col:p.shadowStep?C.MG2:C.SI1},
-    {spr:S.upSpeed,label:'SPEED x'+Math.max(1,(p.speedLevel||0)+1),col:C.FR1},
+  const skills=[
+    {spr:S.upSword,val:'x'+Math.max(1,(p.swordLevel||0)+1),col:C.BN1},
+    {spr:p.shadowStep?S.shadowStepIcon:S.stepIcon,val:'x'+Math.max(1,p.shadowStep?(p.stepLevel||1):1),col:p.shadowStep?C.MG2:C.SI1},
+    {spr:S.upSpeed,val:'x'+Math.max(1,(p.speedLevel||0)+1),col:C.FR1},
   ];
-  if(whirlwindUnlocked) skillRows.push({spr:S.whirlwindIcon,label:'WHIRLWIND',col:C.SH});
+  if(whirlwindUnlocked) skills.push({spr:S.whirlwindIcon,val:'x1',col:C.SH});
 
-  // Two-column layout: ITEMS left, SKILLS right, shared row step
-  const STEP=11, HDR_Y=63, ROW_START=71;
-  const abbrevItem=s=>s.replace('MASTER SWORD','M.SWORD').replace('MAGIC SHIELD','M.SHIELD')
-    .replace('SECRET KEY','SCRT KEY').replace('ZONE 2 KEY','ZN2 KEY');
-  const abbrevSkill=s=>s.replace('SHADOW STEP','SHDW STEP').replace('WHIRLWIND','WHIRL');
-
-  const realItems=itemRows.filter(r=>r.label!=='NONE');
-  const maxRows=Math.max(realItems.length, skillRows.length);
-
-  // Shrink panel to fit content: bottom = ROW_START + maxRows*STEP + 4 padding
-  const panelBottom=ROW_START + maxRows*STEP + 4;
-  drawPanelFrame(12,14,96,panelBottom-14,{edge:C.BN2,fill:'rgba(4,4,5,0.84)',inner:'rgba(53,39,28,0.10)',glow:C.FR1});
-
-  // Skull top ornament
+  drawPanelFrame(12,12,96,97,{edge:C.BN2,fill:'rgba(4,4,5,0.90)',inner:'rgba(53,39,28,0.10)',glow:C.FR1});
   ctx.globalAlpha=0.18+0.10*Math.sin(frame*0.07);
   ctx.fillStyle=C.FR1;
-  ctx.fillRect(55*SCALE,14*SCALE,10*SCALE,6*SCALE);
+  ctx.fillRect(55*SCALE,12*SCALE,10*SCALE,6*SCALE);
   ctx.globalAlpha=1;
-  ds(S.mskull,57,15);
+  ds(S.mskull,57,13);
 
-  ptHeavy('PAUSED',GW*SCALE/2,26*SCALE,12,C.FR1,'center',C.DK);
-  if(devGodMode) pt('DEV GOD ON',GW*SCALE/2,37*SCALE,5,C.MG2,'center',C.W3);
-  ptHeavy('ENTER / ESC',GW*SCALE/2,48*SCALE,6,C.BN1,'center',C.DK);
-  ptHeavy('TO RESUME',GW*SCALE/2,55*SCALE,6,C.BN1,'center',C.DK);
+  ptHeavy('PAUSED',GW*SCALE/2,24*SCALE,12,C.FR1,'center',C.DK);
+  if(devGodMode) pt('DEV GOD ON',GW*SCALE/2,35*SCALE,5,C.MG2,'center',C.W3);
+  ptHeavy('ENTER / ESC = RESUME',GW*SCALE/2,44*SCALE,5,C.BN1,'center',C.DK);
 
-  // Separators and header decorations
   ctx.fillStyle=C.BN2; ctx.globalAlpha=0.45;
-  ctx.fillRect(18*SCALE,42*SCALE,84*SCALE,SCALE);
-  ctx.fillRect(18*SCALE,60*SCALE,84*SCALE,SCALE);
+  ctx.fillRect(18*SCALE,48*SCALE,84*SCALE,SCALE);
+  ctx.fillRect(18*SCALE,78*SCALE,84*SCALE,SCALE);
   ctx.globalAlpha=1;
-  fr(12,42,3,1,C.BN2); fr(105,42,3,1,C.BN2);
-  fr(12,60,3,1,C.BN2); fr(105,60,3,1,C.BN2);
+  fr(12,48,3,1,C.BN2); fr(105,48,3,1,C.BN2);
+  fr(12,78,3,1,C.BN2); fr(105,78,3,1,C.BN2);
 
-  ptHeavy('ITEMS',18*SCALE,HDR_Y*SCALE,5,C.BN1,'left',C.DK);
-  ptHeavy('SKILLS',64*SCALE,HDR_Y*SCALE,5,C.BN1,'left',C.DK);
+  ptHeavy('ITEMS',GW*SCALE/2,55*SCALE,5,C.BN1,'center',C.DK);
+  const itemStartX=Math.round((GW - items.length*16)/2);
+  items.forEach((item,idx)=>{
+    const x=itemStartX + idx*16;
+    ds(item.spr,x,59);
+    ptHeavy(item.val,(x+4)*SCALE,71*SCALE,4,item.col,'center',C.DK);
+  });
 
-  for(let i=0;i<maxRows;i++){
-    const y=ROW_START+i*STEP;
-    const item=realItems[i];
-    if(item){ ds(item.spr,16,y-1); pt(abbrevItem(item.label),24*SCALE,y*SCALE,4,item.col,'left',C.DK); }
-    const skill=skillRows[i];
-    if(skill){ const sOff=(skill.spr===S.stepIcon||skill.spr===S.shadowStepIcon)?y:y-1; ds(skill.spr,62,sOff); pt(abbrevSkill(skill.label),70*SCALE,y*SCALE,4,skill.col,'left',C.DK); }
-  }
+  ptHeavy('SKILLS',GW*SCALE/2,74*SCALE,5,C.BN1,'center',C.DK);
+  const skillStartX=Math.round((GW - skills.length*16)/2);
+  skills.forEach((skill,idx)=>{
+    const x=skillStartX + idx*16;
+    ds(skill.spr,x,78);
+    ptHeavy(skill.val,(x+4)*SCALE,90*SCALE,4,skill.col,'center',C.DK);
+  });
 
+  rMenuBtn(GAMEOVER_RETRY,'RETRY');
+  rMenuBtn(GAMEOVER_MENU,'MENU');
+  pt('R = RETRY   M = MENU',GW*SCALE/2,108*SCALE,4,C.BN1,'center',C.DK);
   ctx.textAlign='left';
 }
 
@@ -7088,6 +7438,23 @@ function rSecret2SwordConfirm(){
   ctx.textAlign='left';
 }
 
+function rLeaveZoneConfirm(){
+  const target=leaveZonePromptData||{};
+  const goingSecret=target.nextZone===ZONE_SECRET1 || target.nextZone===ZONE_SECRET2;
+  const heading=target.nextZone===-1 ? 'LEAVE ZONE?' : (goingSecret ? 'ENTER SECRET ZONE?' : 'LEAVE ZONE?');
+  ctx.fillStyle='rgba(8,6,3,0.82)';
+  ctx.fillRect(0,0,GW*SCALE,GH*SCALE);
+
+  drawPanelFrame(18,28,84,70,{edge:C.BN2,fill:'rgba(3,3,4,0.96)',inner:'rgba(56,39,25,0.12)',glow:goingSecret?C.MG2:C.SH});
+  ptHeavy(heading,GW*SCALE/2,38*SCALE,8,goingSecret?C.MG2:C.SH,'center',C.DK);
+  ptHeavy('YES / NO',GW*SCALE/2,66*SCALE,6,C.WH,'center',C.DK);
+
+  rMenuBtn(LEAVE_ZONE_CONFIRM_YES_BTN,'YES');
+  rMenuBtn(LEAVE_ZONE_CONFIRM_NO_BTN,'NO');
+  pt('ENTER / Y = YES',GW*SCALE/2,108*SCALE,4,C.BN1,'center',C.DK);
+  ctx.textAlign='left';
+}
+
 function rRetryConfirm(){
   ctx.fillStyle='rgba(8,6,3,0.90)';
   ctx.fillRect(0,0,GW*SCALE,GH*SCALE);
@@ -7116,4 +7483,4 @@ document.fonts.ready.then(()=>{ loop(); }).catch(()=>{ loop(); });
 </script>
 </body>
 </html>
-<!-- BoneCrawler.com - jamesdeitz.dev - version 2.5.6 -->
+<!-- BoneCrawler.com - jamesdeitz.dev - version 2.5.7 -->
