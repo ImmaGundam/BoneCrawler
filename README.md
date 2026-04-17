@@ -1,5 +1,6 @@
 # BoneCrawler
-
+<img width="518" height="291" alt="bonecrawlerlogo" src="https://github.com/user-attachments/assets/9af41399-d7f9-46f5-8e0c-95b9b5b8e468" />
+<br>
 NES-Style Dark Fantasy Arcade-Survival Action Game made in HTML5 canvas with vanilla JavaScript that runs in your browser.<br>Kill skeletons, get a high score and survive the dungeon!<br><br>
 Playable online @<br>
 <i><a href="https://bonecrawler.com" target="_blank">bonecrawler.com</a><br>
