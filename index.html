@@ -1,4 +1,4 @@
-<!-- BoneCrawler.com - jamesdeitz.dev - version 2.5.8 -->
+<!-- BoneCrawler.com - jamesdeitz.dev - version 2.5.9 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,7 +35,11 @@ linear-gradient(180deg,#16201b 0%,#0e1311 46%,#0b0b09 100%);border:1px solid rgb
 .zoom-strip{width:min(92vw,344px);padding:6px 9px;border:1px solid #2b3f20;background:rgba(4,7,4,0.58);box-shadow:0 0 0 1px rgba(10,18,9,0.82) inset;color:#b7c5d1;text-shadow:1px 1px 0 #050806;display:flex;justify-content:center;align-items:center;gap:9px;min-height:14px;opacity:.86;flex-wrap:wrap}
 .zoom-label{color:#d4c89a;font-size:8px;letter-spacing:1.2px}
 .zoom-controls{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap}
-.zoom-btn{appearance:none;border:1px solid rgba(193,165,103,.26);background:rgba(10,15,10,.82);color:#b7c5d1;box-shadow:0 0 0 1px rgba(10,18,9,.82) inset;padding:4px 7px;min-width:40px;border-radius:6px;font:700 8px/1 Arial,sans-serif;letter-spacing:.08em;cursor:pointer;text-shadow:0 1px 0 rgba(0,0,0,.7)}
+.zoom-btn{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;appearance:none;border:1px solid rgba(193,165,103,.26);background:rgba(10,15,10,.82);color:#b7c5d1;box-shadow:0 0 0 1px rgba(10,18,9,.82) inset;padding:4px 7px;min-width:40px;border-radius:6px;font:700 8px/1 Arial,sans-serif;letter-spacing:.08em;cursor:pointer;text-shadow:0 1px 0 rgba(0,0,0,.7)}
 .zoom-btn:hover{background:rgba(18,25,18,.92);color:#d4c89a}
 .zoom-btn.active{border-color:rgba(212,200,154,.52);background:rgba(26,34,24,.96);color:#e6d7ab;box-shadow:0 0 0 1px rgba(26,34,24,.92) inset,0 0 8px rgba(0,0,0,.24)}
 .screen-wrap::before{content:'';position:absolute;inset:6px;border-radius:6px;pointer-events:none;border:1px solid rgba(164,189,171,.14);box-shadow:inset 0 0 0 1px rgba(18,29,22,.92),inset 0 0 24px rgba(89,126,106,.06)}
@@ -86,7 +90,11 @@ linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 18%,rgba(0,0,0,
 .info-panel .panel-head.hd-warm{color:#d4c89a}
 .info-panel .panel-head.hd-blue{color:#8ec3d8}
 .info-panel .panel-line.step strong{color:#c4b2d6}
-@media (max-width:520px){body{gap:16px;padding:16px 8px}.screen-wrap{padding:12px}.hint{gap:6px}.info-strip,.info-panel{width:min(92vw,296px)}.info-strip{padding:5px 8px}.zoom-strip{width:min(92vw,296px);padding:6px 8px;gap:7px}.zoom-btn{min-width:38px;padding:4px 6px;font-size:8px}.info-panel summary{padding:8px 28px 7px 22px;font-size:8px}.panel-dismiss{right:7px;top:7px}.info-panel .panel-body{padding:2px 10px 10px 10px}.info-panel .panel-head{font-size:8px}.info-panel .panel-line{font-size:7px}.touch-pause-btn{top:6px;right:6px;min-width:64px;height:26px;font-size:9px}.menu-about-btn{top:6px;left:6px;width:22px;height:22px;font-size:12px}.about-card{padding:13px 12px 11px}.about-body{font-size:10px}}
+@media (max-width:520px){body{gap:16px;padding:16px 8px}.screen-wrap{padding:12px}.hint{gap:6px}.info-strip,.info-panel{width:min(92vw,296px)}.info-strip{padding:5px 8px}.zoom-strip{width:min(92vw,296px);padding:6px 8px;gap:7px}.zoom-btn{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;min-width:38px;padding:4px 6px;font-size:8px}.info-panel summary{padding:8px 28px 7px 22px;font-size:8px}.panel-dismiss{right:7px;top:7px}.info-panel .panel-body{padding:2px 10px 10px 10px}.info-panel .panel-head{font-size:8px}.info-panel .panel-line{font-size:7px}.touch-pause-btn{top:6px;right:6px;min-width:64px;height:26px;font-size:9px}.menu-about-btn{top:6px;left:6px;width:22px;height:22px;font-size:12px}.about-card{padding:13px 12px 11px}.about-body{font-size:10px}}
 
 /* --- electron custom titlebar --- */
 #electron-titlebar{
@@ -131,12 +139,16 @@ body.has-titlebar{padding-top:calc(20px + 28px);}
 .about-card,.about-license,.touch-pause-btn,.menu-about-btn,.zoom-btn,.player-about-actions .about-license,.player-about-actions .about-link-button{border-radius:2px}
 .about-card{background:linear-gradient(180deg,rgba(12,13,12,.99),rgba(6,7,7,.99));border:1px solid rgba(152,129,81,.48);box-shadow:0 0 0 1px rgba(39,42,39,.96) inset,0 0 0 2px rgba(12,14,13,.96),0 16px 46px rgba(0,0,0,.78)}
 .about-card::before{inset:5px;border-radius:0;border:1px solid rgba(154,142,112,.11)}
-.player-shell{width:100%;max-width:none;margin:0 auto;display:grid;grid-template-columns:minmax(180px,var(--player-side-width,240px)) auto minmax(180px,var(--player-side-width,240px));gap:14px;align-items:stretch;justify-content:center}
+.player-shell{width:100%;max-width:none;margin:0 auto;display:grid;grid-template-columns:minmax(180px,var(--player-side-width,240px)) auto minmax(180px,var(--player-side-width,240px));gap:14px;align-items:start;justify-content:center}
 .player-shell.stack-game{grid-template-columns:1fr;justify-items:center}
-.player-shell.stack-game .player-stage{order:1;width:100%;justify-content:center;grid-column:auto}
-.player-shell.stack-game .player-menu-left{order:2;grid-column:auto;width:min(100%,var(--player-stage-width,420px))}
-.player-shell.stack-game .player-menu-right{order:3;grid-column:auto;width:min(100%,var(--player-stage-width,420px))}
-.player-menu{display:grid;gap:12px;align-self:stretch;height:100%;position:relative;z-index:1}
+.player-shell.stack-game .player-stage,.player-shell.stack-game .player-menu-left,.player-shell.stack-game .player-menu-right{width:min(100%,var(--player-stage-width,420px));max-width:100%;min-width:0;justify-self:center;margin-inline:auto}
+.player-shell.stack-game .player-stage{order:1;justify-content:center;grid-column:auto;align-items:center}
+.player-shell.stack-game .player-menu-left{order:2;grid-column:auto}
+.player-shell.stack-game .player-menu-right{order:3;grid-column:auto}
+.player-shell.stack-game .player-menu-left > *, .player-shell.stack-game .player-menu-right > *{width:100%;max-width:100%}
+.player-shell.stack-game .screen-wrap-holder,.player-shell.stack-game .player-stage .zoom-strip{align-self:center;margin-inline:auto}
+.player-menu{display:grid;gap:12px;align-self:start;height:auto;align-content:start;grid-auto-rows:max-content;position:relative;z-index:1}
+.player-menu > *{align-self:start}
 .player-menu.has-floating-panel{z-index:120}
 .player-menu.is-hidden{display:none}
 .player-menu-left{grid-column:1;width:min(100%,var(--player-side-width,240px))}
@@ -146,27 +158,48 @@ body.has-titlebar{padding-top:calc(20px + 28px);}
 .player-card::before{content:'';position:absolute;inset:5px;pointer-events:none;border:1px solid rgba(166,151,117,.10)}
 .player-card::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 22%,rgba(0,0,0,.16) 88%,rgba(0,0,0,.28) 100%)}
 .player-card > *{position:relative;z-index:1}
-.player-card-title,.player-menu .zoom-label,.player-menu .info-panel summary{font-size:9px;letter-spacing:.16em;color:#d9c89d;text-shadow:0 1px 0 rgba(0,0,0,.82)}
+.player-card-title,.player-menu .zoom-label,.player-menu .info-panel summary{font-size:9px;letter-spacing:.16em;color:#d9c89d;text-shadow:0 1px 0 rgba(0,0,0,.82);text-align:center}
+#aboutPanel .player-card-title{cursor:pointer;user-select:none}
 .player-menu .zoom-strip,.player-menu .info-panel,.player-menu .player-about-card{width:100%;max-width:none}
-.player-menu .zoom-strip{display:grid;gap:10px;padding:12px 12px 11px}.player-stage .zoom-strip{display:grid;gap:calc(10px * var(--game-zoom,1));padding:calc(12px * var(--game-zoom,1)) 12px calc(11px * var(--game-zoom,1));width:min(100%,var(--player-stage-width,420px));max-width:100%;box-sizing:border-box}.player-stage .zoom-controls{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:calc(5px * var(--game-zoom,1));width:100%}.player-stage .zoom-btn{width:100%;min-width:0;height:calc(26px * var(--game-zoom,1));padding:0 calc(3px * var(--game-zoom,1));font-size:calc(7px * var(--game-zoom,1));display:inline-flex;align-items:center;justify-content:center}.player-stage .zoom-label{font-size:calc(8px * var(--game-zoom,1))}
+.player-menu .zoom-strip{display:grid;gap:10px;padding:12px 12px 11px}.player-stage .zoom-strip{display:grid;gap:calc(10px * var(--game-zoom,1));padding:calc(12px * var(--game-zoom,1)) 12px calc(11px * var(--game-zoom,1));width:min(100%,var(--player-stage-width,420px));max-width:100%;box-sizing:border-box;text-align:center}
+#zoomStrip .panel-dismiss{right:10px;top:calc(12px * var(--game-zoom,1))}
+#zoomStrip .panel-minimize{right:30px;top:calc(12px * var(--game-zoom,1))}.player-stage .zoom-controls{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:calc(5px * var(--game-zoom,1));width:100%}.player-stage .zoom-btn{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;width:100%;min-width:0;height:calc(26px * var(--game-zoom,1));padding:0 calc(3px * var(--game-zoom,1));font-size:calc(7px * var(--game-zoom,1));display:inline-flex;align-items:center;justify-content:center}.player-stage .zoom-label{font-size:calc(8px * var(--game-zoom,1))}
 .player-menu .zoom-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.player-menu .zoom-btn{width:100%;min-width:0;height:26px;padding:0 8px;font-size:8px;display:inline-flex;align-items:center;justify-content:center}
+.player-menu .zoom-btn{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;width:100%;min-width:0;height:26px;padding:0 8px;font-size:8px;display:inline-flex;align-items:center;justify-content:center}
 .player-menu .info-panel{margin:0;background:linear-gradient(180deg,rgba(15,16,16,.98),rgba(7,8,8,.98));border-color:rgba(146,122,76,.44);box-shadow:0 0 0 1px rgba(36,38,37,.94) inset,0 0 0 2px rgba(10,11,11,.96),0 10px 22px rgba(0,0,0,.34);border-radius:2px}
-.player-menu .info-panel summary{justify-content:flex-start;padding:12px 80px 10px 22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.player-menu .info-panel summary::before{left:10px;top:50%;transform:translateY(-50%);font-size:11px;color:#8d9b7f;opacity:.65}
+.player-menu .info-panel summary{justify-content:center;padding:12px 80px 10px 80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.player-menu .info-panel summary::before{display:none}
 .player-menu .panel-dismiss{right:10px;top:10px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font:700 13px/1 Arial,sans-serif;color:#8f876f;opacity:.72}.player-menu .panel-minimize{right:30px;top:10px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font:700 13px/1 Arial,sans-serif;color:#8f876f;opacity:.72}
 .player-menu details .panel-dismiss{top:11px;right:10px}.player-menu details .panel-minimize{top:11px;right:30px}
 .panel-dismiss.box-dismiss,.panel-minimize.box-dismiss{appearance:none;border:none;background:none;color:#8f876f;opacity:.62;cursor:pointer;font:700 13px/1 Arial,sans-serif;line-height:1;padding:0;position:absolute;z-index:3}
 .panel-dismiss.box-dismiss:hover,.panel-minimize.box-dismiss:hover{opacity:.95;color:#c8ba93}
 .player-menu .info-panel .panel-body{padding:3px 12px 12px 12px;border-top:1px solid rgba(146,122,76,.30)}
-.player-menu-right .info-panel{display:flex;flex-direction:column;}.player-menu-right .info-panel .panel-body{flex:1;min-height:0;max-height:none;overflow-y:auto;padding-right:8px;scrollbar-width:thin;scrollbar-color:rgba(146,122,76,.56) rgba(8,9,8,.74)}
+.player-menu-right .info-panel{display:flex;flex-direction:column;align-self:start;height:auto;min-height:0;max-height:none;width:100%;min-width:0}.player-menu-right .info-panel .panel-body{flex:0 0 auto;min-height:0;max-height:none;overflow:visible;padding-right:12px;scrollbar-width:auto;scrollbar-color:auto}
+#aboutPanel:not(.panel-maximized):not(.collapsed) .player-about-body{overflow:visible;padding-right:0}
+#howToPlayPanel:not(.panel-maximized):not(.collapsed) .panel-body{padding-top:2px;padding-bottom:10px}
+#howToPlayPanel:not(.panel-maximized):not(.collapsed) .panel-group{gap:calc(4px * var(--game-zoom,1))}
+#howToPlayPanel:not(.panel-maximized):not(.collapsed) .panel-line{line-height:1.42}
 .player-panel-tools{position:absolute;top:9px;right:56px;display:flex;gap:6px;z-index:3}
 .player-tool-btn{appearance:none;border:1px solid rgba(146,122,76,.40);background:linear-gradient(180deg,rgba(23,24,23,.96),rgba(10,11,10,.96));color:#d5c79c;text-decoration:none;font-size:7px;letter-spacing:.1em;min-width:58px;height:20px;padding:0 8px;cursor:pointer;box-shadow:0 0 0 1px rgba(10,10,10,.96) inset;text-transform:uppercase}
 .player-tool-btn:hover{background:linear-gradient(180deg,rgba(30,31,30,.98),rgba(14,15,14,.98))}
 .player-tool-btn.hidden{display:none}.player-tool-btn.player-tool-icon{appearance:none;border:none;background:none;color:#8f876f;opacity:.62;cursor:pointer;font:700 13px/1 Arial,sans-serif;line-height:1;padding:0;min-width:auto;width:auto;height:auto;letter-spacing:0;text-transform:none;box-shadow:none}
 .player-tool-btn.player-tool-icon:hover{background:none;opacity:.95;color:#c8ba93}
-.player-card.collapsed{padding-bottom:10px}.player-card.collapsed .zoom-controls,.player-card.collapsed .player-about-body,.player-card.collapsed .player-about-actions{display:none}#howToPlayPanel:not([open]) .panel-body{display:none}#howToPlayPanel:not([open]) .player-panel-tools{display:none}
-#howToPlayPanel{position:relative}
+.player-card.collapsed{padding-bottom:10px;min-height:auto;height:auto;max-height:none;align-self:start}.player-card.collapsed .zoom-controls,.player-card.collapsed .player-about-body,.player-card.collapsed .player-about-actions,.player-card.collapsed .player-panel-tools{display:none}
+#howToPlayPanel{position:relative;width:100%;min-width:0}
+#howToPlayPanel .panel-body{border-top:none}
+#howToPlayPanel.collapsed{padding-bottom:10px;min-height:auto;height:auto;max-height:none;align-self:start}
+#howToPlayPanel.collapsed .panel-body{display:none}
+#howToPlayPanel.collapsed .player-panel-tools{display:none}
+#howToPlayPanel.collapsed summary{padding-right:80px;padding-left:80px;padding-bottom:10px;min-height:18px}
+#howToPlayPanel.collapsed .panel-dismiss,#howToPlayPanel.collapsed .panel-minimize{display:flex !important;visibility:visible;opacity:.72;z-index:5}
 #aboutPanel{position:relative}
 #aboutPanel.panel-maximized{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(80vw,1100px);max-width:calc(100vw - 48px);height:min(80vh,900px);max-height:calc(100vh - 48px);z-index:80;margin:0;box-sizing:border-box;box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 1px rgba(36,38,37,.94) inset,0 0 0 2px rgba(10,11,11,.96),0 18px 50px rgba(0,0,0,.58)}
 #aboutPanel.panel-maximized .player-card-title{position:sticky;top:0;z-index:2;background:linear-gradient(180deg,rgba(15,16,16,.99),rgba(7,8,8,.99));padding:12px 12px 10px}
@@ -182,9 +215,6 @@ body.has-titlebar{padding-top:calc(20px + 28px);}
 #howToPlayPanel.panel-maximized .panel-rule{margin:12px 0}
 #howToPlayPanel.panel-maximized .panel-body{display:flex;flex-direction:column;gap:14px}
 #howToPlayPanel.panel-maximized .panel-dismiss{z-index:4}
-.player-menu-right .info-panel .panel-body::-webkit-scrollbar{width:8px}
-.player-menu-right .info-panel .panel-body::-webkit-scrollbar-track{background:rgba(8,9,8,.74)}
-.player-menu-right .info-panel .panel-body::-webkit-scrollbar-thumb{background:rgba(146,122,76,.56);border-radius:8px}
 .player-menu .panel-rule{background:rgba(146,122,76,.22)}
 .player-menu .panel-head{font-size:8px;color:#9fb7c7}
 .player-menu .panel-line{font-size:7px;line-height:1.5;color:#d2c6a1}
@@ -201,8 +231,7 @@ body.has-titlebar{padding-top:calc(20px + 28px);}
 .player-menu .player-card{padding:calc(12px * var(--game-zoom,1)) calc(12px * var(--game-zoom,1)) calc(11px * var(--game-zoom,1))}
 .player-menu .player-card-title{font-size:calc(9px * var(--game-zoom,1));letter-spacing:.16em}
 /* Summary: scale vertical pads + left indent; right stays fixed (clears UI buttons) */
-.player-menu .info-panel summary{font-size:calc(9px * var(--game-zoom,1));padding-top:calc(12px * var(--game-zoom,1));padding-bottom:calc(10px * var(--game-zoom,1));padding-left:calc(22px * var(--game-zoom,1))}
-.player-menu .info-panel summary::before{left:calc(10px * var(--game-zoom,1));font-size:calc(11px * var(--game-zoom,1))}
+.player-menu .info-panel summary{font-size:calc(9px * var(--game-zoom,1));padding-top:calc(12px * var(--game-zoom,1));padding-bottom:calc(10px * var(--game-zoom,1));padding-left:calc(80px * var(--game-zoom,1));padding-right:calc(80px * var(--game-zoom,1))}
 /* Panel body */
 .player-menu .info-panel .panel-body{padding:calc(8px * var(--game-zoom,1)) calc(12px * var(--game-zoom,1)) calc(12px * var(--game-zoom,1)) calc(12px * var(--game-zoom,1))}
 .player-menu-right .info-panel .panel-body{padding-right:calc(8px * var(--game-zoom,1))}
@@ -220,11 +249,146 @@ body.has-titlebar{padding-top:calc(20px + 28px);}
 /* About action buttons */
 .player-about-actions{gap:calc(7px * var(--game-zoom,1));margin-top:calc(4px * var(--game-zoom,1))}
 .player-about-actions .about-license,.player-about-actions .about-link-button{padding:calc(6px * var(--game-zoom,1)) calc(8px * var(--game-zoom,1));font-size:calc(8px * var(--game-zoom,1));min-width:calc(72px * var(--game-zoom,1));height:auto}
+.player-page-footer{width:100%;display:flex;justify-content:center;margin:8px auto 0;padding:4px 0 10px;box-sizing:border-box}.player-page-footer.is-hidden{display:none}.player-page-footer-inner{display:flex;flex-direction:column;align-items:center;gap:6px;width:min(100%,var(--player-stage-width,420px));max-width:min(100%,var(--player-stage-width,420px));margin-inline:auto;text-align:center;color:rgba(198,204,210,.62);text-shadow:0 1px 0 rgba(0,0,0,.78)}.player-page-footer-card{position:relative;padding:14px 14px 12px;border:1px solid rgba(134,140,146,.16);background:linear-gradient(180deg,rgba(18,20,22,.28),rgba(9,10,11,.28));box-shadow:0 0 0 1px rgba(7,8,9,.88) inset;backdrop-filter:blur(2px)}.player-page-footer-dismiss{position:absolute;top:8px;right:9px;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:none;background:transparent;color:rgba(182,188,196,.46);font:700 11px/1 Arial,sans-serif;cursor:pointer;opacity:.72;transition:opacity .14s ease,color .14s ease,background .14s ease}.player-page-footer-dismiss:hover{opacity:1;color:rgba(218,224,230,.82);background:rgba(255,255,255,.04)}.player-page-footer-dismiss:active{transform:translateY(1px)}.player-page-footer-site,.player-page-footer-copy{font-size:8px;letter-spacing:.12em;line-height:1.25}.player-page-footer-site{color:rgba(214,218,222,.70)}.player-page-footer-copy a{color:rgba(188,196,204,.66);text-decoration:none}.player-page-footer-copy a:hover{color:rgba(218,224,230,.82);text-decoration:none}.player-page-footer-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}.player-page-footer-actions .about-license,.player-page-footer-actions .about-link-button{display:inline-flex;align-items:center;justify-content:center;min-width:72px;padding:6px 8px;border:1px solid rgba(168,174,180,.18);background:linear-gradient(180deg,rgba(24,26,28,.34),rgba(12,14,15,.34));color:rgba(212,217,222,.62);text-decoration:none;font-size:8px;letter-spacing:.1em;box-shadow:0 0 0 1px rgba(6,8,9,.82) inset;opacity:.88}.player-page-footer-actions .about-license:hover,.player-page-footer-actions .about-link-button:hover{border-color:rgba(196,201,206,.28);background:linear-gradient(180deg,rgba(34,36,38,.44),rgba(18,20,22,.44));color:rgba(228,232,236,.82)}
 @media (max-width:980px){.player-shell{grid-template-columns:minmax(140px,var(--player-side-width,176px)) auto minmax(140px,var(--player-side-width,176px));gap:12px}}
-@media (max-width:520px){body{padding:16px 8px}.player-shell{gap:12px}.player-card,.player-menu .zoom-strip,.player-menu .info-panel{padding-left:12px;padding-right:12px}.player-menu .zoom-btn{height:24px;padding:0 6px;font-size:7px}.player-menu .info-panel summary{padding:12px 80px 9px 22px;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player-menu .info-panel summary::before{left:10px;top:14px}.player-menu .panel-dismiss{right:10px;top:11px}.player-menu .panel-minimize{right:30px;top:11px}.player-menu details .panel-dismiss{top:12px;right:10px}.player-menu details .panel-minimize{top:12px;right:30px}.player-menu .info-panel .panel-body{padding:2px 10px 11px 10px}.player-menu .panel-head{font-size:8px}.player-menu .panel-line,.player-about-body,.player-about-actions .about-license,.player-about-actions .about-link-button{font-size:7px}.player-panel-tools{top:10px;right:56px;gap:4px}.player-tool-btn{min-width:52px;height:19px;padding:0 6px;font-size:6px}#howToPlayPanel.panel-maximized{left:6vw;top:8vh;width:88vw;height:84vh;max-height:84vh}#howToPlayPanel.panel-maximized .panel-body{max-height:calc(84vh - 46px) !important;min-height:calc(84vh - 46px)}#howToPlayPanel.panel-maximized .panel-line{font-size:8px}#howToPlayPanel.panel-maximized .panel-head{font-size:9px}
-#aboutPanel.panel-maximized{left:6vw;top:8vh;width:88vw;height:84vh;max-height:84vh}#aboutPanel.panel-maximized .player-about-body{max-height:calc(84vh - 80px)}}</style>
+@media (max-width:520px){body{padding:16px 8px}.player-shell{gap:12px}.player-card,.player-menu .zoom-strip,.player-menu .info-panel{padding-left:12px;padding-right:12px}.player-menu .zoom-btn{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;height:24px;padding:0 6px;font-size:7px}.player-menu .info-panel summary{padding:12px 80px 9px 80px;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player-menu .panel-dismiss{right:10px;top:11px}.player-menu .panel-minimize{right:30px;top:11px}.player-menu details .panel-dismiss{top:12px;right:10px}.player-menu details .panel-minimize{top:12px;right:30px}.player-menu .info-panel .panel-body{padding:2px 10px 11px 10px}.player-menu .panel-head{font-size:8px}.player-menu .panel-line,.player-about-body,.player-about-actions .about-license,.player-about-actions .about-link-button{font-size:7px}.player-panel-tools{top:10px;right:56px;gap:4px}.player-tool-btn{min-width:52px;height:19px;padding:0 6px;font-size:6px}#howToPlayPanel.panel-maximized{left:6vw;top:8vh;width:88vw;height:84vh;max-height:84vh}#howToPlayPanel.panel-maximized .panel-body{max-height:calc(84vh - 46px) !important;min-height:calc(84vh - 46px)}#howToPlayPanel.panel-maximized .panel-line{font-size:8px}#howToPlayPanel.panel-maximized .panel-head{font-size:9px}
+#aboutPanel.panel-maximized{left:6vw;top:8vh;width:88vw;height:84vh;max-height:84vh}#aboutPanel.panel-maximized .player-about-body{max-height:calc(84vh - 80px)}.player-page-footer{margin-top:4px;padding-bottom:8px}.player-page-footer-site,.player-page-footer-copy,.player-page-footer-actions .about-license,.player-page-footer-actions .about-link-button{font-size:7px}.player-page-footer-actions .about-license,.player-page-footer-actions .about-link-button{min-width:68px;padding:5px 7px}}
+.zoom-row .zoom-btn{
+  flex: 1 1 0;
+  width: 100%;
+}
+
+
+/* Electron desktop shell */
+html{
+  scrollbar-width:thin;
+  scrollbar-color:#7d7254 #0c0d0c;
+}
+::-webkit-scrollbar{
+  width:12px;
+  height:12px;
+}
+::-webkit-scrollbar-track{
+  background:linear-gradient(180deg,rgba(9,11,10,.96),rgba(4,5,4,.96));
+  border:1px solid rgba(146,122,76,.14);
+}
+::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,rgba(116,105,78,.96),rgba(82,73,53,.96));
+  border:2px solid rgba(10,11,10,.96);
+  border-radius:10px;
+  box-shadow:0 0 0 1px rgba(184,165,114,.16) inset;
+}
+::-webkit-scrollbar-thumb:hover{
+  background:linear-gradient(180deg,rgba(138,124,91,.98),rgba(96,86,62,.98));
+}
+::-webkit-scrollbar-corner{
+  background:rgba(7,8,7,.98);
+}
+.desktop-titlebar{
+  position:fixed;
+  inset:0 0 auto 0;
+  height:38px;
+  display:none;
+  align-items:center;
+  justify-content:space-between;
+  padding-left:12px;
+  background:linear-gradient(180deg,rgba(13,18,16,.98),rgba(7,9,8,.98));
+  border-bottom:1px solid rgba(146,122,76,.34);
+  box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 10px 18px rgba(0,0,0,.24);
+  z-index:3000;
+  -webkit-app-region:drag;
+  user-select:none;
+}
+.desktop-titlebar::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 50%,rgba(0,0,0,.18) 100%);
+}
+.desktop-titlebar-label{
+  position:relative;
+  z-index:1;
+  color:#d4c89a;
+  font-size:8px;
+  letter-spacing:.16em;
+  text-shadow:0 1px 0 rgba(0,0,0,.78);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  padding-right:12px;
+}
+.desktop-window-controls{
+  position:relative;
+  z-index:1;
+  display:flex;
+  align-items:stretch;
+  height:100%;
+  -webkit-app-region:no-drag;
+}
+.desktop-window-btn{
+  appearance:none;
+  border:none;
+  background:transparent;
+  color:#a9a28d;
+  width:46px;
+  height:38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font:700 15px/1 Arial,sans-serif;
+  cursor:pointer;
+  transition:background .16s ease,color .16s ease;
+}
+.desktop-window-btn:hover{
+  background:rgba(255,255,255,.06);
+  color:#e2d6b0;
+}
+.desktop-window-btn:active{
+  background:rgba(255,255,255,.10);
+}
+.desktop-window-btn.desktop-window-close:hover{
+  background:rgba(118,39,31,.92);
+  color:#fff3ed;
+}
+body.desktop-has-titlebar{
+  padding-top:56px !important;
+}
+body.desktop-has-titlebar .desktop-titlebar{
+  display:flex;
+}
+body.desktop-is-fullscreen .desktop-titlebar{
+  display:none !important;
+}
+body.desktop-has-titlebar.desktop-is-fullscreen{
+  padding-top:0 !important;
+}
+
+
+.player-stage .zoom-strip{
+  min-width:var(--player-stage-width,420px);
+}
+.player-page-footer-inner{
+  min-width:var(--player-stage-width,420px);
+}
+
+</style>
 </head>
 <body>
+
+<div id="desktopTitlebar" class="desktop-titlebar" aria-hidden="true">
+  <div class="desktop-titlebar-label">BONECRAWLER</div>
+  <div class="desktop-window-controls">
+    <button id="desktopMinBtn" class="desktop-window-btn" type="button" aria-label="Minimize">–</button>
+    <button id="desktopMaxBtn" class="desktop-window-btn" type="button" aria-label="Maximize">□</button>
+    <button id="desktopCloseBtn" class="desktop-window-btn desktop-window-close" type="button" aria-label="Close">×</button>
+  </div>
+</div>
+
 
 <!-- Electron custom titlebar (hidden in browser, shown in Electron via JS) -->
 <div id="electron-titlebar" role="toolbar" aria-label="Window controls">
@@ -275,16 +439,6 @@ body.has-titlebar{padding-top:calc(20px + 28px);}
           <div class="panel-line">- <strong>zone2</strong> &amp; <strong>zone 3</strong> (Start in Zone)</div>
           <div class="panel-line note"><i>Scoreboard is stored locally as a cookie. Clear cache to reset.</i></div>
         </div>
-        <div class="panel-rule"></div>
-        <div class="panel-group">
-          <div class="panel-head hd-warm">ABOUT</div>
-          <div class="panel-line"><strong>BoneCrawler.com</strong></div>
-          <div class="panel-line"><a class="about-link" href="https://www.webgeeks.org" target="_blank" rel="noopener noreferrer">© James Deitz</a></div>
-        </div>
-      </div>
-      <div class="player-about-actions">
-        <a class="about-link-button" href="indexv1.html">v1</a>
-        <a class="about-license" href="license.html" target="_blank" rel="noopener noreferrer">LICENSE</a>
       </div>
     </div>
   </aside>
@@ -354,6 +508,17 @@ body.has-titlebar{padding-top:calc(20px + 28px);}
       </div>
     </details>
   </aside>
+</div>
+<div class="player-page-footer" id="playerPageFooter" aria-label="BoneCrawler footer links">
+  <div class="player-page-footer-inner player-page-footer-card">
+    <button type="button" class="player-page-footer-dismiss" id="playerFooterDismiss" aria-label="Dismiss footer">×</button>
+    <div class="player-page-footer-site">BoneCrawler.com</div>
+    <div class="player-page-footer-copy"><a href="https://www.webgeeks.org" target="_blank" rel="noopener noreferrer">© James Deitz</a></div>
+    <div class="player-page-footer-actions">
+      <a class="about-link-button" href="indexv1.html">v1</a>
+      <a class="about-license" href="license.html" target="_blank" rel="noopener noreferrer">LICENSE</a>
+    </div>
+  </div>
 </div>
 <div class="name-modal-overlay hidden" id="nameModalOverlay" role="dialog" aria-modal="true" aria-label="Enter player name">
   <div class="name-modal">
@@ -724,7 +889,13 @@ const playerMenuLeft = document.getElementById('playerMenuLeft');
 const playerMenuRight = document.getElementById('playerMenuRight');
 const playerMenus = [playerMenuLeft, playerMenuRight].filter(Boolean);
 const zoomStrip = document.getElementById('zoomStrip');
+const playerStageEl = document.querySelector('.player-stage');
+const playerPageFooter = document.querySelector('.player-page-footer');
+const playerPageFooterInner = document.querySelector('.player-page-footer-inner');
+const playerFooterDismiss = document.getElementById('playerFooterDismiss');
+const desktopTitlebarEl = document.getElementById('desktopTitlebar');
 const aboutPanel = document.getElementById('aboutPanel');
+const aboutPanelTitle = aboutPanel ? aboutPanel.querySelector('.player-card-title') : null;
 const aboutExpandBtn = document.getElementById('aboutExpandBtn');
 const aboutNormalBtn = document.getElementById('aboutNormalBtn');
 const zoomCollapse = document.getElementById('zoomCollapse');
@@ -740,6 +911,7 @@ let displayZoom = 1;
 const howToPlayPanel = document.getElementById('howToPlayPanel');
 const panelDismiss = document.getElementById('panelDismiss');
 const howToPlayCollapseBtn = document.getElementById('howToPlayCollapseBtn');
+const howToPlaySummary = howToPlayPanel ? howToPlayPanel.querySelector('summary') : null;
 const howToPlayExpandBtn = document.getElementById('howToPlayExpandBtn');
 const howToPlayNormalBtn = document.getElementById('howToPlayNormalBtn');
 const touchPauseBtn = document.getElementById('touchPauseBtn');
@@ -752,7 +924,6 @@ const nameModalCancel = document.getElementById('nameModalCancel');
 const touchUiAvailable = !!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
 let lastTouchPauseUiState = '';
 const PLAYER_SHELL_MIN_SIDE_WIDTH = 240;
-const PLAYER_SHELL_MAX_SIDE_WIDTH = 420;
 const PLAYER_SHELL_GAP = 14;
 const PLAYER_SHELL_STACK_ENTER_BUFFER = 8;
 const PLAYER_SHELL_STACK_EXIT_BUFFER = 40;
@@ -762,6 +933,14 @@ let playerShellPostLayoutFrame = 0;
 function setCardCollapsed(card, isCollapsed){
   if(!card) return;
   card.classList.toggle('collapsed', !!isCollapsed);
+}
+function setHowToPlayCollapsed(isCollapsed){
+  if(!howToPlayPanel) return;
+  const collapsed = !!isCollapsed;
+  if(collapsed) setHowToPlayMaximized(false);
+  howToPlayPanel.classList.toggle('collapsed', collapsed);
+  howToPlayPanel.open = true;
+  howToPlayPanel.setAttribute('open', '');
 }
 function syncCollapseButtonState(button, isCollapsed, collapseLabel, expandLabel){
   if(!button) return;
@@ -775,7 +954,7 @@ function syncCollapseButtonState(button, isCollapsed, collapseLabel, expandLabel
 function syncPanelControlState(){
   syncCollapseButtonState(zoomCollapse, !!(zoomStrip && zoomStrip.classList.contains('collapsed')), 'Minimize Display Zoom', 'Expand Display Zoom');
   syncCollapseButtonState(aboutPanelCollapse, !!(aboutPanel && aboutPanel.classList.contains('collapsed')), 'Minimize About & Controls', 'Expand About & Controls');
-  syncCollapseButtonState(howToPlayCollapseBtn, !!(howToPlayPanel && !howToPlayPanel.open), 'Minimize How to Play', 'Expand How to Play');
+  syncCollapseButtonState(howToPlayCollapseBtn, !!(howToPlayPanel && howToPlayPanel.classList.contains('collapsed')), 'Minimize How to Play', 'Expand How to Play');
 }
 
 function clampDisplayZoom(value){
@@ -783,6 +962,17 @@ function clampDisplayZoom(value){
   if(!Number.isFinite(numeric)) return 1;
   const clamped = Math.min(DISPLAY_ZOOM_MAX, Math.max(DISPLAY_ZOOM_MIN, numeric));
   return Math.round(clamped / DISPLAY_ZOOM_STEP) * DISPLAY_ZOOM_STEP;
+}
+
+function nudgeDisplayZoom(direction){
+  const step = direction > 0 ? DISPLAY_ZOOM_STEP : -DISPLAY_ZOOM_STEP;
+  const nextZoom = clampDisplayZoom(displayZoom + step);
+  if(nextZoom === displayZoom) return;
+  setDisplayZoom(nextZoom);
+}
+function resetDisplayZoom(){
+  if(displayZoom === DISPLAY_ZOOM_MIN) return;
+  setDisplayZoom(DISPLAY_ZOOM_MIN);
 }
 function getPlayerStageWidth(){
   if(!screenWrapHolder || !screenWrap) return 0;
@@ -795,7 +985,7 @@ function getPlayerStageWidth(){
 function getDesiredSidePanelWidth(stageWidth){
   const safeStageWidth = Math.max(0, Math.ceil(stageWidth || 0));
   if(!safeStageWidth) return PLAYER_SHELL_MIN_SIDE_WIDTH;
-  return Math.max(PLAYER_SHELL_MIN_SIDE_WIDTH, Math.min(PLAYER_SHELL_MAX_SIDE_WIDTH, Math.round(safeStageWidth / 2)));
+  return Math.max(PLAYER_SHELL_MIN_SIDE_WIDTH, safeStageWidth);
 }
 function syncShellSizingVars(stageWidth){
   const safeStageWidth = Math.max(0, Math.ceil(stageWidth || getPlayerStageWidth() || 0));
@@ -812,6 +1002,67 @@ function syncShellSizingVars(stageWidth){
   }
   return sideWidth;
 }
+let equalPanelHeightsFrame = 0;
+let equalPanelHeightLock = 0;
+function clearEqualPanelHeightStyles(){
+  document.documentElement.style.removeProperty('--player-equal-panel-min-height');
+  if(aboutPanel) aboutPanel.style.minHeight = '';
+  if(howToPlayPanel) howToPlayPanel.style.minHeight = '';
+}
+function panelsCanShareEqualHeight(){
+  return !!(
+    aboutPanel && howToPlayPanel &&
+    playerMenuLeft && !playerMenuLeft.classList.contains('is-hidden') &&
+    playerMenuRight && !playerMenuRight.classList.contains('is-hidden') &&
+    !aboutPanel.classList.contains('is-hidden') &&
+    !howToPlayPanel.classList.contains('info-panel-hidden') &&
+    !aboutPanel.classList.contains('panel-maximized') &&
+    !howToPlayPanel.classList.contains('panel-maximized')
+  );
+}
+function updateEqualPanelHeightLock(){
+  if(!panelsCanShareEqualHeight()) return;
+  if(aboutPanel.classList.contains('collapsed') || howToPlayPanel.classList.contains('collapsed')) return;
+  aboutPanel.style.minHeight = '';
+  howToPlayPanel.style.minHeight = '';
+  const aboutHeight = Math.ceil(aboutPanel.getBoundingClientRect().height || 0);
+  const howToPlayHeight = Math.ceil(howToPlayPanel.getBoundingClientRect().height || 0);
+  const nextHeight = Math.max(aboutHeight, howToPlayHeight, 0);
+  if(nextHeight > 0){
+    equalPanelHeightLock = nextHeight;
+  }
+}
+function applyEqualPanelHeightLock(){
+  if(!aboutPanel || !howToPlayPanel){
+    clearEqualPanelHeightStyles();
+    return;
+  }
+  clearEqualPanelHeightStyles();
+  if(!panelsCanShareEqualHeight() || !equalPanelHeightLock){
+    return;
+  }
+  document.documentElement.style.setProperty('--player-equal-panel-min-height', equalPanelHeightLock + 'px');
+  const aboutCollapsed = aboutPanel.classList.contains('collapsed');
+  const howCollapsed = howToPlayPanel.classList.contains('collapsed');
+  if(!aboutCollapsed){
+    aboutPanel.style.minHeight = 'var(--player-equal-panel-min-height)';
+  }
+  if(!howCollapsed){
+    howToPlayPanel.style.minHeight = 'var(--player-equal-panel-min-height)';
+  }
+}
+function syncEqualPanelHeights(){
+  updateEqualPanelHeightLock();
+  applyEqualPanelHeightLock();
+}
+function queueEqualPanelHeights(){
+  if(equalPanelHeightsFrame) cancelAnimationFrame(equalPanelHeightsFrame);
+  equalPanelHeightsFrame = requestAnimationFrame(()=>{
+    equalPanelHeightsFrame = 0;
+    syncEqualPanelHeights();
+  });
+}
+
 function queuePlayerShellLayout(){
   if(playerShellLayoutFrame) cancelAnimationFrame(playerShellLayoutFrame);
   playerShellLayoutFrame = requestAnimationFrame(()=>{
@@ -853,6 +1104,8 @@ function syncPlayerShellLayout(){
   if(wasStacked !== shouldStack){
     queuePostShellLayoutZoomSync();
   }
+  queueEqualPanelHeights();
+  syncDesktopMinimumWindowSize();
 }
 
 function syncPlayerMenuVisibility(){
@@ -878,6 +1131,7 @@ function setHowToPlayMaximized(isMaximized){
   howToPlayPanel.classList.toggle('panel-maximized', maximized);
   if(playerMenuRight) playerMenuRight.classList.toggle('has-floating-panel', maximized);
   if(maximized){
+    setHowToPlayCollapsed(false);
     howToPlayPanel.open = true;
     howToPlayPanel.setAttribute('open', '');
   }
@@ -903,12 +1157,54 @@ function syncDisplayZoomLayout(){
   screenWrapHolder.style.width = scaledWidth+'px';
   screenWrapHolder.style.height = scaledHeight+'px';
   syncShellSizingVars(scaledWidth);
-  // Strip box stays at base (unscaled) width — buttons scale internally via --game-zoom
-  if(zoomStrip){ zoomStrip.style.width = baseWidth+'px'; zoomStrip.style.maxWidth = '100%'; }
+  // Keep the lower strip locked to the visible game width so it stays aligned with the stage.
+  if(zoomStrip){ zoomStrip.style.width = scaledWidth+'px'; zoomStrip.style.maxWidth = '100%'; }
   const panelHeight = Math.min(Math.max(260, scaledHeight), 420);
   document.documentElement.style.setProperty('--player-panel-max-height', panelHeight+'px');
   queuePlayerShellLayout();
 }
+
+function syncDesktopMinimumWindowSize(){
+  const desktopApi = window.bonecrawlerDesktop;
+  if(!desktopApi || !desktopApi.isDesktop || !desktopApi.setMinimumWindowSize) return;
+  if(!screenWrapHolder) return;
+
+  const bodyStyles = window.getComputedStyle(document.body);
+  const bodyPadLeft = Number.parseFloat(bodyStyles.paddingLeft || '0') || 0;
+  const bodyPadRight = Number.parseFloat(bodyStyles.paddingRight || '0') || 0;
+  const bodyPadTop = Number.parseFloat(bodyStyles.paddingTop || '0') || 0;
+  const bodyPadBottom = Number.parseFloat(bodyStyles.paddingBottom || '0') || 0;
+
+  const stageWidth = Math.ceil(getPlayerStageWidth() || screenWrapHolder.getBoundingClientRect().width || 0);
+  const zoomWidth = Math.ceil((zoomStrip && !zoomStrip.classList.contains('is-hidden')) ? zoomStrip.getBoundingClientRect().width : 0);
+  const footerVisible = !!(playerPageFooter && !playerPageFooter.classList.contains('is-hidden'));
+  const footerWidth = Math.ceil((footerVisible && playerPageFooterInner) ? playerPageFooterInner.getBoundingClientRect().width : 0);
+
+  const contentWidth = Math.max(stageWidth, zoomWidth, footerWidth, 360);
+  const minWidth = Math.ceil(contentWidth + bodyPadLeft + bodyPadRight + 24);
+
+  const stageHeight = Math.ceil(screenWrapHolder.getBoundingClientRect().height || 0);
+  const stageGap = Math.ceil(playerStageEl ? (Number.parseFloat(window.getComputedStyle(playerStageEl).gap || '0') || 0) : 0);
+  const zoomHeight = Math.ceil((zoomStrip && !zoomStrip.classList.contains('is-hidden')) ? zoomStrip.getBoundingClientRect().height : 0);
+  const footerHeight = Math.ceil(footerVisible && playerPageFooter ? playerPageFooter.getBoundingClientRect().height : 0);
+  const footerMarginTop = Math.ceil(footerVisible && playerPageFooter ? (Number.parseFloat(window.getComputedStyle(playerPageFooter).marginTop || '0') || 0) : 0);
+  const titlebarHeight = Math.ceil((desktopTitlebarEl && window.getComputedStyle(desktopTitlebarEl).display !== 'none') ? desktopTitlebarEl.getBoundingClientRect().height : 0);
+
+  const minHeight = Math.ceil(
+    titlebarHeight +
+    stageHeight +
+    (zoomHeight ? stageGap : 0) +
+    zoomHeight +
+    footerMarginTop +
+    footerHeight +
+    bodyPadTop +
+    bodyPadBottom +
+    18
+  );
+
+  desktopApi.setMinimumWindowSize(minWidth, minHeight);
+}
+
 function setDisplayZoom(value, persist=true){
   displayZoom = clampDisplayZoom(value);
   document.documentElement.style.setProperty('--game-zoom', String(displayZoom));
@@ -937,6 +1233,35 @@ if(zoomButtons.length){
     });
   });
 }
+
+document.addEventListener('wheel', (event)=>{
+  if(!(event.ctrlKey || event.metaKey)) return;
+  const target = event.target;
+  if(target && target.closest && target.closest('input,textarea,select,[contenteditable="true"]')) return;
+  event.preventDefault();
+  nudgeDisplayZoom(event.deltaY < 0 ? 1 : -1);
+}, { passive:false });
+
+document.addEventListener('keydown', (event)=>{
+  if(!(event.ctrlKey || event.metaKey)) return;
+  const target = event.target;
+  if(target && target.closest && target.closest('input,textarea,select,[contenteditable="true"]')) return;
+  const key = String(event.key || '');
+  if(key === '+' || key === '=' || key === 'Add'){
+    event.preventDefault();
+    nudgeDisplayZoom(1);
+    return;
+  }
+  if(key === '-' || key === '_' || key === 'Subtract'){
+    event.preventDefault();
+    nudgeDisplayZoom(-1);
+    return;
+  }
+  if(key === '0' || key === 'Digit0'){
+    event.preventDefault();
+    resetDisplayZoom();
+  }
+});
 window.addEventListener('resize', ()=>{ syncDisplayZoomLayout(); syncPlayerMenuVisibility(); queuePlayerShellLayout(); });
 setDisplayZoom(savedDisplayZoom, false);
 setHowToPlayMaximized(false);
@@ -947,6 +1272,20 @@ syncPlayerShellLayout();
 requestAnimationFrame(()=>{ syncDisplayZoomLayout(); syncPlayerMenuVisibility(); syncPlayerShellLayout(); });
 
 syncPanelControlState();
+function shouldIgnorePanelHeaderToggle(target){
+  return !!(target && target.closest && target.closest('button,a,input,textarea,select,label,[role="button"]'));
+}
+function controlsHeaderWasClicked(ev){
+  if(!aboutPanel) return false;
+  const target = ev && ev.target;
+  if(shouldIgnorePanelHeaderToggle(target)) return false;
+  if(aboutPanel.classList.contains('collapsed')) return true;
+  if(aboutPanelTitle && aboutPanelTitle.contains(target)) return true;
+  const rect = aboutPanel.getBoundingClientRect();
+  const titleRect = aboutPanelTitle ? aboutPanelTitle.getBoundingClientRect() : rect;
+  const headerBottom = Math.max(titleRect.bottom, rect.top + 44);
+  return (ev.clientY || 0) <= headerBottom;
+}
 if(zoomCollapse && zoomStrip){
   zoomCollapse.addEventListener('click', (ev)=>{
     ev.preventDefault();
@@ -965,9 +1304,24 @@ if(aboutPanelCollapse && aboutPanel){
     queuePlayerShellLayout();
   });
 }
+if(aboutPanel){
+  aboutPanel.addEventListener('click', (ev)=>{
+    if(!controlsHeaderWasClicked(ev)) return;
+    ev.preventDefault();
+    setCardCollapsed(aboutPanel, !aboutPanel.classList.contains('collapsed'));
+    syncPanelControlState();
+    queuePlayerShellLayout();
+  });
+}
 if(howToPlayPanel){
-  howToPlayPanel.addEventListener('toggle', ()=>{
-    if(!howToPlayPanel.open) setHowToPlayMaximized(false);
+  howToPlayPanel.open = true;
+  howToPlayPanel.setAttribute('open', '');
+}
+if(howToPlaySummary){
+  howToPlaySummary.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    if(ev.target && ev.target.closest && ev.target.closest('button')) return;
+    setHowToPlayCollapsed(!howToPlayPanel.classList.contains('collapsed'));
     syncPanelControlState();
     queuePlayerShellLayout();
   });
@@ -976,14 +1330,7 @@ if(howToPlayCollapseBtn && howToPlayPanel){
   howToPlayCollapseBtn.addEventListener('click', (ev)=>{
     ev.preventDefault();
     ev.stopPropagation();
-    if(howToPlayPanel.open){
-      setHowToPlayMaximized(false);
-      howToPlayPanel.open = false;
-      howToPlayPanel.removeAttribute('open');
-    }else{
-      howToPlayPanel.open = true;
-      howToPlayPanel.setAttribute('open', '');
-    }
+    setHowToPlayCollapsed(!howToPlayPanel.classList.contains('collapsed'));
     syncPanelControlState();
     queuePlayerShellLayout();
   });
@@ -1020,6 +1367,7 @@ panelDismiss.addEventListener('click', (ev)=>{
   ev.preventDefault();
   ev.stopPropagation();
   setHowToPlayMaximized(false);
+  setHowToPlayCollapsed(false);
   howToPlayPanel.classList.add('info-panel-hidden');
   syncPanelControlState();
   syncPlayerMenuVisibility();
@@ -1035,6 +1383,15 @@ if(zoomDismiss){
   });
 }
 
+if(playerFooterDismiss && playerPageFooter){
+  playerFooterDismiss.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+    playerPageFooter.classList.add('is-hidden');
+    syncDesktopMinimumWindowSize();
+  });
+}
+
 if(aboutPanelDismiss){
   aboutPanelDismiss.addEventListener('click', (ev)=>{
     ev.preventDefault();
@@ -1044,23 +1401,6 @@ if(aboutPanelDismiss){
     syncPlayerMenuVisibility();
   });
 }
-if(zoomDismiss && zoomStrip){
-  zoomDismiss.addEventListener('click', (ev)=>{
-    ev.preventDefault();
-    ev.stopPropagation();
-    zoomStrip.classList.add('is-hidden');
-    syncPlayerShellLayout();
-  });
-}
-if(aboutPanelDismiss && aboutPanel){
-  aboutPanelDismiss.addEventListener('click', (ev)=>{
-    ev.preventDefault();
-    ev.stopPropagation();
-    aboutPanel.classList.add('is-hidden');
-    syncPlayerShellLayout();
-  });
-}
-
 // ── Draw helpers ──────────────────────────────────────────────
 function ds(spr, lx, ly, fx){
   const rows=spr.length, cols=spr[0].length;
@@ -7782,6 +8122,80 @@ function rRetryConfirm(){
 function loop(){ update(); render(); requestAnimationFrame(loop); }
 document.fonts.ready.then(()=>{ loop(); }).catch(()=>{ loop(); });
 </script>
+
+<script>
+(function(){
+  const desktopApi = window.bonecrawlerDesktop;
+  if(!desktopApi || !desktopApi.isDesktop) return;
+
+  document.body.classList.add('desktop-has-titlebar');
+
+  const titlebar = document.getElementById('desktopTitlebar');
+  const minBtn = document.getElementById('desktopMinBtn');
+  const maxBtn = document.getElementById('desktopMaxBtn');
+  const closeBtn = document.getElementById('desktopCloseBtn');
+
+  if(titlebar){
+    titlebar.setAttribute('aria-hidden', 'false');
+  }
+
+  const applyWindowState = (state = {}) => {
+    const isMaximized = !!state.isMaximized;
+    const isFullScreen = !!state.isFullScreen;
+    if (maxBtn) {
+      maxBtn.textContent = isMaximized ? '❐' : '□';
+      maxBtn.setAttribute('aria-label', isMaximized ? 'Restore' : 'Maximize');
+    }
+    document.body.classList.toggle('desktop-is-fullscreen', isFullScreen);
+  };
+
+  if (minBtn) {
+    minBtn.addEventListener('click', () => desktopApi.minimizeWindow && desktopApi.minimizeWindow());
+  }
+  if (maxBtn) {
+    maxBtn.addEventListener('click', () => desktopApi.toggleMaximizeWindow && desktopApi.toggleMaximizeWindow());
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => desktopApi.closeWindow && desktopApi.closeWindow());
+  }
+
+  if (desktopApi.getWindowState) {
+    desktopApi.getWindowState().then(applyWindowState).catch(() => {});
+  }
+  if (desktopApi.onWindowState) {
+    desktopApi.onWindowState(applyWindowState);
+  }
+
+  document.querySelectorAll('a[href]').forEach((link) => {
+    const href = link.getAttribute('href') || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('data:')) return;
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noopener noreferrer');
+  });
+
+  document.addEventListener('click', (event) => {
+    const anchor = event.target.closest('a[href]');
+    if (!anchor) return;
+
+    const rawHref = anchor.getAttribute('href') || '';
+    if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('javascript:') || rawHref.startsWith('data:')) return;
+
+    event.preventDefault();
+
+    let resolvedHref = rawHref;
+    try {
+      resolvedHref = new URL(rawHref, window.location.href).toString();
+    } catch (_error) {}
+
+    if (desktopApi.openLink) {
+      desktopApi.openLink(resolvedHref);
+    } else {
+      window.open(resolvedHref, '_blank', 'noopener');
+    }
+  }, true);
+})();
+</script>
+
 </body>
 </html>
-<!-- BoneCrawler.com - jamesdeitz.dev - version 2.5.8 -->
+<!-- BoneCrawler.com - jamesdeitz.dev - version 2.5.9 -->
