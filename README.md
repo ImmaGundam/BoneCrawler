@@ -20,10 +20,6 @@ BoneCrawler is a browser-based Dark Fantasy Arcade Action game built with JavaSc
 - Chests drop Upgrades! Plan your upgrades carefully so you don't get overwhelmed!
 - There are 3 zones, 2 secret rooms, 3 bosses and a tiny fantasy dungeon to explore and discover secrets.
 
-The project focuses on state-driven gameplay, modular systems, pixel-art rendering, player combat, enemy AI, zone progression, upgrades, secrets, and local scoreboard persistence.
-
-To simplify early testing and sharing, I developed the game as a self-contained HTML file using modular design principles. As the project reached completion, I refactored the code into a formal file-tree structure. Its structure separates gameplay into engine-style systems such as player control, enemies, maps, collision, rendering, items, dialog, scoring, and game state management.
-
 Gameplay is made for short runs (20-30 minutes). Die a few times in a few minutes and try again later, or keep dying for a few hours in a "one more try" loop.<br>
 
 ### Story
@@ -59,10 +55,13 @@ project.
 
 BoneCrawler is my third released game project and my second scoped
 project built with an agile-style development process as a solo
-developer. I used LLMs and agent-based tools to accelerate parts of
+developer. I used LLMs and AI-based tools to accelerate parts of
 development, while I directed the design, gameplay systems, technical
 structure, testing, debugging, and overall project scope.
 
+The project focuses on state-driven gameplay, modular systems, pixel-art rendering, player combat, enemy AI, zone progression, upgrades, secrets, and local scoreboard persistence.
+
+To simplify early testing and sharing, I developed the game as a self-contained HTML file using modular design principles. As the project reached completion, I refactored the code into a formal file-tree structure. Its structure separates gameplay into engine-style systems such as player control, enemies, maps, collision, rendering, items, dialog, scoring, and game state management.
 With my background in software engineering concepts, computer science,
 and game-engine structure, I set out to build and release a complete
 browser-based game that could serve both as a playable project and as a
