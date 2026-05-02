@@ -528,6 +528,17 @@ Example display format:
 ```
  </details>
 
+## Multi-Platform Releases
+
+| Platform | Release | Build Type | Notes |
+|---|---|---|---|
+| Web Browser | Current repo / hosted build | HTML5 Canvas + JavaScript | Main playable version of BoneCrawler. |
+| Windows 10 / 11 | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | Portable EXE, Electron + Node.js | Desktop build packaged from the browser version. |
+| Android 4+ | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | Signed APK, WebView + Android Studio | First signed Android APK release. |
+| Flipper Zero | [v1-c](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v1-c) | C port, `.fap` app | BoneCrawler v1 ported to C and compiled for Flipper Zero. |
+
+More to come!
+
 <hr>
 
 <div align="center">
