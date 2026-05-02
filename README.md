@@ -535,15 +535,23 @@ Example display format:
 | Web Browser | [v2.6](https://bonecrawler.com) | HTML5 Canvas + JavaScript | Main playable version of BoneCrawler. |
 | Windows 10 / 11 | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | Portable EXE, Electron + Node.js | Desktop build packaged from the browser version. |
 | Android 4+ | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | Signed APK, WebView + Android Studio | First signed Android APK release. |
-| Flipper Zero | [v1-c](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v1-c) | C port, `.fap` app | BoneCrawler v1 ported to C and compiled for Flipper Zero. |
+
+<p align="center">
+  <img width="288" height="282" alt="BoneCrawler multi-platform preview" src="https://github.com/user-attachments/assets/df94b914-2f80-4002-b364-7fa389678ed1" />
+</p>
 
 More to come!
 
 ### Original Prototype
 
-| Release | Platform | Build Type | Notes |
+| Platform | Release | Build Type | Notes |
 |---|---|---|---|
-| [v1](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v1) | Web Browser | HTML5 Canvas + JavaScript | First public prototype version of BoneCrawler. This version established the original gameplay concept, visual style, and browser-based foundation for the project. |
+| Web Browser | [v1](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v1) | HTML5 Canvas + JavaScript | First public prototype version of BoneCrawler. This version established the original gameplay concept, visual style, and browser-based foundation for the project. |
+| Flipper Zero | [v1-c](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v1-c) | C port, `.fap` app | BoneCrawler v1 ported to C and compiled for Flipper Zero. |
+
+<p align="center">
+  <img width="290" alt="BoneCrawler prototype / Flipper Zero preview" src="https://github.com/user-attachments/assets/96af63a7-1133-4398-9bf4-160a4dd19105" />
+</p>
 
 
 <hr>
