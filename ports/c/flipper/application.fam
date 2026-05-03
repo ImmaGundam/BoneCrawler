@@ -1,0 +1,13 @@
+App(
+    appid="bonecrawler",
+    name="BoneCrawler",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="bonecrawler_app",
+    stack_size=4 * 1024,
+    fap_category="Games",
+    fap_version="0.1",
+    fap_icon="bonecrawler.png",
+    fap_description="Kill skeletons and survive.",
+    fap_author="James Deitz / ImmaGundam",
+    fap_weburl="https://github.com/ImmaGundam/BoneCrawler",
+)
