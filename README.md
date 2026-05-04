@@ -40,44 +40,29 @@ The king requests our services again. Complete this job and you'll earn your sta
 </details>
 
 ## About Project
-BoneCrawler is my first public game release after finishing school
-and earning my Associate degree. I have spent most of my life around
-computers, gaming, and software. After more than 20 years as a gamer,
-I wanted to build something that represented the games that I loved as a kid, and inspired me as a gamer and a creator to show the kind of work I want
-to do every day: designing games, building software, and having fun by turning ideas into working projects.
+BoneCrawler is my first public game release after finishing school and earning my degree. I have spent most of my life around computers, gaming, and software. After more than 20 years as a gamer, I wanted to build something that represented the games that I loved as a kid, and inspired me as a gamer and a creator to show the kind of work I want to do every day: designing games.
 
-This project was built as a personal step toward working as a game
-developer, whether by helping me find employment or by becoming my
-first public project as an independent developer.
-My goal was to create a scoped, playable game release that could demonstrate
-my ability to plan, build, test, refine, and document a complete game
-project. 
+This project was built as a personal step toward working as a game developer, whether by helping me find employment or by becoming my first public project as an independent developer. My goal was to create a scoped, playable game release that could demonstrate my ability to plan, build, test, refine, and document a complete game project. 
 
-BoneCrawler is my third released game project and my second scoped
-project built with an agile-style development process as a solo
-developer. I used LLMs and AI-based tools to accelerate parts of
-development, while I directed the design, gameplay systems, technical
-structure, testing, debugging, and overall project scope.
+BoneCrawler was built with vanilla JavaScript, incrementally developing engine-style systems for the game loop, player input, rendering, collision, state management, enemies, zones, events, and game progression.
 
-The project focuses on state-driven gameplay, modular systems, pixel-art rendering, player combat, enemy AI, zone progression, upgrades, secrets, and local scoreboard persistence.
+The project scope was defined around one of my favorite games: the original NES Legend of Zelda. That influence helped shape the visual style, screen structure, combat design, movement, enemy behavior, zone progression, and technical boundaries of the project.
 
-To simplify early testing and sharing, I developed the game as a self-contained HTML file using modular design principles. As the project reached completion, I refactored the code into a formal file-tree structure. Its structure separates gameplay into engine-style systems such as player control, enemies, maps, collision, rendering, items, dialog, scoring, and game state management.
-With my background in software engineering concepts, computer science,
-and game-engine structure, I set out to build and release a complete
-browser-based game that could serve both as a playable project and as a
-demonstration of what I can create.
+Those boundaries were intentional. They reduced scope creep, kept the game focused, and made the project manageable within an agile-style development lifecycle for a solo developer.
+
+To simplify early testing and sharing, I developed the game in a single HTML file. This kept development for sharing and testing quick & painless until I moved past zone 1.. and I needed to create my game editor. At this point I refactored the code into a formal file-tree structure. Its structure separates gameplay into engine-style systems such as player control, enemies, maps, collision, rendering, items, dialog, scoring, and game state management.
+With my background in software engineering concepts, computer science, and game-engine structure, I set out to build and release a complete game that could serve both as a playable project and as a demonstration of what I can create.. and it led to my first public game release as a game developer!
 
 ## Technical Highlights
 
-- Built a custom HTML5 Canvas rendering pipeline for pixel-art gameplay.
+- Built a custom Javascript rendering pipeline for pixel-art/NES-style gameplay and aesthetic.
 - Designed a state-driven game loop for title, intro, gameplay, pause, dialog, upgrades, zone transitions, scoreboard, and game-over flow.
 - Implemented player movement, sword combat, dodge mechanics, upgrade progression, health, potion use, and special abilities.
 - Created enemy systems for skeletons, wizards, projectiles, bosses, and wave-based spawning.
 - Built modular zone logic for map blockers, decor, breakables, secrets, doors, portals, and transitions.
 - Added local scoreboard persistence using browser storage.
 - Added keyboard, mouse, and mobile touch-control support.
-- Separate Electron distribution code from the browser game runtime.
-- Refactored a large single-file prototype toward an engine-style file structure.
+- Separate Electron distribution code from the browser game runtime (for distribution/publishing).
 
 ### Documentation
 - README.md<br>
@@ -90,15 +75,13 @@ demonstration of what I can create.
 
 ## Game Design and Engine Structure
 
-BoneCrawler is designed as a small browser-based fast-paced (arcade influenced) action game built around a lightweight custom game engine. Instead of treating the project as one fixed level or one hardcoded sequence, the game is organized around reusable systems that work together: game state, player control, enemies, maps, rendering, collision, items, upgrades, dialog, and scoring.
+The first thought for the game was to be a small embedded browser game that I could put in my portfolio.  I wanted it combine aspects from the technical asthetic (NES - ZELDA 1), darker fantasy (like Lord of the Rings & Elden Ring) and arcadey chaotic difficulty, like DMC/NG. 
 
-At the center of the design is a state-driven game loop. The game continuously runs through an update and render cycle, but the current game state determines what logic is active. States such as `title`, `playing`, `paused`, `dialog`, `upgrade`, `zoneClear`, and `gameover` allow the engine to control when gameplay is active, when menus are shown, when dialog pauses the action, and when transitions occur between zones.
+My project scope: NES action game with a small/lightweight custom game engine. I focused on organizing development in stages, starting with individual gameplay pieces and then turning them into reusable systems for game state, player control, enemies, maps, rendering, collision, items, upgrades, dialogue, and scoring.
 
-This structure keeps the game organized. During the `playing` state, the engine reads player input, updates movement, handles attacks, checks collisions, updates enemies, spawns items, tracks score, and renders the dungeon. During menu or dialog states, the active dungeon simulation is paused or limited so the player can interact with UI, story text, upgrades, or retry options without enemies and timers continuing in the background.
+The game has a  state-driven game loop that continuously runs through an update and render cycle, but the current game state determines what logic is active. States such as `title`, `playing`, `paused`, `dialog`, `upgrade`, `zoneClear`, and `gameover` control when gameplay runs, when menus are shown, when dialogue pauses the action, and when transitions occur between zones.
 
-The game is also structured around modular engine concepts. The player controller handles movement, attacks, dodging, abilities, health, and upgrades. Enemy systems handle skeletons, wizards, bosses, projectiles, and spawn timing. Map systems define each zone, including blockers, breakable objects, transitions, secrets, and environmental interactions. Rendering systems draw the pixel-art world, sprites, HUD, menus, effects, and zone-specific decoration.
-
-This approach allows BoneCrawler to function less like a single-page script and more like a compact game engine. New zones, enemies, abilities, items, or screens can be added by extending the correct system instead of rewriting the entire game. The design separates what the game is doing from how each system behaves, making the project easier to expand, debug, and eventually refactor into individual engine modules.
+During the `playing` state, the engine reads player input, updates movement, handles attacks, checks collisions, updates enemies, spawns items, tracks score, and renders the dungeon. During menu or dialogue states, the active dungeon is paused or limited so the player can interact with UI, story text, upgrades, or retry options without enemies and timers continuing in the background.
 
 <details>
 <summary><b>View Game Flowchart</b></summary>
