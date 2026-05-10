@@ -1107,3 +1107,2826 @@ html.mobile-browser body{
     padding-right:0!important;
   }
 }
+
+/* ── Responsive tablet / desktop layout patch ─────────────────────────────
+   Phones keep the mobile controller. Tablets no longer get forced into the
+   phone controller layout when Safari reports an iPad as a touch Mac. */
+html.tablet-browser,
+html.tablet-browser body{
+  min-height:100dvh;
+  overflow-x:hidden;
+}
+
+html.tablet-browser body{
+  justify-content:flex-start;
+  padding:
+    max(14px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-right))
+    max(18px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
+}
+
+html.tablet-browser .player-shell{
+  width:min(100%, 1120px);
+  display:grid;
+  grid-template-columns:minmax(0, 1fr);
+  justify-items:center;
+  gap:14px;
+}
+
+html.tablet-browser .player-stage{
+  order:1;
+  grid-column:auto;
+  width:min(100%, 920px);
+  max-width:100%;
+  align-items:center;
+  gap:12px;
+}
+
+html.tablet-browser .player-menu-left,
+html.tablet-browser .player-menu-right{
+  grid-column:auto;
+  width:min(100%, 920px);
+  max-width:100%;
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:12px;
+}
+
+html.tablet-browser .player-menu-left{order:2;}
+html.tablet-browser .player-menu-right{order:3;}
+
+html.tablet-browser .player-menu-left > *,
+html.tablet-browser .player-menu-right > *{
+  width:100%;
+  min-width:0;
+}
+
+html.tablet-browser .screen-wrap-holder,
+html.tablet-browser .player-stage .zoom-strip,
+html.tablet-browser .player-page-footer-inner{
+  width:min(100%, 920px);
+  min-width:0;
+  max-width:100%;
+}
+
+html.tablet-browser #gameCanvas{
+  width:min(68dvh, 86vw, 560px);
+  max-width:100%;
+}
+
+@media (orientation:landscape){
+  html.tablet-browser #gameCanvas{
+    width:min(72dvh, 58vw, 620px);
+  }
+}
+
+@media (max-width:760px){
+  html.tablet-browser .player-menu-left,
+  html.tablet-browser .player-menu-right{
+    grid-template-columns:1fr;
+  }
+
+  html.tablet-browser #gameCanvas{
+    width:min(88vw, 440px);
+  }
+}
+
+@media (max-width:699px){
+  html:not(.mobile-browser) .player-shell{
+    grid-template-columns:1fr;
+    justify-items:center;
+  }
+
+  html:not(.mobile-browser) .player-stage,
+  html:not(.mobile-browser) .player-menu-left,
+  html:not(.mobile-browser) .player-menu-right{
+    width:min(100%, 520px);
+    max-width:100%;
+    grid-column:auto;
+  }
+
+  html:not(.mobile-browser) .player-menu-left,
+  html:not(.mobile-browser) .player-menu-right{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  html:not(.mobile-browser) #gameCanvas{
+    width:min(88vw, 360px);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BoneCrawler screen-extension shell
+   Conservative pass: preserve the current 240x240 game viewport and in-game
+   HUD, remove page-side clutter, and attach a small RPG-style status module.
+   ═══════════════════════════════════════════════════════════════════════════ */
+html.screen-extension-enabled body{
+  min-height:100dvh;
+  overflow-x:hidden;
+  justify-content:center;
+  gap:clamp(10px, 1.5dvh, 18px);
+  padding:
+    max(12px, env(safe-area-inset-top))
+    max(10px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom))
+    max(10px, env(safe-area-inset-left));
+  background:
+    radial-gradient(circle at 50% 16%, rgba(77,100,78,.20) 0%, rgba(77,100,78,0) 33%),
+    radial-gradient(circle at 50% 110%, rgba(82,60,33,.24) 0%, rgba(82,60,33,0) 38%),
+    linear-gradient(180deg,#0b1214 0%,#080b0b 44%,#060504 100%);
+}
+
+html.screen-extension-enabled:not(.mobile-browser) .player-shell{
+  width:min(100%, 1180px);
+  max-width:1180px;
+  display:grid;
+  grid-template-columns:1fr;
+  justify-items:center;
+  align-items:center;
+  gap:clamp(10px, 1.6dvh, 16px);
+}
+
+/* Remove the outer webpage help/menu clutter from the primary game view. */
+html.screen-extension-enabled:not(.mobile-browser) .player-menu-left,
+html.screen-extension-enabled:not(.mobile-browser) .player-menu-right,
+html.screen-extension-enabled:not(.mobile-browser) .player-stage > .zoom-strip{
+  display:none!important;
+}
+
+html.screen-extension-enabled:not(.mobile-browser) .player-stage{
+  grid-column:1;
+  width:100%;
+  max-width:1180px;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(10px, 1.6dvh, 16px);
+  padding-top:0;
+}
+
+html.screen-extension-enabled:not(.mobile-browser) .gamepad-shell{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+html.screen-extension-enabled:not(.mobile-browser) .gp-screen-slot{
+  display:flex;
+  align-items:stretch;
+  justify-content:center;
+  gap:clamp(12px, 2vw, 22px);
+  width:100%;
+  max-width:1120px;
+  min-width:0;
+}
+
+html.screen-extension-enabled:not(.mobile-browser) .screen-wrap-holder{
+  flex:0 1 auto;
+  width:auto;
+  min-width:0;
+  max-width:100%;
+  align-items:center;
+  justify-content:center;
+  overflow:visible;
+}
+
+html.screen-extension-enabled:not(.mobile-browser) .screen-wrap{
+  margin:0;
+  transform:none!important;
+  transform-origin:center center;
+  padding:clamp(10px, 1.6dvh, 16px);
+  border-radius:4px;
+  background:
+    linear-gradient(180deg,#18221b 0%,#0d1210 48%,#090806 100%);
+  border:1px solid rgba(170,145,82,.50);
+  box-shadow:
+    0 0 0 1px rgba(35,42,36,.96) inset,
+    0 0 0 3px rgba(10,12,9,.98),
+    0 0 0 6px rgba(52,70,55,.56),
+    0 22px 64px rgba(0,0,0,.86),
+    0 0 28px rgba(95,122,92,.12),
+    0 0 18px rgba(210,154,61,.08);
+}
+
+html.screen-extension-enabled:not(.mobile-browser) #gameCanvas{
+  width:min(72dvh, 62vw, 690px);
+  max-width:calc(100vw - 340px);
+  height:auto;
+}
+
+.screen-extension-panel{
+  flex:0 0 clamp(188px, 20vw, 260px);
+  min-width:188px;
+  max-width:260px;
+  min-height:calc(min(72dvh, 62vw, 690px) + 2 * clamp(10px, 1.6dvh, 16px));
+  align-self:stretch;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:12px;
+  color:#d7c99b;
+  text-shadow:0 1px 0 rgba(0,0,0,.86);
+  border:1px solid rgba(170,145,82,.48);
+  border-radius:4px;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,0) 16%,rgba(0,0,0,.20) 100%),
+    radial-gradient(circle at 50% 0%,rgba(71,101,76,.16),transparent 42%),
+    linear-gradient(180deg,#161e18 0%,#0c110f 54%,#080706 100%);
+  box-shadow:
+    0 0 0 1px rgba(37,42,34,.95) inset,
+    0 0 0 3px rgba(8,9,7,.96),
+    0 16px 48px rgba(0,0,0,.76),
+    inset 0 0 22px rgba(0,0,0,.28);
+  overflow:hidden;
+}
+
+.screen-extension-panel::before{
+  content:'';
+  position:absolute;
+  inset:6px;
+  pointer-events:none;
+  border:1px solid rgba(188,166,104,.14);
+  box-shadow:inset 0 0 0 1px rgba(18,22,18,.92);
+}
+
+.screen-extension-panel::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.28;
+  background:
+    linear-gradient(90deg,rgba(0,0,0,.42),transparent 16%,transparent 84%,rgba(0,0,0,.42)),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 6px);
+}
+
+.screen-extension-panel > *{
+  position:relative;
+  z-index:1;
+}
+
+.screen-extension-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding-bottom:8px;
+  border-bottom:1px solid rgba(170,145,82,.26);
+}
+
+.screen-extension-title,
+.screen-extension-label{
+  color:#e1d19f;
+  font-size:8px;
+  line-height:1.35;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+
+.screen-extension-chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:19px;
+  padding:0 7px;
+  border:1px solid rgba(170,145,82,.32);
+  background:rgba(5,7,5,.62);
+  color:#aebda6;
+  font-size:7px;
+  letter-spacing:.08em;
+  white-space:nowrap;
+}
+
+.screen-extension-section{
+  display:grid;
+  gap:6px;
+  padding:9px 8px;
+  border:1px solid rgba(170,145,82,.22);
+  background:rgba(5,8,6,.44);
+}
+
+.screen-extension-main{
+  color:#f0dfad;
+  font-size:12px;
+  line-height:1.2;
+  letter-spacing:.08em;
+}
+
+.screen-extension-sub,
+.screen-extension-text{
+  color:#b8b19a;
+  font-size:8px;
+  line-height:1.55;
+  letter-spacing:.04em;
+}
+
+.screen-extension-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.screen-extension-stat{
+  min-width:0;
+  display:grid;
+  gap:6px;
+  padding:9px 7px;
+  border:1px solid rgba(170,145,82,.22);
+  background:rgba(5,8,6,.44);
+}
+
+.screen-extension-stat span{
+  color:#a9a185;
+  font-size:7px;
+  letter-spacing:.10em;
+}
+
+.screen-extension-stat strong{
+  color:#f0dfad;
+  font-size:10px;
+  letter-spacing:.08em;
+}
+
+.screen-extension-controls{
+  margin-top:auto;
+}
+
+/* Footer remains, but becomes small and fluid instead of forcing a fixed game width. */
+html.screen-extension-enabled .player-page-footer{
+  width:min(100%, 980px);
+  margin:0 auto;
+  padding:0;
+}
+html.screen-extension-enabled .player-page-footer-inner{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  padding:10px 14px;
+  flex-direction:row;
+  justify-content:center;
+  gap:12px;
+  color:rgba(214,204,164,.66);
+  border-color:rgba(170,145,82,.16);
+  background:linear-gradient(180deg,rgba(16,18,16,.24),rgba(6,7,6,.24));
+}
+html.screen-extension-enabled .player-page-footer-site{
+  font-size:8px;
+}
+
+@media (max-width:960px), (orientation:portrait){
+  html.screen-extension-enabled:not(.mobile-browser) .gp-screen-slot{
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+  }
+
+  html.screen-extension-enabled:not(.mobile-browser) #gameCanvas{
+    width:min(70dvh, 88vw, 620px);
+    max-width:88vw;
+  }
+
+  html.screen-extension-enabled:not(.mobile-browser) .screen-extension-panel{
+    width:min(100%, 620px);
+    max-width:min(100%, 620px);
+    min-height:0;
+    align-self:center;
+    display:grid;
+    grid-template-columns:1.1fr 1.3fr 1fr;
+    align-items:stretch;
+  }
+
+  html.screen-extension-enabled:not(.mobile-browser) .screen-extension-header{
+    grid-column:1 / -1;
+  }
+
+  html.screen-extension-enabled:not(.mobile-browser) .screen-extension-controls{
+    margin-top:0;
+  }
+}
+
+@media (max-width:680px){
+  html.screen-extension-enabled:not(.mobile-browser) .screen-extension-panel{
+    grid-template-columns:1fr;
+  }
+  html.screen-extension-enabled .player-page-footer-inner{
+    flex-direction:column;
+    gap:7px;
+  }
+}
+
+/* Keep the existing mobile controller flow stable for now. Touch controls will be
+   redesigned later around this shell. */
+html.screen-extension-enabled.mobile-browser .screen-extension-panel{
+  display:none!important;
+}
+html.screen-extension-enabled.mobile-browser .player-stage > .zoom-strip{
+  display:none!important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Screen-extension attached shell + flag-down guide nav
+   Keeps the game frame and status panel as one attached object.
+   ═══════════════════════════════════════════════════════════════════════════ */
+html.screen-extension-enabled:not(.mobile-browser) .gp-screen-slot{
+  display:grid!important;
+  place-items:center!important;
+  width:100%;
+  max-width:1160px;
+  gap:0!important;
+}
+
+html.screen-extension-enabled:not(.mobile-browser) .screen-extension-shell{
+  width:min(100%, 1120px);
+  min-width:0;
+  display:grid;
+  grid-template-rows:auto auto auto;
+  gap:clamp(8px, 1.2dvh, 12px);
+  justify-items:center;
+}
+
+html.screen-extension-enabled:not(.mobile-browser) .screen-extension-mainrow{
+  width:100%;
+  display:grid;
+  grid-template-columns:auto clamp(188px, 20vw, 260px);
+  align-items:stretch;
+  justify-content:center;
+  gap:clamp(12px, 2vw, 22px);
+  min-width:0;
+}
+
+html.screen-extension-enabled:not(.mobile-browser) .screen-extension-nav{
+  width:min(100%, 960px);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:8px 10px;
+  border:1px solid rgba(170,145,82,.34);
+  border-radius:4px;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,0) 18%),
+    linear-gradient(180deg,#151d18 0%,#0a0e0c 100%);
+  box-shadow:
+    0 0 0 1px rgba(35,42,36,.92) inset,
+    0 0 0 3px rgba(8,9,7,.84),
+    0 12px 34px rgba(0,0,0,.58);
+}
+
+.screen-extension-nav-title{
+  color:#e1d19f;
+  font-size:8px;
+  line-height:1.2;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  text-shadow:0 1px 0 rgba(0,0,0,.88);
+}
+
+.screen-extension-nav-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:7px;
+}
+
+.screen-extension-nav-btn,
+.screen-guide-close{
+  min-height:24px;
+  border:1px solid rgba(170,145,82,.34);
+  border-radius:2px;
+  padding:0 8px;
+  background:linear-gradient(180deg,rgba(28,34,28,.96),rgba(7,9,7,.98));
+  color:#d7c99b;
+  font-family:inherit;
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  text-shadow:0 1px 0 rgba(0,0,0,.9);
+  cursor:pointer;
+  box-shadow:0 0 0 1px rgba(5,7,5,.74) inset;
+}
+
+.screen-extension-nav-btn:hover,
+.screen-extension-nav-btn.active,
+.screen-guide-close:hover{
+  color:#f0dfad;
+  border-color:rgba(210,154,61,.68);
+  background:linear-gradient(180deg,rgba(42,45,30,.98),rgba(14,12,7,.98));
+}
+
+.screen-extension-status-toggle[aria-pressed="false"]{
+  color:#8f876f;
+  opacity:.78;
+}
+
+html.screen-extension-enabled:not(.mobile-browser) .screen-extension-panel{
+  height:auto;
+  min-height:0;
+  align-self:stretch;
+}
+
+html.screen-extension-enabled:not(.mobile-browser) .screen-extension-shell[data-panel="collapsed"] .screen-extension-mainrow{
+  grid-template-columns:auto;
+}
+
+html.screen-extension-enabled:not(.mobile-browser) .screen-extension-shell[data-panel="collapsed"] .screen-extension-panel{
+  display:none!important;
+}
+
+.screen-guide-popdown{
+  width:min(100%, 960px);
+  max-height:min(44dvh, 360px);
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  border:1px solid rgba(170,145,82,.42);
+  border-radius:4px;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,0) 14%),
+    radial-gradient(circle at 50% 0%,rgba(71,101,76,.14),transparent 44%),
+    linear-gradient(180deg,#141b16 0%,#090d0b 100%);
+  box-shadow:
+    0 0 0 1px rgba(37,42,34,.95) inset,
+    0 0 0 3px rgba(8,9,7,.94),
+    0 18px 48px rgba(0,0,0,.74);
+  overflow:hidden;
+}
+
+.screen-guide-popdown[hidden]{
+  display:none!important;
+}
+
+.screen-guide-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 11px;
+  border-bottom:1px solid rgba(170,145,82,.24);
+}
+
+.screen-guide-title{
+  color:#e1d19f;
+  font-size:8px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  text-shadow:0 1px 0 rgba(0,0,0,.88);
+}
+
+.screen-guide-close{
+  width:24px;
+  min-width:24px;
+  padding:0;
+  font-size:12px;
+  line-height:1;
+}
+
+.screen-guide-pane{
+  display:none;
+  min-height:0;
+  overflow:auto;
+  padding:12px;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(170,145,82,.55) rgba(5,8,6,.72);
+}
+
+.screen-guide-pane.active{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+
+.screen-guide-pane .panel-group{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  padding:9px;
+  border:1px solid rgba(170,145,82,.18);
+  background:rgba(5,8,6,.38);
+}
+
+.screen-guide-pane .panel-rule{
+  display:none;
+}
+
+.screen-guide-pane .panel-head{font-size:8px;color:#9fb7c7;line-height:1.35;}
+.screen-guide-pane .panel-line{font-size:7px;line-height:1.55;color:#e8e4d8;}
+.screen-guide-pane .panel-line.note{color:#c1cfda;}
+.screen-guide-pane .panel-line strong{color:#f0e8c0;}
+.screen-guide-pane .panel-head.hd-yellow{color:#f0b020;}
+.screen-guide-pane .panel-head.hd-warm{color:#d4c89a;}
+.screen-guide-pane .panel-head.hd-blue{color:#8ec3d8;}
+.screen-guide-pane .panel-line.heart strong{color:#ff9977;}
+.screen-guide-pane .panel-line.sword strong{color:#e6d7ab;}
+.screen-guide-pane .panel-line.shield strong{color:#88c8ff;}
+.screen-guide-pane .panel-line.speed strong{color:#f0b020;}
+.screen-guide-pane .panel-line.step strong{color:#c4b2d6;}
+
+@media (max-width:960px), (orientation:portrait){
+  html.screen-extension-enabled:not(.mobile-browser) .screen-extension-mainrow{
+    grid-template-columns:1fr;
+    justify-items:center;
+  }
+
+  html.screen-extension-enabled:not(.mobile-browser) .screen-extension-nav,
+  html.screen-extension-enabled:not(.mobile-browser) .screen-guide-popdown{
+    width:min(100%, 620px);
+  }
+
+  html.screen-extension-enabled:not(.mobile-browser) .screen-extension-panel{
+    width:min(100%, 620px);
+    max-width:min(100%, 620px);
+  }
+
+  .screen-guide-pane.active{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width:680px){
+  .screen-extension-nav{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .screen-extension-nav-actions{
+    width:100%;
+    justify-content:stretch;
+  }
+  .screen-extension-nav-btn{
+    flex:1 1 auto;
+  }
+  .screen-guide-popdown{
+    max-height:48dvh;
+  }
+}
+
+html.screen-extension-enabled.mobile-browser .screen-extension-nav,
+html.screen-extension-enabled.mobile-browser .screen-guide-popdown{
+  display:none!important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Screen-extension pseudo mini-map
+   Data-driven route indicator. This is not a terrain map.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.screen-extension-minimap-section{
+  margin-top:auto;
+}
+
+.screen-mini-map{
+  width:100%;
+  display:grid;
+  place-items:center;
+  padding:6px 4px 2px;
+  border:1px solid rgba(170,145,82,.16);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(69,94,66,.12), transparent 62%),
+    rgba(2,5,4,.34);
+  box-shadow:inset 0 0 18px rgba(0,0,0,.34);
+}
+
+.screen-mini-map-grid{
+  --mini-map-cols:2;
+  --mini-map-rows:4;
+  width:min(100%, 122px);
+  aspect-ratio:2 / 4;
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(var(--mini-map-cols), 1fr);
+  grid-template-rows:repeat(var(--mini-map-rows), 1fr);
+  gap:5px 10px;
+  align-items:center;
+  justify-items:center;
+  padding:3px;
+}
+
+.mini-map-node{
+  z-index:2;
+  width:24px;
+  height:18px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(170,145,82,.38);
+  background:linear-gradient(180deg, #161d17, #070907);
+  color:#6f6a57;
+  font-size:7px;
+  line-height:1;
+  letter-spacing:.08em;
+  text-shadow:0 1px 0 rgba(0,0,0,.9);
+  box-shadow:
+    0 0 0 1px rgba(3,4,3,.86) inset,
+    0 0 0 2px rgba(0,0,0,.34);
+}
+
+.mini-map-node-secret,
+.mini-map-node-portal{
+  border-color:rgba(122,104,152,.42);
+}
+
+.mini-map-node[data-state="locked"]{
+  opacity:.38;
+  filter:saturate(.65);
+}
+
+.mini-map-node[data-state="known"]{
+  color:#a9a185;
+  border-color:rgba(170,145,82,.48);
+  opacity:.78;
+}
+
+.mini-map-node[data-state="visited"]{
+  color:#d4c68f;
+  border-color:rgba(142,164,110,.58);
+  background:linear-gradient(180deg, #182319, #0a100b);
+}
+
+.mini-map-node[data-state="current"]{
+  color:#f4e9b8;
+  border-color:rgba(230,202,108,.92);
+  background:linear-gradient(180deg, #2a2717, #151007);
+  box-shadow:
+    0 0 0 1px rgba(76,55,20,.8) inset,
+    0 0 8px rgba(230,202,108,.55),
+    0 0 18px rgba(210,154,61,.22);
+  animation:miniMapPulse 1.15s steps(2, end) infinite;
+}
+
+.mini-map-link{
+  z-index:1;
+  align-self:stretch;
+  justify-self:stretch;
+  position:relative;
+  pointer-events:none;
+  opacity:.42;
+}
+
+.mini-map-link::before{
+  content:'';
+  position:absolute;
+  background:rgba(170,145,82,.36);
+}
+
+.mini-map-link-vertical::before{
+  width:2px;
+  top:15px;
+  bottom:15px;
+  left:50%;
+  transform:translateX(-50%);
+}
+
+.mini-map-link-horizontal::before{
+  height:2px;
+  left:18px;
+  right:18px;
+  top:50%;
+  transform:translateY(-50%);
+}
+
+.mini-map-link-portal::before{
+  width:2px;
+  height:20px;
+  left:50%;
+  top:50%;
+  transform:translate(-50%, -50%);
+  background:repeating-linear-gradient(180deg, rgba(122,104,152,.68) 0 3px, transparent 3px 6px);
+}
+
+.mini-map-link[data-state="locked"]{
+  opacity:.18;
+}
+
+.mini-map-link[data-state="known"]{
+  opacity:.46;
+}
+
+.mini-map-link[data-state="current"]{
+  opacity:.86;
+}
+
+.mini-map-link[data-state="current"]::before{
+  background:rgba(230,202,108,.70);
+  box-shadow:0 0 7px rgba(210,154,61,.34);
+}
+
+.screen-mini-map-caption{
+  min-height:2.8em;
+}
+
+@keyframes miniMapPulse{
+  0%, 100% { filter:brightness(1); }
+  50% { filter:brightness(1.35); }
+}
+
+@media (max-width:960px), (orientation:portrait){
+  .screen-mini-map-grid{
+    width:min(100%, 156px);
+    aspect-ratio:2 / 4;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Compact NES pseudo mini-map refinement
+   Smaller route indicator, half-length connectors, hidden during title/menu.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.screen-extension-panel[data-phase="title"] .screen-extension-minimap-section{
+  display:none!important;
+}
+
+.screen-extension-minimap-section{
+  margin-top:0!important;
+  gap:4px!important;
+  padding:6px 6px!important;
+}
+
+.screen-extension-minimap-section .screen-extension-label{
+  font-size:6px;
+  letter-spacing:.12em;
+}
+
+.screen-mini-map{
+  padding:3px 2px 2px!important;
+  border-color:rgba(170,145,82,.18)!important;
+  background:
+    linear-gradient(180deg,rgba(13,18,13,.86),rgba(3,5,4,.92))!important;
+  box-shadow:
+    inset 0 0 0 1px rgba(0,0,0,.68),
+    inset 0 0 10px rgba(0,0,0,.38)!important;
+}
+
+.screen-mini-map-grid{
+  width:58px!important;
+  min-width:58px!important;
+  max-width:58px!important;
+  height:88px!important;
+  min-height:88px!important;
+  aspect-ratio:auto!important;
+  grid-template-columns:repeat(var(--mini-map-cols), 1fr)!important;
+  grid-template-rows:repeat(var(--mini-map-rows), 1fr)!important;
+  gap:1px 4px!important;
+  padding:0!important;
+}
+
+.mini-map-node{
+  width:16px!important;
+  height:12px!important;
+  font-size:5px!important;
+  letter-spacing:.04em!important;
+  border-width:1px!important;
+  color:#756f5a;
+  background:#070a07!important;
+  box-shadow:none!important;
+}
+
+.mini-map-node-secret,
+.mini-map-node-portal{
+  border-color:rgba(116,94,140,.45)!important;
+}
+
+.mini-map-node[data-state="locked"]{
+  opacity:.24!important;
+  filter:none!important;
+}
+
+.mini-map-node[data-state="known"]{
+  color:#9b9270!important;
+  border-color:rgba(157,138,82,.42)!important;
+  opacity:.68!important;
+}
+
+.mini-map-node[data-state="visited"]{
+  color:#c3b77d!important;
+  border-color:rgba(126,154,98,.56)!important;
+  background:#0a1109!important;
+}
+
+.mini-map-node[data-state="current"]{
+  color:#f1df9f!important;
+  border-color:rgba(226,197,91,.9)!important;
+  background:#171205!important;
+  box-shadow:
+    0 0 0 1px rgba(78,54,16,.72) inset,
+    0 0 5px rgba(226,197,91,.42)!important;
+  animation:miniMapPulse .95s steps(2, end) infinite;
+}
+
+.mini-map-link{
+  opacity:.30!important;
+}
+
+.mini-map-link::before{
+  background:rgba(151,130,78,.38)!important;
+}
+
+.mini-map-link-vertical::before{
+  width:1px!important;
+  top:9px!important;
+  bottom:9px!important;
+}
+
+.mini-map-link-horizontal::before{
+  height:1px!important;
+  left:12px!important;
+  right:12px!important;
+}
+
+.mini-map-link-portal::before{
+  width:1px!important;
+  height:12px!important;
+  background:repeating-linear-gradient(
+    180deg,
+    rgba(116,94,140,.62) 0 2px,
+    transparent 2px 4px
+  )!important;
+}
+
+.mini-map-link[data-state="locked"]{
+  opacity:.10!important;
+}
+
+.mini-map-link[data-state="known"]{
+  opacity:.32!important;
+}
+
+.mini-map-link[data-state="current"]{
+  opacity:.72!important;
+}
+
+.mini-map-link[data-state="current"]::before{
+  background:rgba(226,197,91,.64)!important;
+  box-shadow:none!important;
+}
+
+.screen-mini-map-caption{
+  min-height:0!important;
+  max-width:100%;
+  text-align:center;
+  font-size:6px!important;
+  line-height:1.25!important;
+  letter-spacing:.03em!important;
+  color:#8e876d!important;
+  opacity:.78;
+}
+
+@media (max-width:960px), (orientation:portrait){
+  .screen-mini-map-grid{
+    width:58px!important;
+    max-width:58px!important;
+    height:88px!important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Center-focus guide overlay
+   Controls / How To Play no longer participate in the game/status shell size.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.screen-guide-popdown{
+  position:fixed!important;
+  z-index:9999!important;
+  top:50%!important;
+  left:50%!important;
+  transform:translate(-50%,-50%)!important;
+  width:min(92vw, 760px)!important;
+  max-width:min(92vw, 760px)!important;
+  max-height:min(76dvh, 520px)!important;
+  margin:0!important;
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr)!important;
+  pointer-events:auto;
+  box-shadow:
+    0 0 0 9999px rgba(0,0,0,.64),
+    0 0 0 1px rgba(37,42,34,.95) inset,
+    0 0 0 3px rgba(8,9,7,.94),
+    0 22px 70px rgba(0,0,0,.82)!important;
+}
+
+.screen-guide-popdown[hidden]{
+  display:none!important;
+}
+
+html.screen-guide-open .screen-extension-mainrow,
+html.screen-guide-open .screen-extension-nav{
+  filter:brightness(.58) saturate(.82);
+}
+
+html.screen-guide-open .screen-extension-nav-btn:not(.active),
+html.screen-guide-open .screen-extension-status-toggle{
+  opacity:.58;
+}
+
+.screen-guide-head{
+  padding:10px 12px!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,0) 18%),
+    linear-gradient(180deg,#172017,#090d0b)!important;
+}
+
+.screen-guide-pane{
+  max-height:calc(min(76dvh, 520px) - 43px)!important;
+  padding:12px!important;
+}
+
+.screen-guide-pane.active{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-content:start;
+}
+
+.screen-guide-pane .panel-group{
+  background:rgba(4,7,5,.72)!important;
+  border-color:rgba(170,145,82,.22)!important;
+}
+
+@media (max-width:760px), (orientation:portrait){
+  .screen-guide-popdown{
+    width:min(94vw, 560px)!important;
+    max-width:min(94vw, 560px)!important;
+    max-height:78dvh!important;
+  }
+
+  .screen-guide-pane.active{
+    grid-template-columns:1fr!important;
+  }
+
+  .screen-guide-pane{
+    max-height:calc(78dvh - 43px)!important;
+  }
+}
+
+@media (max-width:520px){
+  .screen-guide-popdown{
+    width:94vw!important;
+    max-height:82dvh!important;
+  }
+
+  .screen-guide-title{
+    font-size:7px!important;
+  }
+
+  .screen-guide-pane .panel-head{
+    font-size:7px!important;
+  }
+
+  .screen-guide-pane .panel-line{
+    font-size:6px!important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NES menu stats + pseudo mini-map visual pass
+   Keeps logic/data intact; this is presentation-only.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.screen-extension-run-data{
+  gap:5px!important;
+}
+
+.screen-extension-player-name{
+  min-height:20px;
+  display:flex;
+  align-items:center;
+  padding:5px 7px 4px;
+  border:2px solid #34311f;
+  background:#030504;
+  color:#f0dfad;
+  font-size:9px;
+  line-height:1;
+  letter-spacing:.10em;
+  text-shadow:1px 1px 0 #000;
+  box-shadow:
+    inset 0 0 0 1px #000,
+    0 0 0 1px rgba(95,82,43,.35);
+}
+
+.screen-extension-meter-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:5px;
+}
+
+.screen-extension-stat-small{
+  padding:6px 6px!important;
+  border-width:2px!important;
+  border-color:#34311f!important;
+  background:#030504!important;
+  box-shadow:inset 0 0 0 1px #000;
+}
+
+.screen-extension-stat-small span{
+  font-size:6px!important;
+  color:#a99a6b!important;
+  letter-spacing:.12em!important;
+}
+
+.screen-extension-stat-small strong{
+  font-size:9px!important;
+  color:#f0dfad!important;
+  text-shadow:1px 1px 0 #000;
+}
+
+.screen-extension-panel[data-phase="title"] .screen-extension-minimap-section{
+  display:none!important;
+}
+
+.screen-extension-minimap-section{
+  align-items:center!important;
+  padding:5px 4px!important;
+  gap:4px!important;
+}
+
+.screen-extension-minimap-section .screen-extension-label{
+  align-self:stretch;
+  color:#f0dfad!important;
+  font-size:6px!important;
+  letter-spacing:.15em!important;
+  text-shadow:1px 1px 0 #000;
+}
+
+.screen-mini-map{
+  width:auto!important;
+  min-width:82px!important;
+  max-width:92px!important;
+  margin:0 auto!important;
+  padding:6px 8px 5px!important;
+  border:2px solid #3f3a25!important;
+  background:#020403!important;
+  box-shadow:
+    inset 0 0 0 1px #000,
+    0 0 0 1px #100d08!important;
+}
+
+.screen-mini-map-grid{
+  width:66px!important;
+  min-width:66px!important;
+  max-width:66px!important;
+  height:88px!important;
+  min-height:88px!important;
+  max-height:88px!important;
+  aspect-ratio:auto!important;
+  grid-template-columns:repeat(var(--mini-map-cols), 1fr)!important;
+  grid-template-rows:repeat(var(--mini-map-rows), 1fr)!important;
+  gap:2px 5px!important;
+  padding:0!important;
+}
+
+.mini-map-node{
+  width:18px!important;
+  height:14px!important;
+  border:2px solid #3f3a25!important;
+  background:#050705!important;
+  color:#6f684a!important;
+  font-size:6px!important;
+  line-height:1!important;
+  letter-spacing:.03em!important;
+  text-shadow:1px 1px 0 #000!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+
+.mini-map-node-secret,
+.mini-map-node-portal{
+  border-color:#59406b!important;
+  color:#8f7aae!important;
+}
+
+.mini-map-node[data-state="locked"]{
+  opacity:.30!important;
+  background:#030403!important;
+  border-color:#252415!important;
+  color:#3a3728!important;
+}
+
+.mini-map-node[data-state="known"]{
+  opacity:.72!important;
+  background:#050705!important;
+  border-color:#5a512e!important;
+  color:#9b9270!important;
+}
+
+.mini-map-node[data-state="visited"]{
+  opacity:1!important;
+  background:#10180d!important;
+  border-color:#6f8a4d!important;
+  color:#c5bd82!important;
+}
+
+.mini-map-node[data-state="current"]{
+  opacity:1!important;
+  background:#d8b94f!important;
+  color:#090806!important;
+  border-color:#fff1a8!important;
+  text-shadow:none!important;
+  box-shadow:
+    0 0 0 1px #5b4212,
+    inset 0 0 0 1px #302000!important;
+  animation:miniMapNesBlink 1s steps(2, end) infinite!important;
+}
+
+.mini-map-link{
+  opacity:.38!important;
+}
+
+.mini-map-link::before{
+  background:#6f5c2c!important;
+  box-shadow:none!important;
+}
+
+.mini-map-link-vertical::before{
+  width:2px!important;
+  top:11px!important;
+  bottom:11px!important;
+}
+
+.mini-map-link-horizontal::before{
+  height:2px!important;
+  left:16px!important;
+  right:16px!important;
+}
+
+.mini-map-link-portal::before{
+  width:2px!important;
+  height:12px!important;
+  background:repeating-linear-gradient(
+    180deg,
+    #59406b 0 2px,
+    transparent 2px 4px
+  )!important;
+}
+
+.mini-map-link[data-state="locked"]{
+  opacity:.12!important;
+}
+
+.mini-map-link[data-state="known"]{
+  opacity:.34!important;
+}
+
+.mini-map-link[data-state="current"]{
+  opacity:.88!important;
+}
+
+.mini-map-link[data-state="current"]::before{
+  background:#d8b94f!important;
+}
+
+.screen-mini-map-caption{
+  margin-top:2px!important;
+  min-height:0!important;
+  text-align:center!important;
+  color:#a99a6b!important;
+  font-size:6px!important;
+  line-height:1.25!important;
+  letter-spacing:.05em!important;
+  text-shadow:1px 1px 0 #000;
+}
+
+@keyframes miniMapNesBlink{
+  0%, 49%{ filter:brightness(1); }
+  50%, 100%{ filter:brightness(.72); }
+}
+
+@media (max-width:960px), (orientation:portrait){
+  .screen-mini-map{
+    min-width:82px!important;
+    max-width:92px!important;
+  }
+  .screen-mini-map-grid{
+    width:66px!important;
+    max-width:66px!important;
+    height:88px!important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Unified play-shell layout
+   Makes nav, game frame, and run/status panel share one sizing context.
+   This prevents width mismatches and keeps the status panel from forcing the
+   game/window off-page.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html,
+body{
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+}
+
+.bc-play-shell{
+  --bc-shell-max: min(96vw, 1040px);
+  --bc-shell-gap: clamp(6px, 1.1vw, 10px);
+  --bc-panel-w: clamp(218px, 23vw, 286px);
+  --bc-viewport-pad: clamp(6px, 1.25dvh, 14px);
+  width:var(--bc-shell-max);
+  margin:0 auto;
+  display:grid;
+  grid-template-rows:auto auto;
+  gap:var(--bc-shell-gap);
+  align-items:start;
+  justify-items:stretch;
+  padding-block:var(--bc-viewport-pad);
+}
+
+.bc-play-shell > .screen-extension-nav,
+.bc-play-shell > .bc-screen-nav,
+.bc-play-shell > nav{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
+
+/* The attached game/status shell should be measured by the same wrapper as nav. */
+.bc-play-shell .screen-extension-shell,
+.bc-play-shell .gp-screen-slot{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
+
+/* Wide layout: game and status panel act as one connected unit. */
+@media (min-width: 980px) and (orientation: landscape){
+  .bc-play-shell .screen-extension-shell,
+  .bc-play-shell .gp-screen-slot{
+    display:grid!important;
+    grid-template-columns:minmax(0, 1fr) var(--bc-panel-w)!important;
+    gap:var(--bc-shell-gap)!important;
+    align-items:stretch!important;
+    justify-content:stretch!important;
+  }
+
+  .bc-play-shell .screen-wrap-holder,
+  .bc-play-shell .screen-wrap{
+    max-width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+
+  .bc-play-shell .screen-wrap-holder{
+    justify-self:end!important;
+  }
+
+  .bc-play-shell .screen-extension-panel{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    justify-self:stretch!important;
+    align-self:stretch!important;
+    box-sizing:border-box!important;
+    overflow:auto!important;
+  }
+}
+
+/* Stacked layout: panel matches the same shell width as nav/game. */
+@media (max-width: 979px), (orientation: portrait){
+  .bc-play-shell{
+    --bc-shell-max:min(96vw, 760px);
+  }
+
+  .bc-play-shell .screen-extension-shell,
+  .bc-play-shell .gp-screen-slot{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:var(--bc-shell-gap)!important;
+    justify-items:center!important;
+    align-items:start!important;
+  }
+
+  .bc-play-shell .screen-wrap-holder,
+  .bc-play-shell .screen-wrap{
+    max-width:100%!important;
+    min-width:0!important;
+  }
+
+  .bc-play-shell .screen-extension-panel{
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    max-height:clamp(185px, 34dvh, 320px)!important;
+    overflow:auto!important;
+    box-sizing:border-box!important;
+  }
+}
+
+/* Height-aware game scaling when the status panel stacks below the game. */
+@media (max-width: 979px), (orientation: portrait){
+  .bc-play-shell .screen-wrap-holder{
+    --bc-stacked-panel-reserve: clamp(205px, 36dvh, 340px);
+    --bc-game-size: min(
+      92vw,
+      calc(100dvh - var(--bc-stacked-panel-reserve) - 92px)
+    );
+    width:var(--bc-game-size)!important;
+    height:var(--bc-game-size)!important;
+  }
+
+  .bc-play-shell .screen-wrap{
+    width:100%!important;
+    height:100%!important;
+  }
+
+  .bc-play-shell #gameCanvas{
+    width:100%!important;
+    height:100%!important;
+  }
+}
+
+/* Wide layout: game height and panel height stay related. */
+@media (min-width: 980px) and (orientation: landscape){
+  .bc-play-shell .screen-wrap-holder{
+    --bc-game-size:min(
+      calc(100dvh - 92px),
+      calc((var(--bc-shell-max) - var(--bc-panel-w) - var(--bc-shell-gap))),
+      760px
+    );
+    width:var(--bc-game-size)!important;
+    height:var(--bc-game-size)!important;
+  }
+
+  .bc-play-shell .screen-wrap,
+  .bc-play-shell #gameCanvas{
+    width:100%!important;
+    height:100%!important;
+  }
+
+  .bc-play-shell .screen-extension-panel{
+    max-height:var(--bc-game-size)!important;
+  }
+}
+
+/* Prevent internal sections from forcing the panel wider/taller than the shell. */
+.bc-play-shell .screen-extension-panel *,
+.bc-play-shell .screen-extension-card,
+.bc-play-shell .screen-extension-section,
+.bc-play-shell .screen-mini-map{
+  max-width:100%;
+  box-sizing:border-box;
+}
+
+.bc-play-shell .screen-extension-panel{
+  scrollbar-width:thin;
+}
+
+/* Center guide/modal remains independent of shell sizing. */
+.screen-guide-overlay,
+.screen-extension-guide-overlay,
+.screen-extension-guide-modal{
+  max-width:100vw;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Legacy page UI removal
+   The new nav/status shell owns Controls, How To Play, Status, and footer
+   treatment. These old HTML panels are intentionally removed from layout.
+   ═══════════════════════════════════════════════════════════════════════════ */
+#zoomStrip,
+.zoom-strip,
+#playerPageFooter,
+.player-page-footer,
+#playerMenuLeft,
+#playerMenuRight,
+.player-menu-left,
+.player-menu-right{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+#zoomControls,
+.zoom-controls,
+.zoom-label,
+#aboutPanel,
+.player-about-card,
+.about-link-button,
+.about-license{
+  display:none!important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Game Status / NES mini-map positioning / upgrade stack
+   Moves the pseudo-map into the zone status card and keeps it visually compact.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.screen-extension-title,
+.screen-extension-header-title,
+[data-screen-extension-title]{
+  text-transform:uppercase;
+}
+
+.screen-extension-panel .screen-extension-title,
+.screen-extension-panel .screen-extension-header-title,
+.screen-extension-panel [data-screen-extension-title]{
+  color:#f1df9f;
+}
+
+/* Explicit label rename safety for templates that are not regenerated. */
+.screen-extension-panel [data-label="run-status"]::before{
+  content:"GAME STATUS";
+}
+
+/* Zone card becomes a two-column status row when the map is attached. */
+.screen-extension-zone-card,
+[data-screen-extension-zone-card],
+.screen-extension-panel .screen-extension-card:first-of-type{
+  position:relative;
+}
+
+.zone-status-inline-map{
+  margin-top:6px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+@media (min-width: 980px) and (orientation: landscape){
+  .screen-extension-zone-card,
+  [data-screen-extension-zone-card]{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) auto;
+    column-gap:8px;
+    align-items:start;
+  }
+
+  .zone-status-inline-map{
+    grid-column:2;
+    grid-row:1 / span 2;
+    margin-top:0;
+    align-self:start;
+  }
+}
+
+/* Remove the old outer dungeon-map box feeling when it is inline. */
+.zone-status-inline-map .screen-extension-minimap-section{
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+.zone-status-inline-map .screen-extension-minimap-section .screen-extension-label{
+  display:none!important;
+}
+
+.zone-status-inline-map .screen-mini-map{
+  width:auto!important;
+  margin:0!important;
+  padding:3px 4px!important;
+  border:1px solid rgba(135,115,67,.42)!important;
+  background:#020403!important;
+  box-shadow:
+    inset 0 0 0 1px #000,
+    0 0 0 1px rgba(31,25,13,.9)!important;
+}
+
+.zone-status-inline-map .screen-mini-map-grid{
+  width:54px!important;
+  height:78px!important;
+  min-width:54px!important;
+  max-width:54px!important;
+  gap:1px 3px!important;
+}
+
+.zone-status-inline-map .mini-map-node{
+  width:15px!important;
+  height:11px!important;
+  font-size:5px!important;
+  line-height:8px!important;
+}
+
+.zone-status-inline-map .screen-mini-map-caption{
+  display:none!important;
+}
+
+/* Keep the map box visible during title, but inactive inside. */
+.screen-extension-panel[data-phase="title"] .screen-extension-minimap-section{
+  display:block!important;
+  opacity:.38;
+  filter:saturate(.55);
+}
+
+.screen-extension-panel[data-phase="title"] .screen-mini-map-grid{
+  opacity:.28;
+}
+
+.screen-extension-panel[data-phase="title"] .mini-map-node[data-state="current"]{
+  animation:none!important;
+  box-shadow:none!important;
+  background:#070a07!important;
+  color:#504b36!important;
+  border-color:#2d2818!important;
+}
+
+/* Restore a small NES-style active glow/blink. */
+.mini-map-node[data-state="current"]{
+  background:#d8b94f!important;
+  color:#090806!important;
+  border-color:#fff1a8!important;
+  box-shadow:
+    0 0 0 1px #5b4212,
+    inset 0 0 0 1px #302000,
+    0 0 6px rgba(226,197,91,.55)!important;
+  animation:miniMapCurrentBlink .9s steps(2,end) infinite;
+}
+
+@keyframes miniMapCurrentBlink{
+  0%,49%{ filter:brightness(1.15); }
+  50%,100%{ filter:brightness(.78); }
+}
+
+.mini-map-link[data-state="current"]::before{
+  background:#d8b94f!important;
+  box-shadow:0 0 4px rgba(226,197,91,.38)!important;
+}
+
+/* Upgrade progression stack */
+.screen-extension-upgrade-section{
+  margin-top:7px;
+  padding-top:6px;
+  border-top:1px solid rgba(135,115,67,.28);
+}
+
+.upgrade-stack{
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+  min-height:17px;
+  align-items:center;
+}
+
+.upgrade-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  min-height:16px;
+  padding:1px 4px;
+  border:1px solid rgba(135,115,67,.48);
+  background:#050805;
+  color:#d8c982;
+  font-size:6px;
+  line-height:1;
+  text-transform:uppercase;
+  box-shadow:inset 0 0 0 1px #000;
+}
+
+.upgrade-icon{
+  display:inline-grid;
+  place-items:center;
+  width:10px;
+  height:10px;
+  font-style:normal;
+  font-size:7px;
+  line-height:1;
+}
+
+.upgrade-icon-sword{ color:#d9d4bd; }
+.upgrade-icon-speed{ color:#9dff8b; }
+.upgrade-icon-armor{ color:#9eb4c8; }
+.upgrade-icon-heart{ color:#e2606f; }
+
+.upgrade-count{
+  color:#f1df9f;
+  font-weight:700;
+  font-size:6px;
+}
+
+.upgrade-empty{
+  color:#70684f;
+  font-size:6px;
+  letter-spacing:.08em;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Fixed play-shell layout
+   bc-play-shell is now the sizing parent for:
+   nav + game frame + status panel.
+   This prevents bottom/status UI from flowing out due to mismatched wrappers.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html,
+body{
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+}
+
+.gp-screen-slot{
+  width:100%!important;
+  max-width:100vw!important;
+  display:grid!important;
+  place-items:center!important;
+  margin:0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+}
+
+.bc-play-shell{
+  --bc-gap:clamp(6px, 1vw, 10px);
+  --bc-panel-w:clamp(216px, 21vw, 286px);
+  --bc-game-size:min(
+    calc(100dvh - 92px),
+    calc(96vw - var(--bc-panel-w) - var(--bc-gap)),
+    720px
+  );
+
+  width:calc(var(--bc-game-size) + var(--bc-panel-w) + var(--bc-gap));
+  max-width:96vw;
+  margin:0 auto!important;
+  display:grid!important;
+  grid-template-rows:auto auto;
+  gap:var(--bc-gap);
+  align-items:start;
+  justify-items:stretch;
+  box-sizing:border-box!important;
+}
+
+.bc-play-shell > .screen-extension-nav{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
+
+.bc-play-shell > .screen-extension-shell{
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  margin:0!important;
+  display:grid!important;
+  grid-template-columns:var(--bc-game-size) var(--bc-panel-w)!important;
+  gap:var(--bc-gap)!important;
+  align-items:stretch!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+}
+
+/* Make the old inner row stop acting as a second layout system. */
+.bc-play-shell .screen-extension-mainrow{
+  display:contents!important;
+}
+
+.bc-play-shell .screen-wrap-holder{
+  width:var(--bc-game-size)!important;
+  height:var(--bc-game-size)!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+  justify-self:end!important;
+  align-self:start!important;
+  box-sizing:border-box!important;
+}
+
+.bc-play-shell .screen-wrap{
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  box-sizing:border-box!important;
+}
+
+.bc-play-shell #gameCanvas{
+  width:100%!important;
+  height:100%!important;
+  display:block!important;
+}
+
+.bc-play-shell .screen-extension-panel{
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:var(--bc-game-size)!important;
+  max-height:var(--bc-game-size)!important;
+  overflow:auto!important;
+  align-self:stretch!important;
+  justify-self:stretch!important;
+  box-sizing:border-box!important;
+}
+
+/* Narrow / portrait: stack status below and reserve height for it. */
+@media (max-width:979px), (orientation:portrait){
+  .bc-play-shell{
+    --bc-game-size:min(
+      92vw,
+      calc(100dvh - clamp(210px, 36dvh, 340px) - 96px),
+      680px
+    );
+
+    width:min(96vw, max(var(--bc-game-size), 320px));
+    max-width:96vw;
+  }
+
+  .bc-play-shell > .screen-extension-shell{
+    grid-template-columns:1fr!important;
+    justify-items:center!important;
+    align-items:start!important;
+  }
+
+  .bc-play-shell .screen-wrap-holder{
+    width:var(--bc-game-size)!important;
+    height:var(--bc-game-size)!important;
+    justify-self:center!important;
+  }
+
+  .bc-play-shell .screen-extension-panel{
+    width:var(--bc-game-size)!important;
+    max-width:100%!important;
+    height:auto!important;
+    max-height:clamp(190px, 34dvh, 320px)!important;
+    justify-self:center!important;
+  }
+}
+
+/* Very small screens: prioritize fitting the playfield, then allow page scroll. */
+@media (max-width:560px){
+  .bc-play-shell{
+    --bc-game-size:min(94vw, calc(100dvh - 260px));
+    width:94vw;
+  }
+
+  .bc-play-shell .screen-wrap-holder,
+  .bc-play-shell .screen-extension-panel{
+    width:var(--bc-game-size)!important;
+  }
+}
+
+/* Prevent panel children from expanding the status panel beyond its grid cell. */
+.bc-play-shell .screen-extension-panel *,
+.bc-play-shell .screen-extension-section,
+.bc-play-shell .screen-extension-card,
+.bc-play-shell .screen-extension-grid,
+.bc-play-shell .screen-mini-map{
+  max-width:100%;
+  box-sizing:border-box;
+}
+
+.bc-play-shell .screen-extension-panel{
+  scrollbar-width:thin;
+}
+
+/* Remove legacy page UI from layout completely. */
+#zoomStrip,
+.zoom-strip,
+#playerPageFooter,
+.player-page-footer,
+#playerMenuLeft,
+#playerMenuRight,
+.player-menu-left,
+.player-menu-right,
+#zoomControls,
+.zoom-controls,
+.zoom-label,
+#aboutPanel,
+.player-about-card,
+.about-link-button,
+.about-license{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+/* Guide overlay remains independent from the play shell. */
+.screen-guide-popdown,
+.screen-guide-overlay,
+.screen-extension-guide-overlay,
+.screen-extension-guide-modal{
+  max-width:100vw;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Stacked status panel expansion
+   On narrow / portrait layouts, the GAME STATUS panel should expand naturally
+   and the page should scroll, instead of the panel creating its own scroll box.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width:979px), (orientation:portrait){
+  html,
+  body{
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+  }
+
+  .bc-play-shell{
+    /*
+      Stop trying to reserve an exact status-panel height.
+      Let the game use a comfortable portion of the viewport,
+      then let the status panel expand below it.
+    */
+    --bc-game-size:min(92vw, 58dvh, 680px)!important;
+    width:min(96vw, max(var(--bc-game-size), 320px))!important;
+    padding-bottom:clamp(10px, 3dvh, 26px)!important;
+  }
+
+  .bc-play-shell > .screen-extension-shell{
+    grid-template-columns:1fr!important;
+    align-items:start!important;
+    justify-items:center!important;
+  }
+
+  .bc-play-shell .screen-wrap-holder{
+    width:var(--bc-game-size)!important;
+    height:var(--bc-game-size)!important;
+    justify-self:center!important;
+  }
+
+  .bc-play-shell .screen-extension-panel{
+    width:var(--bc-game-size)!important;
+    max-width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+    justify-self:center!important;
+    align-self:start!important;
+  }
+
+  .bc-play-shell .screen-extension-panel-inner,
+  .bc-play-shell .screen-extension-panel-body,
+  .bc-play-shell .screen-extension-content{
+    max-height:none!important;
+    overflow:visible!important;
+  }
+}
+
+/* Extra small screens still keep the status panel natural.
+   The page scrolls if the content is taller than the browser window. */
+@media (max-width:560px){
+  .bc-play-shell{
+    --bc-game-size:min(94vw, 54dvh, 520px)!important;
+    width:94vw!important;
+  }
+
+  .bc-play-shell .screen-wrap-holder,
+  .bc-play-shell .screen-extension-panel{
+    width:var(--bc-game-size)!important;
+  }
+
+  .bc-play-shell .screen-extension-panel{
+    max-height:none!important;
+    overflow:visible!important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Responsive status typography + internal GAME STATUS grid
+   UI/page-only pass. Scales status text, spacing, nav buttons, and mini-map
+   density with the shell so the panel remains proportional as the window
+   changes size.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.bc-play-shell{
+  --ui-font-xs:clamp(5px, 1.02vmin, 7px);
+  --ui-font-sm:clamp(6px, 1.16vmin, 8px);
+  --ui-font-md:clamp(7px, 1.33vmin, 9px);
+  --ui-font-lg:clamp(9px, 1.78vmin, 13px);
+  --ui-gap:clamp(4px, 1.02vmin, 8px);
+  --ui-pad:clamp(5px, 1.2vmin, 9px);
+  --ui-border:rgba(170,145,82,.24);
+}
+
+/* Navigation should scale like a game menu strip, not like browser UI. */
+.bc-play-shell .screen-extension-nav{
+  gap:var(--ui-gap)!important;
+  padding:calc(var(--ui-pad) * .9)!important;
+}
+
+.bc-play-shell .screen-extension-nav-title{
+  font-size:var(--ui-font-sm)!important;
+  letter-spacing:.14em!important;
+}
+
+.bc-play-shell .screen-extension-nav-actions{
+  gap:var(--ui-gap)!important;
+}
+
+.bc-play-shell .screen-extension-nav-btn,
+.bc-play-shell .screen-extension-status-toggle{
+  min-height:clamp(20px, 3.2vmin, 26px)!important;
+  padding:calc(var(--ui-pad) * .48) calc(var(--ui-pad) * 1.15)!important;
+  font-size:var(--ui-font-sm)!important;
+  line-height:1!important;
+  letter-spacing:.10em!important;
+}
+
+/* GAME STATUS panel density. */
+.bc-play-shell .screen-extension-panel{
+  gap:var(--ui-gap)!important;
+  padding:calc(var(--ui-pad) * 1.1)!important;
+  font-size:var(--ui-font-sm)!important;
+}
+
+.bc-play-shell .screen-extension-header{
+  gap:var(--ui-gap)!important;
+  padding-bottom:calc(var(--ui-pad) * .85)!important;
+}
+
+.bc-play-shell .screen-extension-title,
+.bc-play-shell .screen-extension-label{
+  font-size:var(--ui-font-sm)!important;
+  line-height:1.15!important;
+  letter-spacing:.14em!important;
+}
+
+.bc-play-shell .screen-extension-chip{
+  min-height:clamp(16px, 2.7vmin, 20px)!important;
+  padding:0 calc(var(--ui-pad) * .9)!important;
+  font-size:var(--ui-font-xs)!important;
+}
+
+.bc-play-shell .screen-extension-section,
+.bc-play-shell .screen-extension-stat{
+  gap:calc(var(--ui-gap) * .75)!important;
+  padding:var(--ui-pad)!important;
+}
+
+.bc-play-shell .screen-extension-main{
+  font-size:var(--ui-font-lg)!important;
+  line-height:1.08!important;
+  letter-spacing:.075em!important;
+}
+
+.bc-play-shell .screen-extension-sub,
+.bc-play-shell .screen-extension-text,
+.bc-play-shell .screen-extension-stat span{
+  font-size:var(--ui-font-xs)!important;
+  line-height:1.24!important;
+  letter-spacing:.08em!important;
+}
+
+.bc-play-shell .screen-extension-stat strong{
+  font-size:var(--ui-font-md)!important;
+  line-height:1.05!important;
+}
+
+.bc-play-shell .screen-extension-player-name{
+  min-height:clamp(15px, 3vmin, 20px)!important;
+  padding:calc(var(--ui-pad) * .48) calc(var(--ui-pad) * .9)!important;
+  font-size:var(--ui-font-md)!important;
+  line-height:1!important;
+}
+
+.bc-play-shell .screen-extension-meter-grid,
+.bc-play-shell .screen-extension-grid{
+  gap:calc(var(--ui-gap) * .8)!important;
+}
+
+.bc-play-shell .screen-extension-stat-small{
+  padding:calc(var(--ui-pad) * .68)!important;
+}
+
+.bc-play-shell .screen-extension-stat-small span{
+  font-size:var(--ui-font-xs)!important;
+}
+
+.bc-play-shell .screen-extension-stat-small strong{
+  font-size:var(--ui-font-md)!important;
+}
+
+/* Make the status panel's inner layout adapt instead of crowding text. */
+.bc-play-shell .screen-extension-zone-card{
+  min-width:0!important;
+}
+
+.bc-play-shell .screen-extension-player-card{
+  min-width:0!important;
+}
+
+.bc-play-shell .screen-extension-key-grid{
+  min-width:0!important;
+}
+
+/* Side panel: keep one-column flow, but mini-map sits inside the zone card. */
+@media (min-width:980px) and (orientation:landscape){
+  .bc-play-shell .screen-extension-panel{
+    display:flex!important;
+    flex-direction:column!important;
+  }
+
+  .bc-play-shell .screen-extension-zone-card{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    column-gap:var(--ui-gap)!important;
+    align-items:start!important;
+  }
+}
+
+/* Stacked panel: compact two-column internal grid before becoming one column. */
+@media (max-width:979px), (orientation:portrait){
+  .bc-play-shell .screen-extension-panel{
+    display:grid!important;
+    grid-template-columns:minmax(0, 1.05fr) minmax(0, .95fr)!important;
+    align-items:start!important;
+    gap:var(--ui-gap)!important;
+  }
+
+  .bc-play-shell .screen-extension-header{
+    grid-column:1 / -1!important;
+  }
+
+  .bc-play-shell .screen-extension-zone-card{
+    grid-column:1!important;
+    grid-row:auto!important;
+  }
+
+  .bc-play-shell .screen-extension-player-card{
+    grid-column:2!important;
+    grid-row:auto!important;
+  }
+
+  .bc-play-shell .screen-extension-key-grid{
+    grid-column:1 / -1!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+  }
+}
+
+@media (max-width:560px){
+  .bc-play-shell .screen-extension-panel{
+    grid-template-columns:1fr!important;
+  }
+
+  .bc-play-shell .screen-extension-zone-card,
+  .bc-play-shell .screen-extension-player-card,
+  .bc-play-shell .screen-extension-key-grid{
+    grid-column:1!important;
+  }
+}
+
+/* Mini-map becomes a true small route indicator inside the zone card. */
+.bc-play-shell .zone-status-inline-map{
+  margin:0!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+}
+
+.bc-play-shell .zone-status-inline-map .screen-extension-minimap-section{
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  opacity:1;
+}
+
+.bc-play-shell .zone-status-inline-map .screen-extension-minimap-section .screen-extension-label,
+.bc-play-shell .zone-status-inline-map .screen-mini-map-caption{
+  display:none!important;
+}
+
+.bc-play-shell .zone-status-inline-map .screen-mini-map{
+  min-width:0!important;
+  width:auto!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:3px!important;
+  border:1px solid rgba(135,115,67,.42)!important;
+  background:#020403!important;
+  box-shadow:
+    inset 0 0 0 1px #000,
+    0 0 0 1px rgba(31,25,13,.9)!important;
+}
+
+.bc-play-shell .zone-status-inline-map .screen-mini-map-grid{
+  width:clamp(43px, 8.4vmin, 54px)!important;
+  min-width:clamp(43px, 8.4vmin, 54px)!important;
+  max-width:clamp(43px, 8.4vmin, 54px)!important;
+  height:clamp(61px, 12.2vmin, 78px)!important;
+  gap:1px 3px!important;
+}
+
+.bc-play-shell .zone-status-inline-map .mini-map-node{
+  width:clamp(11px, 2.2vmin, 15px)!important;
+  height:clamp(8px, 1.65vmin, 11px)!important;
+  font-size:clamp(4px, .86vmin, 5px)!important;
+  line-height:1!important;
+}
+
+.bc-play-shell .zone-status-inline-map .mini-map-link-vertical::before{
+  top:8px!important;
+  bottom:8px!important;
+}
+
+.bc-play-shell .zone-status-inline-map .mini-map-link-horizontal::before{
+  left:10px!important;
+  right:10px!important;
+}
+
+/* Title state: keep route box present but inactive. */
+.bc-play-shell .screen-extension-panel[data-phase="title"] .screen-extension-minimap-section{
+  display:block!important;
+  opacity:.42!important;
+  filter:saturate(.55)!important;
+}
+
+.bc-play-shell .screen-extension-panel[data-phase="title"] .mini-map-node[data-state="current"]{
+  animation:none!important;
+  box-shadow:none!important;
+  background:#070a07!important;
+  color:#504b36!important;
+  border-color:#2d2818!important;
+}
+
+/* Gameplay state: subtle active NES blink. */
+.bc-play-shell .mini-map-node[data-state="current"]{
+  background:#d8b94f!important;
+  color:#090806!important;
+  border-color:#fff1a8!important;
+  box-shadow:
+    0 0 0 1px #5b4212,
+    inset 0 0 0 1px #302000,
+    0 0 5px rgba(226,197,91,.50)!important;
+  animation:miniMapCurrentBlink .9s steps(2,end) infinite;
+}
+
+@keyframes miniMapCurrentBlink{
+  0%,49%{ filter:brightness(1.12); }
+  50%,100%{ filter:brightness(.78); }
+}
+
+/* Upgrade stack scales with the status typography. */
+.bc-play-shell .screen-extension-upgrade-section{
+  margin-top:calc(var(--ui-gap) * .85)!important;
+  padding-top:calc(var(--ui-gap) * .85)!important;
+}
+
+.bc-play-shell .upgrade-stack{
+  gap:calc(var(--ui-gap) * .55)!important;
+  min-height:clamp(14px, 2.5vmin, 18px)!important;
+}
+
+.bc-play-shell .upgrade-chip{
+  min-height:clamp(13px, 2.45vmin, 16px)!important;
+  padding:1px calc(var(--ui-pad) * .55)!important;
+  font-size:var(--ui-font-xs)!important;
+}
+
+.bc-play-shell .upgrade-icon{
+  width:clamp(8px, 1.6vmin, 10px)!important;
+  height:clamp(8px, 1.6vmin, 10px)!important;
+  font-size:clamp(5px, 1.05vmin, 7px)!important;
+}
+
+.bc-play-shell .upgrade-count,
+.bc-play-shell .upgrade-empty{
+  font-size:var(--ui-font-xs)!important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Unified frame/corner proportions
+   Keeps the top nav, game window frame, and GAME STATUS panel visually aligned
+   as one matched set. This is a visual/page CSS pass only.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.bc-play-shell{
+  --bc-frame-radius:6px;
+  --bc-frame-radius-inner:4px;
+  --bc-frame-border:1px;
+  --bc-frame-inset:4px;
+  --bc-frame-line:rgba(139,122,74,.58);
+  --bc-frame-line-soft:rgba(139,122,74,.32);
+  --bc-frame-shadow:
+    inset 0 0 0 1px rgba(0,0,0,.75),
+    0 0 0 1px rgba(17,25,18,.82),
+    0 10px 28px rgba(0,0,0,.34);
+}
+
+/* Same outside corner language on the three main boxes. */
+.bc-play-shell .screen-extension-nav,
+.bc-play-shell .screen-wrap-holder,
+.bc-play-shell .screen-extension-panel{
+  border-radius:var(--bc-frame-radius)!important;
+  border:var(--bc-frame-border) solid var(--bc-frame-line)!important;
+  box-shadow:var(--bc-frame-shadow)!important;
+  background:
+    linear-gradient(180deg,rgba(34,45,34,.82),rgba(4,8,6,.94))!important;
+  box-sizing:border-box!important;
+}
+
+/* Same inner inset distance so corners do not look longer/shorter. */
+.bc-play-shell .screen-extension-nav{
+  padding:var(--bc-frame-inset)!important;
+}
+
+.bc-play-shell .screen-wrap-holder,
+.bc-play-shell .screen-extension-panel{
+  padding:var(--bc-frame-inset)!important;
+}
+
+/* The actual game viewport gets the same inner corner ratio as the menu cards. */
+.bc-play-shell .screen-wrap{
+  border-radius:var(--bc-frame-radius-inner)!important;
+  border:1px solid var(--bc-frame-line-soft)!important;
+  box-shadow:
+    inset 0 0 0 1px #000,
+    inset 0 0 0 2px rgba(58,72,47,.55)!important;
+  overflow:hidden!important;
+}
+
+/* Header/status card corners match the major frame style at a smaller scale. */
+.bc-play-shell .screen-extension-section,
+.bc-play-shell .screen-extension-stat,
+.bc-play-shell .screen-extension-player-name,
+.bc-play-shell .screen-extension-chip,
+.bc-play-shell .screen-extension-nav-btn,
+.bc-play-shell .screen-extension-status-toggle,
+.bc-play-shell .screen-mini-map{
+  border-radius:0!important;
+  border-width:1px!important;
+}
+
+/* The nav buttons were visually taller/boxier than the frame;
+   this normalizes their corner geometry with the panel internals. */
+.bc-play-shell .screen-extension-nav-btn,
+.bc-play-shell .screen-extension-status-toggle{
+  box-shadow:
+    inset 0 0 0 1px #000,
+    0 0 0 1px rgba(75,62,34,.72)!important;
+}
+
+/* Keep combined shell width strict so top nav corners match the row below. */
+.bc-play-shell > .screen-extension-nav,
+.bc-play-shell > .screen-extension-shell{
+  width:100%!important;
+  max-width:100%!important;
+}
+
+/* Ensure the right GAME STATUS box and game window share the same top/bottom
+   measured height on wide layout. */
+@media (min-width:980px) and (orientation:landscape){
+  .bc-play-shell .screen-wrap-holder,
+  .bc-play-shell .screen-extension-panel{
+    min-height:var(--bc-game-size)!important;
+    height:var(--bc-game-size)!important;
+    max-height:var(--bc-game-size)!important;
+  }
+
+  .bc-play-shell .screen-extension-panel{
+    align-self:stretch!important;
+  }
+}
+
+/* In stacked layouts, keep the nav/game/status frame widths identical. */
+@media (max-width:979px), (orientation:portrait){
+  .bc-play-shell > .screen-extension-nav,
+  .bc-play-shell .screen-wrap-holder,
+  .bc-play-shell .screen-extension-panel{
+    width:var(--bc-game-size)!important;
+    max-width:100%!important;
+    justify-self:center!important;
+  }
+}
+
+/* Prevent older radius rules from making the status panel look like a different
+   component than the game frame. */
+.bc-play-shell .screen-extension-panel,
+.bc-play-shell .screen-extension-panel::before,
+.bc-play-shell .screen-extension-panel::after,
+.bc-play-shell .screen-wrap-holder,
+.bc-play-shell .screen-wrap-holder::before,
+.bc-play-shell .screen-wrap-holder::after,
+.bc-play-shell .screen-extension-nav,
+.bc-play-shell .screen-extension-nav::before,
+.bc-play-shell .screen-extension-nav::after{
+  border-radius:var(--bc-frame-radius)!important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Zone card consolidation: mini-map + keys inside zone status
+   UI-only. Moves the pseudo-map and key/secret status into the left GAME STATUS
+   zone card so the lower panel no longer has a separate key row.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.bc-play-shell .screen-extension-zone-card{
+  display:grid!important;
+  grid-template-columns:minmax(0, 1fr) auto!important;
+  grid-template-areas:
+    "zoneLabel zoneMap"
+    "zoneMain  zoneMap"
+    "zoneWave  zoneMap"
+    "zoneKeys  zoneKeys"!important;
+  column-gap:var(--ui-gap, 6px)!important;
+  row-gap:calc(var(--ui-gap, 6px) * .62)!important;
+  align-items:start!important;
+}
+
+.bc-play-shell .screen-extension-zone-card > .screen-extension-label{
+  grid-area:zoneLabel!important;
+}
+
+.bc-play-shell .screen-extension-zone-card > .screen-extension-main{
+  grid-area:zoneMain!important;
+}
+
+.bc-play-shell .screen-extension-zone-card > .screen-extension-sub{
+  grid-area:zoneWave!important;
+}
+
+.bc-play-shell .screen-extension-zone-card > .zone-status-inline-map{
+  grid-area:zoneMap!important;
+  align-self:start!important;
+  justify-self:end!important;
+}
+
+.bc-play-shell .screen-extension-zone-card > .zone-status-key-grid{
+  grid-area:zoneKeys!important;
+}
+
+/* Key boxes now belong visually to the zone card. */
+.bc-play-shell .zone-status-key-grid{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:calc(var(--ui-gap, 6px) * .75)!important;
+  width:100%!important;
+  margin-top:calc(var(--ui-gap, 6px) * .45)!important;
+  padding-top:calc(var(--ui-gap, 6px) * .7)!important;
+  border-top:1px solid rgba(135,115,67,.22)!important;
+}
+
+.bc-play-shell .zone-status-key-grid .screen-extension-stat{
+  min-width:0!important;
+  padding:calc(var(--ui-pad, 7px) * .7)!important;
+}
+
+/* Remove old bottom-row behavior after JS moves it into the zone card. */
+.bc-play-shell .screen-extension-panel > .screen-extension-key-grid:not(.zone-status-key-grid){
+  display:none!important;
+}
+
+/* Smaller NES pseudo-map, with no large minimum size. */
+.bc-play-shell .zone-status-inline-map .screen-mini-map{
+  min-width:0!important;
+  width:auto!important;
+  margin:0!important;
+  padding:2px 3px!important;
+  border:1px solid rgba(135,115,67,.42)!important;
+  background:#020403!important;
+  box-shadow:
+    inset 0 0 0 1px #000,
+    0 0 0 1px rgba(31,25,13,.9)!important;
+}
+
+.bc-play-shell .zone-status-inline-map .screen-mini-map-grid{
+  width:clamp(32px, 5.8vmin, 42px)!important;
+  min-width:0!important;
+  max-width:42px!important;
+  height:clamp(44px, 8.2vmin, 58px)!important;
+  min-height:0!important;
+  max-height:58px!important;
+  gap:1px 2px!important;
+  padding:0!important;
+}
+
+.bc-play-shell .zone-status-inline-map .mini-map-node{
+  width:clamp(8px, 1.45vmin, 11px)!important;
+  height:clamp(6px, 1.05vmin, 8px)!important;
+  min-width:0!important;
+  min-height:0!important;
+  font-size:4px!important;
+  line-height:1!important;
+  border-width:1px!important;
+}
+
+.bc-play-shell .zone-status-inline-map .mini-map-link-vertical::before{
+  width:1px!important;
+  top:6px!important;
+  bottom:6px!important;
+}
+
+.bc-play-shell .zone-status-inline-map .mini-map-link-horizontal::before{
+  height:1px!important;
+  left:7px!important;
+  right:7px!important;
+}
+
+.bc-play-shell .zone-status-inline-map .screen-extension-minimap-section{
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+.bc-play-shell .zone-status-inline-map .screen-extension-minimap-section .screen-extension-label,
+.bc-play-shell .zone-status-inline-map .screen-mini-map-caption{
+  display:none!important;
+}
+
+/* Title screen: keep the route box visible but inactive. */
+.bc-play-shell .screen-extension-panel[data-phase="title"] .zone-status-inline-map .screen-extension-minimap-section{
+  display:block!important;
+  opacity:.38!important;
+  filter:saturate(.55)!important;
+}
+
+.bc-play-shell .screen-extension-panel[data-phase="title"] .zone-status-inline-map .mini-map-node[data-state="current"]{
+  animation:none!important;
+  box-shadow:none!important;
+  background:#070a07!important;
+  color:#504b36!important;
+  border-color:#2d2818!important;
+}
+
+/* Gameplay: retain the subtle current-position glow. */
+.bc-play-shell .zone-status-inline-map .mini-map-node[data-state="current"]{
+  background:#d8b94f!important;
+  color:#090806!important;
+  border-color:#fff1a8!important;
+  box-shadow:
+    0 0 0 1px #5b4212,
+    inset 0 0 0 1px #302000,
+    0 0 5px rgba(226,197,91,.46)!important;
+  animation:miniMapCurrentBlink .9s steps(2,end) infinite;
+}
+
+/* In stacked layout, the left zone card now mirrors the player card structure. */
+@media (max-width:979px), (orientation:portrait){
+  .bc-play-shell .screen-extension-zone-card{
+    min-height:0!important;
+  }
+
+  .bc-play-shell .screen-extension-player-card{
+    min-height:0!important;
+  }
+}
+
+@media (max-width:560px){
+  .bc-play-shell .screen-extension-zone-card{
+    grid-template-columns:minmax(0, 1fr) auto!important;
+  }
+
+  .bc-play-shell .zone-status-key-grid{
+    grid-template-columns:1fr 1fr!important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Rank + Zone Key status boxes
+   Converts the old Secret status slot into player Rank, then orders the small
+   boxes as RANK followed by ZONE KEY inside the Zone status card.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.bc-play-shell .zone-status-key-grid{
+  grid-template-columns:1fr 1fr!important;
+}
+
+.bc-play-shell .zone-status-key-grid .rank-stat{
+  order:1!important;
+}
+
+.bc-play-shell .zone-status-key-grid .zone-key-stat{
+  order:2!important;
+}
+
+.bc-play-shell [data-screen-extension-rank],
+.bc-play-shell #screenExtRank{
+  color:#f1df9f!important;
+  text-shadow:1px 1px 0 #000;
+  letter-spacing:.10em!important;
+}
+
+.bc-play-shell .rank-stat{
+  border-color:rgba(226,197,91,.38)!important;
+  background:
+    linear-gradient(180deg,rgba(24,22,9,.92),rgba(4,7,5,.96))!important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Upgrade chip sizing pass
+   Keeps upgrade boxes orderly and proportional inside the GAME STATUS panel.
+   UI-only CSS. No gameplay/state changes.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.bc-play-shell .screen-extension-upgrade-section{
+  margin-top:calc(var(--ui-gap, 6px) * .85)!important;
+  padding-top:calc(var(--ui-gap, 6px) * .85)!important;
+  border-top:1px solid rgba(135,115,67,.28)!important;
+}
+
+.bc-play-shell .upgrade-stack{
+  display:grid!important;
+  grid-template-columns:repeat(2, minmax(0, 1fr))!important;
+  align-items:stretch!important;
+  gap:4px!important;
+  width:100%!important;
+  min-height:0!important;
+}
+
+.bc-play-shell .upgrade-chip{
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:18px!important;
+  min-height:18px!important;
+  display:grid!important;
+  grid-template-columns:14px minmax(0, 1fr) auto!important;
+  align-items:center!important;
+  gap:3px!important;
+  padding:1px 4px!important;
+  border:1px solid rgba(135,115,67,.52)!important;
+  background:#050805!important;
+  color:#d8c982!important;
+  box-shadow:inset 0 0 0 1px #000!important;
+  overflow:hidden!important;
+}
+
+.bc-play-shell .upgrade-icon,
+.bc-play-shell .upgrade-icon-canvas,
+.bc-play-shell .upgrade-icon-fallback{
+  width:14px!important;
+  height:14px!important;
+  min-width:14px!important;
+  max-width:14px!important;
+  display:inline-grid!important;
+  place-items:center!important;
+  image-rendering:pixelated!important;
+  image-rendering:crisp-edges!important;
+}
+
+.bc-play-shell .upgrade-label,
+.bc-play-shell .upgrade-chip > span:not(.upgrade-icon-fallback):not(.upgrade-count){
+  min-width:0!important;
+  max-width:none!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  text-overflow:clip!important;
+  font-size:6px!important;
+  line-height:1!important;
+  letter-spacing:.02em!important;
+}
+
+.bc-play-shell .upgrade-count{
+  justify-self:end!important;
+  min-width:max-content!important;
+  font-size:6px!important;
+  line-height:1!important;
+  color:#f1df9f!important;
+  font-weight:700!important;
+}
+
+/* If only one upgrade appears, keep it aligned with the grid instead of
+   letting it stretch into a long full-row tag. */
+.bc-play-shell .upgrade-chip:only-child{
+  width:100%!important;
+}
+
+/* In very tight panel widths, keep the two-column structure but reduce density.
+   This keeps the upgrade section visually related to the score/key boxes. */
+@media (max-width:560px){
+  .bc-play-shell .upgrade-stack{
+    gap:3px!important;
+  }
+
+  .bc-play-shell .upgrade-chip{
+    height:17px!important;
+    min-height:17px!important;
+    grid-template-columns:13px minmax(0, 1fr) auto!important;
+    padding-inline:3px!important;
+  }
+
+  .bc-play-shell .upgrade-icon,
+  .bc-play-shell .upgrade-icon-canvas,
+  .bc-play-shell .upgrade-icon-fallback{
+    width:13px!important;
+    height:13px!important;
+    min-width:13px!important;
+    max-width:13px!important;
+  }
+
+  .bc-play-shell .upgrade-label,
+  .bc-play-shell .upgrade-chip > span:not(.upgrade-icon-fallback):not(.upgrade-count),
+  .bc-play-shell .upgrade-count{
+    font-size:5px!important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Upgrade spacing + internal line cleanup
+   UI-only CSS polish pass.
+   Adds breathing room inside upgrade boxes and removes/aligns stray internal
+   separator lines that made the GAME STATUS cards look uneven.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.bc-play-shell .screen-extension-upgrade-section{
+  margin-top:calc(var(--ui-gap, 6px) * 1.05)!important;
+  padding-top:calc(var(--ui-gap, 6px) * .95)!important;
+  border-top:1px solid rgba(135,115,67,.26)!important;
+}
+
+/* Space between the UPGRADES title and the chip grid. */
+.bc-play-shell .screen-extension-upgrade-section > .screen-extension-label{
+  display:block!important;
+  margin-bottom:5px!important;
+}
+
+/* Give text/icons more breathing room inside each chip. */
+.bc-play-shell .upgrade-stack{
+  gap:5px!important;
+}
+
+.bc-play-shell .upgrade-chip{
+  height:20px!important;
+  min-height:20px!important;
+  grid-template-columns:15px minmax(0, 1fr) auto!important;
+  gap:4px!important;
+  padding:2px 6px!important;
+}
+
+.bc-play-shell .upgrade-icon,
+.bc-play-shell .upgrade-icon-canvas,
+.bc-play-shell .upgrade-icon-fallback{
+  width:15px!important;
+  height:15px!important;
+  min-width:15px!important;
+  max-width:15px!important;
+}
+
+.bc-play-shell .upgrade-label,
+.bc-play-shell .upgrade-chip > span:not(.upgrade-icon-fallback):not(.upgrade-count){
+  padding-inline-start:1px!important;
+  letter-spacing:.035em!important;
+}
+
+.bc-play-shell .upgrade-count{
+  padding-inline-start:4px!important;
+}
+
+/* Clean up the faint mismatched internal lines.
+   Keep real card borders, but stop nested sections from drawing partial-width
+   separators that do not line up with the surrounding cards. */
+.bc-play-shell .screen-extension-player-card .screen-extension-meter-grid,
+.bc-play-shell .screen-extension-player-card .screen-extension-grid{
+  border:0!important;
+}
+
+.bc-play-shell .screen-extension-player-card .screen-extension-stat,
+.bc-play-shell .screen-extension-player-card .screen-extension-stat-small{
+  box-shadow:inset 0 0 0 1px #000!important;
+}
+
+/* Align the player card's internal separator with the full card width. */
+.bc-play-shell .screen-extension-player-card .screen-extension-upgrade-section{
+  margin-inline:0!important;
+  padding-inline:0!important;
+}
+
+/* Remove any leftover pseudo-lines from older card styling inside player card. */
+.bc-play-shell .screen-extension-player-card::before,
+.bc-play-shell .screen-extension-player-card::after,
+.bc-play-shell .screen-extension-upgrade-section::before,
+.bc-play-shell .screen-extension-upgrade-section::after,
+.bc-play-shell .upgrade-stack::before,
+.bc-play-shell .upgrade-stack::after{
+  content:none!important;
+  display:none!important;
+}
+
+/* Keep the status card borders consistent and squared. */
+.bc-play-shell .screen-extension-section,
+.bc-play-shell .screen-extension-stat,
+.bc-play-shell .screen-extension-player-name,
+.bc-play-shell .upgrade-chip{
+  border-color:rgba(135,115,67,.48)!important;
+}
+
+/* Smaller windows: keep the spacing improvement but avoid forcing wrapping. */
+@media (max-width:560px){
+  .bc-play-shell .screen-extension-upgrade-section > .screen-extension-label{
+    margin-bottom:4px!important;
+  }
+
+  .bc-play-shell .upgrade-stack{
+    gap:4px!important;
+  }
+
+  .bc-play-shell .upgrade-chip{
+    height:18px!important;
+    min-height:18px!important;
+    grid-template-columns:14px minmax(0, 1fr) auto!important;
+    gap:3px!important;
+    padding:2px 5px!important;
+  }
+
+  .bc-play-shell .upgrade-icon,
+  .bc-play-shell .upgrade-icon-canvas,
+  .bc-play-shell .upgrade-icon-fallback{
+    width:14px!important;
+    height:14px!important;
+    min-width:14px!important;
+    max-width:14px!important;
+  }
+}
