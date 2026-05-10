@@ -116,7 +116,6 @@ menuHeroImg.src = MENU_HERO_IMAGE_SRC;
 
 function drawMenuBg(){
   if(!menuHeroReady || !menuHeroImg.complete || !menuHeroImg.naturalWidth){
-    drawMenuBgFallback();
     return;
   }
 
