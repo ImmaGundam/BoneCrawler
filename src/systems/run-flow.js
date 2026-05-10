@@ -1,9 +1,8 @@
-// BoneCrawler safe split module
+// run-flow
 // Purpose: Reset/start/retry flow, checkpoints, queued reward dialogs, New Game Plus startup flow.
-// Source: app.js lines 1806-2096
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
 
 function resetGame(){
+  try{ if(window.AudioEvents) AudioEvents.stopAll(); }catch(err){}
   player={
     x:GW/2-4, y:GH/2, w:8, h:8, speed:PLAYER_BASE_SPEED,
     dir:'down', hp:6, maxHp:10, visibleHearts:3,
@@ -26,13 +25,13 @@ function resetGame(){
     player.visibleHearts=Math.max(player.visibleHearts||3, MASTER_SWORD_START_HEART_SLOTS);
   }
   enemies=[]; parts=[]; pSpawns=[]; frame=0; score=0; prevSpc=false;
-  killCount=0; nextChestAt=10; nextGiantAt=GIANT_KILL_INTERVAL_START; chest=null; floatTexts=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; keyDrop=[]; fireballs=[]; nextWizardAt=WIZARD_KILL_INTERVAL_START; giantKillInterval=GIANT_KILL_INTERVAL_START; wizardKillInterval=WIZARD_KILL_INTERVAL_START; currentZone=1;
+  killCount=0; nextChestAt=10; nextGiantAt=GIANT_KILL_INTERVAL_START; chests=[]; chest=null; floatTexts=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; keyDrop=[]; fireballs=[]; nextWizardAt=WIZARD_KILL_INTERVAL_START; giantKillInterval=GIANT_KILL_INTERVAL_START; wizardKillInterval=WIZARD_KILL_INTERVAL_START; currentZone=1;
   zone1KillStart=0; zone2KillStart=0; zone3KillStart=0;
   normalKillCount=0; giantKillCount=0; wizardKillCount=0;
   pendingZoneTransition=0;
   zoneTransitionInfo=null;
   leaveZonePromptData=null;
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
+  dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
   secret1BlessingT=0;
@@ -77,8 +76,13 @@ function resetGame(){
   zone3TreeAwake=false;
   zone3TreeMet=false;
   rollUpgradeChoices();
-  qSpawn(80, false, false, 'normalEnemy1');
-  qSpawn(92, false, false, 'normalEnemy3');
+  if(window.BoneCrawlerZoneSpawn){
+    BoneCrawlerZoneSpawn.beginRun(1);
+  }
+  if(!window.BoneCrawlerZoneSpawn || !BoneCrawlerZoneSpawn.usesManagedSpawns(1)){
+    qSpawn(80, false, false, 'normalEnemy1');
+    qSpawn(92, false, false, 'normalEnemy3');
+  }
 }
 
 
@@ -231,9 +235,9 @@ function restoreRetryCheckpoint(){
   nextWizardAt=Math.max(WIZARD_KILL_INTERVAL_START, cp.nextWizardAt|0);
   wizardKillInterval=Math.max(WIZARD_KILL_INTERVAL_MIN, cp.wizardKillInterval|0);
   if(!cp.nextGiantAt || !cp.nextWizardAt) syncKillSpawnSchedulesFromCount();
-  chest=null; clearKeyDrops();
+  clearChests(); clearKeyDrops();
   enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[]; parts=[];
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
+  dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
   zone1Broken=Array(ZONE1_DECOR_BREAK_RECTS.length).fill(false);

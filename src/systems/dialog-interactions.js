@@ -1,7 +1,6 @@
-// BoneCrawler safe split module
-// Purpose: Primary interaction handling, scripted zone dialogs, NPC/sword/tree dialogs, dialog advance/skip, player damage entry point.
-// Source: app.js lines 2826-3024
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
+// dialog-interactions
+// Purpose: Primary interaction handling, scripted zone dialogs, 
+// NPC/sword/tree dialogs, dialog advance/skip, player damage entry point.
 
 function handlePrimaryInteract(){
   const target=getCurrentInteractionTarget();
@@ -16,6 +15,9 @@ function handlePrimaryInteract(){
 }
 function maybeTriggerScriptedZoneDialog(){
   if(gState!=='playing') return false;
+  try{
+    if(window.BoneCrawlerProgression && typeof BoneCrawlerProgression.maybeTriggerScriptedDialog === 'function' && BoneCrawlerProgression.maybeTriggerScriptedDialog()) return true;
+  }catch(err){}
   if(currentZone===1){
     const progress=getZoneProgressKills(1);
     if(!zone1DoorKeyDialogShown && hasKeyDropKind('zone1Door')){
@@ -158,6 +160,9 @@ function advanceDialog(){
     if(wasOpening) startupDialogCompletedThisRun=true;
     clearGameplayKeys();
     gState='playing';
+    if(wasOpening && !(typeof isSecretZone === 'function' && isSecretZone(currentZone))){
+      try{ if(window.AudioEvents) AudioEvents.enterZone(currentZone); }catch(err){}
+    }
   }
 }
 
@@ -169,6 +174,9 @@ function skipDialog(){
   if(wasOpening) startupDialogCompletedThisRun=true;
   clearGameplayKeys();
   gState='playing';
+  if(wasOpening && !(typeof isSecretZone === 'function' && isSecretZone(currentZone))){
+    try{ if(window.AudioEvents) AudioEvents.enterZone(currentZone); }catch(err){}
+  }
 }
 
 function hurtPlayer(amount=1){
@@ -184,6 +192,7 @@ function hurtPlayer(amount=1){
   }
   if(p.dead || p.hurtT>0 || (p.dodgeInvulnT||0)>0) return false;
   if(p.shield){
+    try{ if(window.AudioEvents) AudioEvents.playerShield(); }catch(err){}
     p.shield=false;
     p.shieldBreakT=24;
     p.hurtT=35;
@@ -192,9 +201,11 @@ function hurtPlayer(amount=1){
     return true;
   }
   p.hp=Math.max(0,p.hp-amount);
+  try{ if(window.AudioEvents) AudioEvents.playerHit(); }catch(err){}
   p.hurtT=amount>1?52:40;
   if(p.hp<=0){
     p.dead=true;
+    try{ if(window.AudioEvents) AudioEvents.playerDeath(); }catch(err){}
     runTimeMs=performance.now()-runStartMs;
     saveRunIfNeeded();
     setTimeout(()=>{gState='gameover';},1200);

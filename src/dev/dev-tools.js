@@ -1,10 +1,8 @@
-// BoneCrawler safe split module
-// Purpose: Cheat-code detection, dev commands, god mode, editable stat/dev API helpers.
-// Source: app.js lines 1472-1805
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
+// Developer toolkit limited
+// Purpose: Editable stat/dev API helpers.
 // ── Cheat code name detection ─────────────────────────────────────
 function getCheatCode(name=currentPlayerName){
+  if(window.BoneCrawlerCheatCodes && typeof BoneCrawlerCheatCodes.detect === 'function') return BoneCrawlerCheatCodes.detect(name);
   const clean=String(name||'').trim().toLowerCase();
   const codes={
     'link':'link','doodoorocks':'doodoorocks','circa90x':'circa90x',
@@ -14,25 +12,9 @@ function getCheatCode(name=currentPlayerName){
   return codes[clean]||null;
 }
 function applyCheatCode(code){
-  if(!code||!player) return;
-  const p=player;
-  if(code==='link'){
-    p.swordLevel=3; p.swordReach=11+3*6; p.swordWidth=1;
-    p.speedLevel=3; p.speed=PLAYER_BASE_SPEED+3*SPEED_UP_STEP;
-    p.shield=true; p.shieldLevel=3;
-    p.shadowStep=true; p.stepLevel=3;
-    p.hp=p.maxHp; p.visibleHearts=5;
-    masterSwordOwned=true; whirlwindUnlocked=true;
-    p.swordLevel=Math.max(p.swordLevel,MASTER_SWORD_START_LEVEL);
-    p.swordReach=Math.max(p.swordReach,MASTER_SWORD_START_REACH);
-    p.swordWidth=Math.max(p.swordWidth,MASTER_SWORD_START_WIDTH);
-    potionCount=1;
-  } else if(code==='doodoorocks'){
-    p.swordLevel=7; p.swordReach=11+7*6;
-    p.speedLevel=7; p.speed=Math.min(MAX_PLAYER_SPEED,PLAYER_BASE_SPEED+7*SPEED_UP_STEP);
-  } else if(code==='circa90x'){
-    p.shield=true; p.shieldLevel=1;
-    p.hp=1; p.visibleHearts=3;
+  if(window.BoneCrawlerCheatCodes && typeof BoneCrawlerCheatCodes.apply === 'function'){
+    BoneCrawlerCheatCodes.apply(code);
+    return;
   }
 }
 function openStartupGameDialog(){
@@ -62,13 +44,12 @@ function beginPlayableRun(){
   }
   clearGameplayKeys();
   gState='playing';
+  try{ if(window.AudioEvents) AudioEvents.enterZone(currentZone); }catch(err){}
 }
 function startGameWithCheat(code){
-  if(code==='itsasecret'){ clearGameplayKeys(); enterSecretZone1(); if(startupDialogPending) beginStartupSceneTransition(); else beginPlayableRun(); return; }
-  if(code==='devsecret'){  clearGameplayKeys(); enterSecretZone2(); if(startupDialogPending) beginStartupSceneTransition(); else beginPlayableRun(); return; }
-  if(code==='whydragons'){ killCount=ZONE1_DRAGON_MINIBOSS_KILLS; pendingZone1DragonSpawn=true; clearGameplayKeys(); if(startupDialogPending) beginStartupSceneTransition(); else beginPlayableRun(); return; }
-  if(code==='zone2'){      enterZone2(); clearGameplayKeys(); if(startupDialogPending) beginStartupSceneTransition(); else beginPlayableRun(); return; }
-  if(code==='zone3'){      enterZone3(); clearGameplayKeys(); if(startupDialogPending) beginStartupSceneTransition(); else beginPlayableRun(); return; }
+  if(window.BoneCrawlerCheatCodes && typeof BoneCrawlerCheatCodes.start === 'function'){
+    if(BoneCrawlerCheatCodes.start(code)) return;
+  }
   if(introSeenThisPage){
     introStartMs=0;
     introPage=0;
@@ -121,7 +102,7 @@ function devAdvanceProgress(){
   if(currentZone===2){
     killCount=Math.max(killCount, zone2KillStart + DRAGON_BOSS_TRIGGER_KILLS);
     syncKillSpawnSchedulesFromCount();
-    chest=null; clearKeyDrops();
+    clearChests(); clearKeyDrops();
     enemies=[]; pSpawns=[]; fireballs=[];
     dragonFlames=[]; dragonSwipe=null;
     spawnDragonBoss();
@@ -135,7 +116,7 @@ function devAdvanceProgress(){
   }
   if(currentZone===3){
     killCount=Math.max(killCount, zone3KillStart + ZONE3_BOSS_TRIGGER_KILLS);
-    chest=null; clearKeyDrops();
+    clearChests(); clearKeyDrops();
     enemies=[]; pSpawns=[]; fireballs=[];
     shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
     spawnShadowBoss();
@@ -159,6 +140,15 @@ function devSkipBossPhase(){
     damageDragonBoss(dragonBoss.hp,false);
     return;
   }
+  if(whyDragonsBoss){
+    if(whyDragonsBoss.howlT>0){
+      whyDragonsBoss.howlT=1;
+      pushDevFloat('BONUS PHASE', C.MG2);
+      return;
+    }
+    damageWhyDragonsBoss(whyDragonsBoss.hp,false);
+    return;
+  }
   if(shadowBoss && !shadowBossDefeated){
     if(shadowBoss.howlT>0){
       shadowBoss.howlT=1;
@@ -180,9 +170,9 @@ function devGotoZone(zone){
   zoneTransitionInfo=null;
   clearGameplayKeys();
 
-  chest=null; clearKeyDrops();
+  clearChests(); clearKeyDrops();
   enemies=[]; pSpawns=[]; fireballs=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; parts=[];
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
+  dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
   secret1BlessingT=0;
@@ -318,6 +308,9 @@ const __bonecrawlerDevApi = {
     dragonActive:!!dragonBoss,
     dragonPhase:dragonBoss ? dragonBoss.phase : 0,
     dragonHp:dragonBoss ? dragonBoss.hp : 0,
+    whyDragonsActive:!!whyDragonsBoss,
+    whyDragonsPhase:whyDragonsBoss ? whyDragonsBoss.phase : 0,
+    whyDragonsHp:whyDragonsBoss ? whyDragonsBoss.hp : 0,
     shadowActive:!!shadowBoss,
     shadowPhase:shadowBoss ? shadowBoss.phase : 0,
     shadowHp:shadowBoss ? shadowBoss.hp : 0,

@@ -1,8 +1,5 @@
-// BoneCrawler safe split module
+// upgrades
 // Purpose: Upgrade constants, weighted point rewards, upgrade-button rolling.
-// Source: app.js lines 986-1062
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
 // ── Upgrade menu buttons ─────────────────────────────────────
 const PLAYER_BASE_SPEED = 0.28;
 const SPEED_UP_STEP = 0.12;

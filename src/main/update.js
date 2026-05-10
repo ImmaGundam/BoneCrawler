@@ -1,8 +1,5 @@
-// BoneCrawler safe split module
+// game state update
 // Purpose: Main update tick: game-state progression, movement, collisions, items, enemy updates, and menu transitions.
-// Source: app.js lines 4407-4934
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
 // ── Update ────────────────────────────────────────────────────
 function update(){
   frame++; // always tick so animations run on all screens
@@ -33,9 +30,22 @@ function update(){
   }
   if(gState!=='playing') return;
   if(pendingRewardDialogs.length && openQueuedRewardDialog()) return;
+  if(maybeTriggerScriptedZoneDialog()) return;
+
+  if(!dragonBoss && !whyDragonsBoss && !shadowBoss && !isSecretZone(currentZone)){
+    try{ if(window.AudioEvents && typeof AudioEvents.ensureZoneAmbience === 'function') AudioEvents.ensureZoneAmbience(currentZone); }catch(err){}
+  }
+
+  const zoneSpawnIntroBlocked = (() => {
+    if(!window.BoneCrawlerZoneSpawn) return false;
+    if(typeof BoneCrawlerZoneSpawn.updateZoneIntro === 'function') BoneCrawlerZoneSpawn.updateZoneIntro();
+    return typeof BoneCrawlerZoneSpawn.isZoneStartBlocked === 'function' && BoneCrawlerZoneSpawn.isZoneStartBlocked(currentZone);
+  })();
 
   // Spawn timers
-  if(!isSecretZone(currentZone)){
+  if(!zoneSpawnIntroBlocked && window.BoneCrawlerZoneSpawn && BoneCrawlerZoneSpawn.shouldOwnUpdate(currentZone)){
+    BoneCrawlerZoneSpawn.update();
+  } else if(!zoneSpawnIntroBlocked && !isSecretZone(currentZone)){
     for(let i=pSpawns.length-1;i>=0;i--){
       pSpawns[i].t--;
       if(pSpawns[i].t<=0){
@@ -151,7 +161,6 @@ function update(){
     }
   }
 
-  if(maybeTriggerScriptedZoneDialog()) return;
 
   // Key pickup + door unlock to zone 2
   if(hasAnyKeyDrop()){
@@ -159,6 +168,7 @@ function update(){
     for(let i=drops.length-1;i>=0;i--){
       const drop=drops[i];
       if(!ov({x:p.x,y:p.y,w:p.w,h:p.h},{x:drop.x,y:drop.y,w:drop.w,h:drop.h})) continue;
+      try{ if(window.AudioEvents) AudioEvents.keyPickup(); }catch(err){}
       if(drop.kind==='zone1Door') p.zone1DoorKey=true;
       else if(drop.kind==='secret1'){ p.secret1Key=true; breakZone1Decor(0); }
       else if(drop.kind==='zone2') p.zone2Key=true;
@@ -176,8 +186,13 @@ function update(){
   }
 
   // Chest collision → pause for upgrade
-  if(chest && ov({x:p.x,y:p.y,w:p.w,h:p.h},{x:chest.x,y:chest.y,w:chest.w,h:chest.h})){
-    chest=null;
+  const activeChests = typeof getChestList === 'function' ? getChestList() : (chest ? [chest] : []);
+  for(let i=activeChests.length-1;i>=0;i--){
+    const c=activeChests[i];
+    if(!c || !ov({x:p.x,y:p.y,w:p.w,h:p.h},{x:c.x,y:c.y,w:c.w,h:c.h})) continue;
+    if(typeof removeChestAt === 'function') removeChestAt(i);
+    else chest=null;
+    try{ if(window.AudioEvents) AudioEvents.chestOpen(); }catch(err){}
     rollUpgradeChoices();
     gState='upgrade';
     return;
@@ -218,13 +233,15 @@ function update(){
   // Attack
   const keyboardSpcNow=isKeyDown('Space');
   const touchSpcNow=touchAttackChargeActive && !touchAttackMoved;
-  const spcNow=keyboardSpcNow || touchSpcNow;
+  const mouseSpcNow=mouseAttackHeld && whirlwindUnlocked;
+  const spcNow=keyboardSpcNow || touchSpcNow || mouseSpcNow;
   const touchChargeCanceled=touchAttackCancelQueued && !spcNow && prevSpc;
   const spcJust=spcNow&&!prevSpc;
-  const spcRelease=((!spcNow&&prevSpc&&!touchChargeCanceled) || touchAttackReleaseQueued);
+  const spcRelease=((!spcNow&&prevSpc&&!touchChargeCanceled) || touchAttackReleaseQueued || mouseAttackReleaseQueued);
   const clickJust=mouseAttackQueued;
   prevSpc=spcNow;
   mouseAttackQueued=false;
+  mouseAttackReleaseQueued=false;
   touchAttackReleaseQueued=false;
   touchAttackCancelQueued=false;
 
@@ -264,10 +281,17 @@ function update(){
   if(p.hurtT>0) p.hurtT--;
 
   updateDragonBoss();
+  updateWhyDragonsBoss();
   updateShadowBoss();
 
   // Enemy AI
   for(const e of enemies){
+    if(e.spawnT>0){
+      e.spawnT--;
+      e.walkF++;
+      if(e.spawnT<=0) e.spawnInvulnerable=false;
+      if(e.spawnFreeze !== false) continue;
+    }
     if(e.atkT>0) e.atkT--;
     if(e.atkCD>0) e.atkCD--;
     if(e.hurtT>0) e.hurtT--;
@@ -296,6 +320,7 @@ function update(){
       if(e.shootCD<=0 && dist<90){
         e.shootCD=150+(Math.random()*60|0);
         e.atkT=20;
+        try{ if(window.AudioEvents) AudioEvents.wizardAttack(); }catch(err){}
         const spd=rollFireballSpeed(0.9);
         const fbDx=ddx/dist*spd, fbDy=ddy/dist*spd;
         fireballs.push({x:e.x+e.w/2-1,y:e.y+e.h/2-1,vx:fbDx,vy:fbDy,life:160});
@@ -305,6 +330,7 @@ function update(){
     if(near){
       if(e.atkCD<=0){
         e.atkT=20; e.atkCD=(e.giant?100:116)+(Math.random()*(e.giant?60:65)|0);
+        try{ if(window.AudioEvents) AudioEvents.skeletonAttack(); }catch(err){}
         if(p.hurtT<=0){
           hurtPlayer(1);
         }

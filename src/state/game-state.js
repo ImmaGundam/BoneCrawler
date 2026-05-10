@@ -1,8 +1,5 @@
-// BoneCrawler safe split module
+// game-state
 // Purpose: Global runtime state variables, zone IDs, boss constants, item constants, and secret-zone geometry.
-// Source: app.js lines 1260-1471
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
 // ── Game state ────────────────────────────────────────────────
 const ZONE_TRANSITION_CONTINUE_BTN={x:35,y:99,w:50,h:10};
 const RETRY_CONFIRM_YES_BTN={x:24,y:92,w:28,h:10};
@@ -16,8 +13,9 @@ const WHIRLWIND_HOLD_FRAMES=24;
 const WHIRLWIND_COOLDOWN_FRAMES=5*60;
 
 let gState='title';
-let player, enemies, parts, pSpawns, frame, score, prevSpc;
-let killCount, nextChestAt, nextGiantAt, chest, floatTexts, heartDrops, potionDrops, shockwaves, keyDrop, currentZone;
+let player, enemies, parts, pSpawns, frame=0, score, prevSpc;
+let sceneFrame=0, sceneTime=0, sceneClockLastMs=0;
+let killCount, nextChestAt, nextGiantAt, chest, chests, floatTexts, heartDrops, potionDrops, shockwaves, keyDrop, currentZone;
 let zone1Broken, zone1Rubble, zone2Broken, zone3Broken;
 let fireballs, nextWizardAt, giantKillInterval, wizardKillInterval;
 let normalKillCount=0, giantKillCount=0, wizardKillCount=0;
@@ -25,7 +23,7 @@ let zone3TreeHits=0, zone3TreeShakeT=0, zone3TreeAwake=false, zone3TreeMet=false
 let pendingZoneTransition=0;
 let zoneTransitionInfo=null;
 let leaveZonePromptData=null;
-let dragonBoss=null, dragonFlames=[], dragonSwipe=null, bossDefeated=false, zone1MiniBossDefeated=false, pendingZone1DragonSpawn=false;
+let dragonBoss=null, whyDragonsBoss=null, dragonFlames=[], dragonSwipe=null, bossDefeated=false, zone1MiniBossDefeated=false, pendingZone1DragonSpawn=false;
 let shadowBoss=null, shadowWaves=[], shadowBossDefeated=false, shadowWizardRespawns=[];
 let bossClearTimer=0;
 let secret1BlessingT=0;
@@ -69,6 +67,7 @@ const STARTUP_GAME_DIALOG_PAGES=[
 ];
 let mouseAttackQueued=false;
 let mouseAttackHeld=false;
+let mouseAttackReleaseQueued=false;
 let touchMoveActive=false;
 let touchStartX=0, touchStartY=0, touchX=0, touchY=0, touchStartTime=0;
 let touchIdentifier=null;
@@ -98,6 +97,17 @@ let potionCount=0;
 let potionDialogSeenThisRun=false;
 const DEV_GOD_SPEED_MULT=1.85;
 
+function tickSceneClock(now=performance.now()){
+  const previous = sceneClockLastMs || now;
+  let dt = (now - previous) / 1000;
+  if(!Number.isFinite(dt) || dt < 0) dt = 0;
+  if(dt > 0.05) dt = 0.05;
+  sceneClockLastMs = now;
+  sceneFrame++;
+  sceneTime += dt || (1/60);
+  if(!Number.isFinite(frame)) frame = 0;
+}
+
 const ITEM_TTL_FRAMES=15*60;
 const ITEM_FADE_FRAMES=5*60;
 const BREAKABLE_HALF_HEART_DROP_CHANCE=0.10;
@@ -106,11 +116,11 @@ const ZONE1_CHEST_KILL_STEP=10;
 const ZONE2_CHEST_KILL_STEP=15;
 const ZONE2_FIRST_CHEST_DELAY=18;
 const ZONE1_ZONE2_KEY_KILLS=50;
-const ZONE1_SECRET_KEY_KILLS=150;
+const ZONE1_SECRET_KEY_KILLS=80;
 const ZONE1_DRAGON_MINIBOSS_KILLS=300;
 const ZONE1_DRAGON_PHASE_HITS=10;
 const ZONE2_KEY_KILLS=50;
-const DRAGON_BOSS_TRIGGER_KILLS=100;
+const DRAGON_BOSS_TRIGGER_KILLS=200;
 const ZONE3_CHEST_KILL_STEP=18;
 const ZONE3_FIRST_CHEST_DELAY=22;
 const ZONE3_KEY_KILLS=300;
@@ -132,7 +142,8 @@ const ZONE3_DOOR_RECT={x:GW/2-5,y:PY-2,w:10,h:10};
 const SECRET1_ENTRANCE_RECT={x:PX+3,y:PY+24,w:4,h:10};
 const SECRET1_EXIT_DOOR_RECT={x:GW/2-5,y:PY-2,w:10,h:10};
 function zone1SecretEntranceReady(){
-  return currentZone===1 && !!player && !!player.secret1Key && !hasKeyDropKind('secret1') && enemies.length===0 && pSpawns.length===0;
+  // Secret Zone 1: Secret Zone key + broken bookshelf.
+  return currentZone===1 && !!player && !!player.secret1Key && !!zone1Broken && !!zone1Broken[0] && !hasKeyDropKind('secret1');
 }
 const SECRET1_POOL_BLOCKERS=[];
 const SECRET1_POOL_WATER_RECT={x:GW/2-25,y:PY+25,w:50,h:20};
@@ -159,19 +170,14 @@ const ZONE3_TREE_BLOCKERS=[
 const ZONE3_EXTRA_BLOCKERS=[
   {x:PX+PW-18,y:PY+PH-11,w:7,h:7},
 ];
-const ZONE3_DECOR_BREAK_RECTS=[
-  {x:PX+2,y:PY+22,w:6,h:17},
-  {x:PX+PW-8,y:PY+20,w:6,h:17},
-  {x:GW/2-7,y:PY+35,w:15,h:13},
-  {x:PX+PW-25,y:PY+PH-13,w:6,h:8},
-  {x:PX+PW-10,y:PY+PH-12,w:6,h:8},
-];
+const ZONE3_DECOR_BREAK_RECTS=(window.BoneCrawlerZoneObjects && BoneCrawlerZoneObjects.getBreakRects)
+  ? BoneCrawlerZoneObjects.getBreakRects(3)
+  : [];
+const ZONE3_DECOR_OBJECT_BLOCKERS=(window.BoneCrawlerZoneObjects && BoneCrawlerZoneObjects.getBlockerRects)
+  ? BoneCrawlerZoneObjects.getBlockerRects(3)
+  : [];
 const ZONE3_DECOR_BLOCKERS=[
-  {x:PX+2,y:PY+33,w:6,h:6},
-  {x:PX+PW-8,y:PY+31,w:6,h:6},
-  {x:GW/2-6,y:PY+41,w:12,h:8},
-  {x:PX+PW-25,y:PY+PH-13,w:6,h:8},
-  {x:PX+PW-10,y:PY+PH-12,w:6,h:8},
+  ...ZONE3_DECOR_OBJECT_BLOCKERS,
   ...ZONE3_TREE_BLOCKERS,
   ...ZONE3_EXTRA_BLOCKERS,
 ];

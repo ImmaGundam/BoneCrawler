@@ -1,12 +1,11 @@
-// BoneCrawler safe split module
-// Purpose: Shield shockwave, enemy defeat rewards, health/potion/dodge, decor breaking, applying upgrades, title/start/scoreboard helpers.
-// Source: app.js lines 3632-4033
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
+// player-survival-upgrades
+// Purpose: Shield shockwave, enemy defeat rewards, 
+// health/potion/dodge, decor breaking, applying upgrades, title/start/scoreboard helpers.
 const SHIELD_SHOCKWAVE_BASE_RADIUS = 15;
 const SHIELD_SHOCKWAVE_STEP = 3;
 
 function handleEnemyDefeat(i,e,fromShockwave){
+  try{ if(window.AudioEvents) AudioEvents.skeletonDeath(); }catch(err){}
   if(e.giant){
     giantKillCount++;
     floatTexts.push({x:e.x+8,y:e.y-4,text:'+5',life:45,max:45,col:C.FR1});
@@ -27,30 +26,43 @@ function handleEnemyDefeat(i,e,fromShockwave){
   enemies.splice(i,1);
   score+=e.points;
   killCount++;
-  if(currentZone===1 && killCount===ZONE1_ZONE2_KEY_KILLS && !player.zone1DoorKey && !hasKeyDropKind('zone1Door')){
+  const defeatPayload = {
+    zoneId: currentZone,
+    enemy: e,
+    fromShockwave: !!fromShockwave,
+    runKills: killCount,
+    zoneKills: (typeof getZoneProgressKills === 'function' ? getZoneProgressKills(currentZone) : killCount),
+    x: e.x + Math.floor((e.w || 8) / 2) - 3,
+    y: e.y + Math.floor((e.h || 8) / 2) - 3
+  };
+  try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('enemy.defeated', defeatPayload); }catch(err){}
+  const spawnSubsystemHandledDefeat = !!(window.BoneCrawlerZoneSpawn && typeof BoneCrawlerZoneSpawn.onEnemyDefeated === 'function' && BoneCrawlerZoneSpawn.onEnemyDefeated(defeatPayload));
+  const usingManagedSpawnProgression = !!(window.BoneCrawlerZoneSpawn && BoneCrawlerZoneSpawn.usesManagedSpawns(currentZone));
+  if(!spawnSubsystemHandledDefeat && !usingManagedSpawnProgression && currentZone===1 && killCount===ZONE1_ZONE2_KEY_KILLS && !player.zone1DoorKey && !hasKeyDropKind('zone1Door')){
     spawnKeyDrop(e.x+Math.floor(e.w/2)-3,e.y+Math.floor(e.h/2)-3,'zone1Door');
     floatTexts.push({x:e.x+e.w/2,y:e.y-10,text:'ZONE 2 KEY!',life:52,max:52,col:C.FR1});
   }
-  if(currentZone===1 && killCount===ZONE1_SECRET_KEY_KILLS && !player.secret1Key && !hasKeyDropKind('secret1')){
+  if(!spawnSubsystemHandledDefeat && !usingManagedSpawnProgression && currentZone===1 && killCount===ZONE1_SECRET_KEY_KILLS && !player.secret1Key && !hasKeyDropKind('secret1')){
     spawnKeyDrop(e.x+Math.floor(e.w/2)-3,e.y+Math.floor(e.h/2)-3,'secret1');
     floatTexts.push({x:e.x+e.w/2,y:e.y-10,text:'SECRET KEY!',life:52,max:52,col:C.MG2});
   }
-  if(currentZone===2 && getZoneProgressKills(2)===ZONE2_KEY_KILLS && !player.zone2Key && !hasKeyDropKind('zone2')){
+  if(!spawnSubsystemHandledDefeat && !usingManagedSpawnProgression && currentZone===2 && getZoneProgressKills(2)===ZONE2_KEY_KILLS && !player.zone2Key && !hasKeyDropKind('zone2')){
     spawnKeyDrop(e.x+Math.floor(e.w/2)-3,e.y+Math.floor(e.h/2)-3,'zone2');
     floatTexts.push({x:e.x+e.w/2,y:e.y-10,text:'KEY!',life:46,max:46,col:C.BN1});
   }
-  if(currentZone===1 && killCount===ZONE1_DRAGON_MINIBOSS_KILLS && !dragonBoss && !bossDefeated && !zone1MiniBossDefeated){
+  if(!spawnSubsystemHandledDefeat && !usingManagedSpawnProgression && currentZone===1 && killCount===ZONE1_DRAGON_MINIBOSS_KILLS && !dragonBoss && !bossDefeated && !zone1MiniBossDefeated){
     pendingZone1DragonSpawn=true;
   }
-  if(!dragonBoss && !shadowBoss && !pendingZone1DragonSpawn){
+  if(!spawnSubsystemHandledDefeat && !dragonBoss && !shadowBoss && !pendingZone1DragonSpawn){
     for(const spawn of pSpawns){
       spawn.t=Math.min(spawn.t, spawn.giant ? giantSpawnDelay() : regularSpawnDelay());
     }
-    if(killCount>=nextChestAt && !chest && !isSecretZone(currentZone)){
+    const managedChestZone = window.BoneCrawlerZoneSpawn && BoneCrawlerZoneSpawn.usesManagedSpawns(currentZone);
+    if(!managedChestZone && killCount>=nextChestAt && !chest && !isSecretZone(currentZone)){
       spawnChest();
       nextChestAt+=getChestKillStepForZone(currentZone);
     }
-    if(!isSecretZone(currentZone) && getZoneProgressKills(currentZone)<getZoneKillTarget(currentZone)){
+    if(!isSecretZone(currentZone) && (!window.BoneCrawlerZoneSpawn || !BoneCrawlerZoneSpawn.usesManagedSpawns(currentZone)) && getZoneProgressKills(currentZone)<getZoneKillTarget(currentZone)){
       if(killCount>=nextGiantAt){
         qSpawn(giantSpawnDelay(), true);
         giantKillInterval=Math.max(GIANT_KILL_INTERVAL_MIN, giantKillInterval-1);
@@ -151,6 +163,7 @@ function getDodgeCooldownFrames(){
 function performDodge(){
   const p=player;
   if(!p || p.dead || dodgeCooldownT>0) return false;
+  try{ if(window.AudioEvents) AudioEvents.playerDodge(); }catch(err){}
   let dx=0, dy=0;
   if(p.dir==='left') dx=-1;
   else if(p.dir==='right') dx=1;
@@ -202,6 +215,7 @@ function grantHalfHeartReward(x,y){
 }
 
 function triggerShieldShockwave(cx,cy){
+  try{ if(window.AudioEvents) AudioEvents.playerShield(); }catch(err){}
   const shockwaveRadius=getShieldShockwaveRadius();
   shockwaves.push({x:cx,y:cy,r:3,maxR:shockwaveRadius,life:18,maxLife:18});
   for(let i=0;i<20;i++){
@@ -211,7 +225,7 @@ function triggerShieldShockwave(cx,cy){
   }
   for(let i=enemies.length-1;i>=0;i--){
     const e=enemies[i];
-    if(!e) continue;
+    if(!e || e.spawnInvulnerable) continue;
     const ex=e.x+e.w/2, ey=e.y+e.h/2;
     const dist=Math.hypot(ex-cx, ey-cy);
     if(dist<=shockwaveRadius + e.w/2){
@@ -229,6 +243,13 @@ function triggerShieldShockwave(cx,cy){
     const dist=Math.hypot(dc.x-cx, dc.y-cy);
     if(dist<=shockwaveRadius + Math.max(dragonBoss.w,dragonBoss.h)/3){
       damageDragonBoss(1,true);
+    }
+  }
+  if(whyDragonsBoss && whyDragonsBoss.howlT<=0){
+    const dc=getDragonCenter(whyDragonsBoss);
+    const dist=Math.hypot(dc.x-cx, dc.y-cy);
+    if(dist<=shockwaveRadius + Math.max(whyDragonsBoss.w,whyDragonsBoss.h)/3){
+      damageWhyDragonsBoss(1,true);
     }
   }
 }
@@ -249,11 +270,65 @@ function burstDecor(x,y){
   }
 }
 
+function getBreakableObjectDef(zone, idx){
+  try{
+    if(window.BoneCrawlerZoneObjects && typeof BoneCrawlerZoneObjects.getBreakable === 'function'){
+      return BoneCrawlerZoneObjects.getBreakable(zone, idx);
+    }
+  }catch(err){}
+  return null;
+}
+
+function burstLanternBreak(x,y){
+  for(let i=0;i<18;i++){
+    const a=Math.random()*Math.PI*2, s=0.25+Math.random()*1.4;
+    parts.push({
+      x,y,
+      vx:Math.cos(a)*s,
+      vy:Math.sin(a)*s - 0.35,
+      life:18+(Math.random()*18|0),
+      max:34,
+      col:Math.random()<0.45?C.FR1:(Math.random()<0.72?C.FR2:C.BN1)
+    });
+  }
+}
+
+function handleBreakableObjectBreak(zone, idx, brokenArray, breakRects){
+  if(!brokenArray || brokenArray[idx]) return false;
+  const def=getBreakableObjectDef(zone, idx);
+  const r=(def && def.breakRect) || (breakRects && breakRects[idx]);
+  if(!r) return false;
+  const cx=r.x+r.w/2;
+  const cy=r.y+r.h/2;
+  brokenArray[idx]=true;
+  try{
+    if(window.BoneCrawlerProgression){
+      BoneCrawlerProgression.emit('prop.broken', {
+        zoneId:zone,
+        objectId:(def && def.id) || ('zone' + zone + '.decor' + idx),
+        propType:'breakable',
+        kind:(def && def.kind) || 'decor',
+        index:idx,
+        x:cx,
+        y:cy
+      });
+    }
+  }catch(err){}
+  if(def && def.breakEffect === 'lanternFlame') burstLanternBreak(cx, cy);
+  else burstDecor(cx, cy);
+  const canDropHalfHeart = !def || def.dropsHalfHeart !== false;
+  if(canDropHalfHeart && Math.random()<BREAKABLE_HALF_HEART_DROP_CHANCE){
+    spawnHalfHeartDrop(r.x+Math.floor(r.w/2)-3, r.y+Math.floor(r.h/2)-3);
+  }
+  return true;
+}
+
 function breakZone1Decor(idx){
   if(currentZone!==1) return;
   if(!zone1Broken || zone1Broken[idx]) return;
   const r=ZONE1_DECOR_BREAK_RECTS[idx];
   zone1Broken[idx]=true;
+  try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('prop.broken', {zoneId:1, objectId:'zone1.bookshelf'+idx, propType:'breakable', index:idx, x:r.x+r.w/2, y:r.y+r.h/2}); }catch(err){}
   burstDecor(r.x+r.w/2, r.y+r.h/2);
   if(Math.random()<BREAKABLE_HALF_HEART_DROP_CHANCE){
     spawnHalfHeartDrop(r.x+Math.floor(r.w/2)-3, r.y+Math.floor(r.h/2)-3);
@@ -263,24 +338,12 @@ function breakZone1Decor(idx){
 
 function breakZone2Decor(idx){
   if(currentZone!==2) return;
-  if(!zone2Broken || zone2Broken[idx]) return;
-  const r=ZONE2_DECOR_BREAK_RECTS[idx];
-  zone2Broken[idx]=true;
-  burstDecor(r.x+r.w/2, r.y+r.h/2);
-  if(Math.random()<BREAKABLE_HALF_HEART_DROP_CHANCE){
-    spawnHalfHeartDrop(r.x+Math.floor(r.w/2)-3, r.y+Math.floor(r.h/2)-3);
-  }
+  handleBreakableObjectBreak(2, idx, zone2Broken, ZONE2_DECOR_BREAK_RECTS);
 }
 
 function breakZone3Decor(idx){
   if(currentZone!==3) return;
-  if(!zone3Broken || zone3Broken[idx]) return;
-  const r=ZONE3_DECOR_BREAK_RECTS[idx];
-  zone3Broken[idx]=true;
-  burstDecor(r.x+r.w/2, r.y+r.h/2);
-  if(Math.random()<BREAKABLE_HALF_HEART_DROP_CHANCE){
-    spawnHalfHeartDrop(r.x+Math.floor(r.w/2)-3, r.y+Math.floor(r.h/2)-3);
-  }
+  handleBreakableObjectBreak(3, idx, zone3Broken, ZONE3_DECOR_BREAK_RECTS);
 }
 
 function shieldBurst(x,y){

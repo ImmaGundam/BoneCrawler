@@ -1,8 +1,5 @@
-// BoneCrawler safe split module
+// menu-storage-touch
 // Purpose: Menu button rectangles, zone decor constants, scoreboard/player-name storage, touch/pause UI utility helpers.
-// Source: app.js lines 1063-1259
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
 // ── Title / scoreboard buttons ───────────────────────────────
 const MENU_BTN_W=66, MENU_BTN_H=9;
 const MENU_BTN_X=((GW-MENU_BTN_W)/2)|0;
@@ -11,6 +8,28 @@ const MENU_SCORE={x:MENU_BTN_X,y:92,w:MENU_BTN_W,h:MENU_BTN_H};
 const GAMEOVER_RETRY={x:21,y:94,w:32,h:10};
 const GAMEOVER_MENU={x:67,y:94,w:32,h:10};
 const NAME_BTN={x:MENU_BTN_X,y:106,w:MENU_BTN_W,h:MENU_BTN_H};
+const DEVKIT_TITLE_BTN={x:84,y:8,w:34,h:30};
+
+function shouldShowDevKitTitleButton(){
+  // Show on the normal top-level title screen only.
+  // Hide when the game is already running inside the dev kit iframe.
+  return window.self === window.top;
+}
+
+function openDevKitPrompt(){
+  const ok = window.confirm('Load the developer kit?\n\nBest viewed in desktop!');
+  if(!ok) return false;
+
+  const url = 'dev/devkit_lite.html';
+  const opened = window.open(url, '_blank', 'noopener');
+
+  // Fallback for strict popup blockers.
+  if(!opened){
+    window.location.href = url;
+  }
+
+  return true;
+}
 const ZONE1_DOOR_RECT={x:GW/2-5,y:PY-2,w:10,h:10};
 const ZONE1_DECOR_BREAK_RECTS=[
   // left / right bookshelves
@@ -67,38 +86,25 @@ const ZONE2_HOLE_BLOCKERS=[
   {x:PX+15,y:PY+PH-24,w:4,h:4},
   {x:PX+PW-27,y:PY+PH-25,w:4,h:4},
 ];
-const ZONE2_DECOR_BREAK_RECTS=[
-  // back-wall bookshelves sitting in the grass
-  {x:GW/2-14,y:PY+7,w:6,h:17},
-  {x:GW/2-6,y:PY+7,w:6,h:17},
-  {x:GW/2+2,y:PY+7,w:6,h:17},
-  {x:GW/2+10,y:PY+7,w:6,h:17},
-  // grassy upper-right clutter
-  {x:PX+PW-30,y:PY+12,w:7,h:7},
-  {x:PX+PW-22,y:PY+10,w:6,h:8},
-  {x:PX+PW-14,y:PY+12,w:6,h:8},
-  // side and pocket bookshelves tucked into the back wall
-  {x:PX+6,y:PY+7,w:6,h:17},
-  {x:PX+14,y:PY+7,w:6,h:17},
-  {x:PX+PW-20,y:PY+7,w:6,h:17},
-  {x:PX+PW-12,y:PY+7,w:6,h:17},
-];
-const ZONE2_DECOR_BLOCKERS=[
-  // bookshelf bases only, so upper shelves still feel against the wall
-  {x:GW/2-14,y:PY+18,w:6,h:6},
-  {x:GW/2-6,y:PY+18,w:6,h:6},
-  {x:GW/2+2,y:PY+18,w:6,h:6},
-  {x:GW/2+10,y:PY+18,w:6,h:6},
-  // grassy corner clutter
-  {x:PX+PW-30,y:PY+12,w:7,h:7},
-  {x:PX+PW-22,y:PY+10,w:6,h:8},
-  {x:PX+PW-14,y:PY+12,w:6,h:8},
-  // side and pocket shelf bases
-  {x:PX+6,y:PY+18,w:6,h:6},
-  {x:PX+14,y:PY+18,w:6,h:6},
-  {x:PX+PW-20,y:PY+18,w:6,h:6},
-  {x:PX+PW-12,y:PY+18,w:6,h:6},
-];
+// Zone 2 object definitions may load after this split module in bundled builds.
+// Keep these arrays stable, then populate them once BoneCrawlerZoneObjects is available.
+const ZONE2_DECOR_BREAK_RECTS=[];
+const ZONE2_DECOR_BLOCKERS=[];
+function syncZone2ObjectGeometry(){
+  try{
+    if(!window.BoneCrawlerZoneObjects) return false;
+    if(typeof BoneCrawlerZoneObjects.getBreakRects === 'function'){
+      ZONE2_DECOR_BREAK_RECTS.splice(0, ZONE2_DECOR_BREAK_RECTS.length, ...BoneCrawlerZoneObjects.getBreakRects(2));
+    }
+    if(typeof BoneCrawlerZoneObjects.getBlockerRects === 'function'){
+      ZONE2_DECOR_BLOCKERS.splice(0, ZONE2_DECOR_BLOCKERS.length, ...BoneCrawlerZoneObjects.getBlockerRects(2));
+    }
+    return ZONE2_DECOR_BREAK_RECTS.length > 0;
+  }catch(err){
+    return false;
+  }
+}
+syncZone2ObjectGeometry();
 const SCORE_PAGE_SIZE=6;
 const SCOREBOARD_KEY='boneCrawlerScoreboard_v1';
 const PLAYERNAME_KEY='boneCrawlerPlayerName_v1';
@@ -143,6 +149,7 @@ function clearGameplayKeys(){
   prevSpc=false;
   mouseAttackQueued=false;
   mouseAttackHeld=false;
+  mouseAttackReleaseQueued=false;
   touchMoveActive=false;
   touchIdentifier=null;
   touchAttackChargeActive=false;

@@ -128,10 +128,17 @@ canvas.addEventListener('mousedown',e=>{
   if(e.button!==0) return;
   if(gState!=='playing') return;
   e.preventDefault();
-  mouseAttackQueued=true;
   mouseAttackHeld=true;
+  if(whirlwindUnlocked && player && !player.dead && player.atkCD<=0 && player.atkT<=0){
+    whirlwindChargeT=Math.max(whirlwindChargeT,1);
+  } else {
+    mouseAttackQueued=true;
+  }
 });
 window.addEventListener('mouseup',()=>{
+  if(mouseAttackHeld && gState==='playing' && whirlwindUnlocked && whirlwindChargeT>0){
+    mouseAttackReleaseQueued=true;
+  }
   mouseAttackHeld=false;
 });
 
@@ -300,7 +307,10 @@ canvas.addEventListener('click',e=>{
   }
 
   if(gState==='title'){
-    if(pointInBtn(lx,ly,MENU_PLAY)) startGame();
+    if(shouldShowDevKitTitleButton() && pointInBtn(lx,ly,DEVKIT_TITLE_BTN)){
+      openDevKitPrompt();
+    }
+    else if(pointInBtn(lx,ly,MENU_PLAY)) startGame();
     else if(pointInBtn(lx,ly,MENU_SCORE)) openScoreboard();
     else if(pointInBtn(lx,ly,NAME_BTN)) promptForPlayerName();
     return;

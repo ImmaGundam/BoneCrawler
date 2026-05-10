@@ -1,12 +1,47 @@
-// BoneCrawler safe split module
+// items
 // Purpose: Chest, heart, potion, key drop creation and item alpha/fade helper.
-// Source: app.js lines 2391-2431
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
+function getChestList(){
+  if(typeof chests === 'undefined' || !Array.isArray(chests)) chests=[];
 
-function spawnChest(){
+  // Legacy compatibility: only migrate the old single chest reference
+  // when the new chest list is empty. Do not re-add a chest that was
+  // just removed from chests[], or pickup collision will loop forever.
+  if(chest && chests.length===0) chests.push(chest);
+
+  chests=chests.filter(Boolean);
+  chest=chests.length ? chests[0] : null;
+  return chests;
+}
+
+function syncChestRef(){
+  if(typeof chests === 'undefined' || !Array.isArray(chests)) chests=[];
+  chests=chests.filter(Boolean);
+  chest=chests.length ? chests[0] : null;
+  return chests;
+}
+
+function clearChests(){
+  chests=[];
+  chest=null;
+}
+
+function removeChestAt(index){
+  const list=getChestList();
+  if(index>=0 && index<list.length){
+    const removed=list.splice(index,1)[0];
+    if(chest===removed) chest=null;
+  }
+  syncChestRef();
+}
+
+function spawnChest(opts={}){
+  const maxActive=Math.max(1, Number(opts.maxActive ?? 2) || 2);
+  const list=getChestList();
   const x=(PX+14+Math.random()*(PW-36))|0;
   const y=(PY+14+Math.random()*(PH-36))|0;
-  chest={x,y,w:8,h:8};
+  while(list.length >= maxActive) list.shift();
+  list.push({x,y,w:8,h:8});
+  syncChestRef();
 }
 
 function spawnHeartDrop(x,y,kind='full'){

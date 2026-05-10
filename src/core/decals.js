@@ -1,8 +1,5 @@
-// BoneCrawler safe split module
+// Decals - animation
 // Purpose: Deterministic bone decal generation used by dungeon rendering.
-// Source: app.js lines 333-344
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
 // ── Bone decals (deterministic) ──────────────────────────────
 let _s = 42;
 function _r(){_s=(_s*1664525+1013904223)>>>0;return _s/0xffffffff;}

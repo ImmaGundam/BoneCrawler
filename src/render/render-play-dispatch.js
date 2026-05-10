@@ -1,8 +1,5 @@
-// BoneCrawler safe split module
+// render-play-dispatch
 // Purpose: Main render dispatch and active play-state renderer/HUD drawing.
-// Source: app.js lines 6296-6756
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
 // ── Main render dispatch ──────────────────────────────────────
 function render(){
   syncMenuCredit();
@@ -210,17 +207,18 @@ function rPlay(){
   }
   ctx.textAlign='left';
 
-  // ── Chest on floor ──
-  if(chest){
+  // ── Chests on floor ──
+  const floorChests = typeof getChestList === 'function' ? getChestList() : (chest ? [chest] : []);
+  for(const c of floorChests){
     const glow=0.22+0.18*Math.sin(frame*0.19);
     ctx.globalAlpha=glow;
-    fr(chest.x-2,chest.y-2,chest.w+4,chest.h+4,C.FR1);
+    fr(c.x-2,c.y-2,c.w+4,c.h+4,C.FR1);
     ctx.globalAlpha=1;
-    ds(S.chest,chest.x,chest.y);
+    ds(S.chest,c.x,c.y);
     // glint pixel
     if(Math.floor(frame/8)%3===0){
       ctx.globalAlpha=0.9;
-      fr(chest.x+3,chest.y-1,1,1,C.BN1);
+      fr(c.x+3,c.y-1,1,1,C.BN1);
       ctx.globalAlpha=1;
     }
   }
@@ -323,53 +321,96 @@ function rPlay(){
     const rx=Math.round(e.x), ry=Math.round(e.y);
     const spr=getSkeletonSprite(e);
     const flip=e.dir==='right';
+    const spawning=e.spawnT>0 && e.spawnMax>0;
+    const spawnRatio=spawning ? Math.max(0, Math.min(1, e.spawnT/e.spawnMax)) : 0;
+    const spawnIn=1-spawnRatio;
+    let drawY=ry;
+    let spriteAlpha=1;
+
+    if(spawning){
+      if(e.spawnAnim==='rise'){
+        const pulse=0.20+0.10*Math.sin(frame*0.36);
+        const groundY=ry+e.h-2;
+        ctx.globalAlpha=0.30+pulse;
+        fr(rx-3,groundY,e.w+6,2,C.FR2);
+        ctx.globalAlpha=0.18+spawnIn*0.28;
+        fr(rx-1,groundY-1,e.w+2,1,C.FR1);
+        ctx.globalAlpha=0.16+spawnIn*0.20;
+        fr(rx+1,groundY-3,Math.max(2,e.w-2),1,C.FB2);
+        ctx.globalAlpha=1;
+        drawY=ry+Math.ceil(7*spawnRatio);
+        spriteAlpha=0.28+spawnIn*0.72;
+      } else if(e.spawnAnim==='portal'){
+        const pulse=0.35+0.20*Math.sin(frame*0.42);
+        frBorder(rx-3,ry-3,e.w+6,e.h+6,C.FR1,pulse);
+        frBorder(rx-5,ry-5,e.w+10,e.h+10,C.FR2,pulse*0.45);
+        spriteAlpha=0.20+spawnIn*0.80;
+      } else if(e.spawnAnim==='walkIn'){
+        const pulse=0.16+0.10*Math.sin(frame*0.30);
+        frBorder(rx-2,ry-2,e.w+4,e.h+4,C.FR1,0.20+spawnIn*0.22);
+        ctx.globalAlpha=0.16+pulse;
+        fr(rx-1,ry+e.h-1,e.w+2,1,C.FR2);
+        ctx.globalAlpha=1;
+        spriteAlpha=0.55+spawnIn*0.45;
+      } else {
+        frBorder(rx-2,ry-2,e.w+4,e.h+4,C.FR1,0.22+spawnIn*0.35);
+        spriteAlpha=0.30+spawnIn*0.70;
+      }
+    }
 
     if(e.giant){
       if(currentZone===3){
         ctx.globalAlpha=0.12+0.06*Math.sin(frame*0.12 + rx*0.1);
-        fr(rx-3,ry-3,e.w+6,e.h+6,C.FR1);
+        fr(rx-3,drawY-3,e.w+6,e.h+6,C.FR1);
         ctx.globalAlpha=1;
       }
       // Red hit flash behind sprite
       if(e.hurtT>0){
         ctx.globalAlpha=0.55;
-        fr(rx,ry,e.w,e.h,C.RD);
+        fr(rx,drawY,e.w,e.h,C.RD);
         ctx.globalAlpha=1;
       }
       // Giant at 2× (each sprite pixel = 2 logical px)
       const bob=Math.floor(e.walkF/10)%2 *2;
-      ds2(spr,rx,ry+bob,flip);
-      drawEnemyBrokenSword(e,rx,ry,bob,flip);
+      ctx.globalAlpha=spriteAlpha;
+      ds2(spr,rx,drawY+bob,flip);
+      drawEnemyBrokenSword(e,rx,drawY,bob,flip);
+      ctx.globalAlpha=1;
       // HP pips above head
-      for(let h=0;h<3;h++){
-        fr(rx+h*5+1,ry-4,4,2,h<e.hp?C.GR:C.W3);
+      if(!spawning){
+        for(let h=0;h<3;h++){
+          fr(rx+h*5+1,drawY-4,4,2,h<e.hp?C.GR:C.W3);
+        }
       }
     } else {
       if(currentZone===3 && !e.wizard){
         ctx.globalAlpha=0.10+0.05*Math.sin(frame*0.16 + rx*0.1);
-        fr(rx-2,ry-2,e.w+4,e.h+4,C.FR1);
+        fr(rx-2,drawY-2,e.w+4,e.h+4,C.FR1);
         ctx.globalAlpha=1;
       }
       if(e.hurtT>0){
         ctx.globalAlpha=0.5;
-        fr(rx,ry,e.w,e.h,C.RD);
+        fr(rx,drawY,e.w,e.h,C.RD);
         ctx.globalAlpha=1;
       }
       // Wizard aura glow
       if(e.wizard){
         const glowA=0.25+0.15*Math.sin(frame*0.18);
         ctx.globalAlpha=glowA;
-        fr(rx-2,ry-2,e.w+4,e.h+4,C.MG);
+        fr(rx-2,drawY-2,e.w+4,e.h+4,C.MG);
         ctx.globalAlpha=glowA*0.5;
-        fr(rx-3,ry-3,e.w+6,e.h+6,C.MG3);
+        fr(rx-3,drawY-3,e.w+6,e.h+6,C.MG3);
         ctx.globalAlpha=1;
       }
       const bob=Math.floor(e.walkF/10)%2;
-      ds(spr,rx,ry+bob,flip);
-      drawEnemyBrokenSword(e,rx,ry,bob,flip);
+      ctx.globalAlpha=spriteAlpha;
+      ds(spr,rx,drawY+bob,flip);
+      drawEnemyBrokenSword(e,rx,drawY,bob,flip);
+      ctx.globalAlpha=1;
     }
   }
   if(dragonBoss && !bossDefeated) drawDragonBoss(dragonBoss);
+  if(whyDragonsBoss) drawDragonBoss(whyDragonsBoss);
   if(shadowBoss && !shadowBossDefeated) drawShadowBoss(shadowBoss);
 
   // ── Player ──

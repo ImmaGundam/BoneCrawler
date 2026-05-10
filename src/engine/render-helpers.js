@@ -1,8 +1,5 @@
-// BoneCrawler safe split module
+// render-helpers
 // Purpose: Low-level canvas drawing helpers: sprite drawing, fills, borders, pixel font text.
-// Source: app.js lines 890-973
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
 // ── Draw helpers ──────────────────────────────────────────────
 function ds(spr, lx, ly, fx){
   const rows=spr.length, cols=spr[0].length;

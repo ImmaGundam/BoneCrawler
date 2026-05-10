@@ -1,8 +1,5 @@
-// BoneCrawler safe split module
+// Maps - zone-renders
 // Purpose: Dungeon/zone renderers for Zone 1, Zone 2, Zone 3, Secret Zone 1, Secret Zone 2, decor, backgrounds.
-// Source: app.js lines 4935-6295
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
 // ── Dungeon background ────────────────────────────────────────
 function drawDungeonZone1(){
   fr(0,0,GW,GH,C.W2);
@@ -159,14 +156,7 @@ function drawDungeonZone3(){
   // torn carpet / old chamber runner beneath the center table
   drawTornCarpetPatch(GW/2, PY+22);
 
-  if(!zone3Broken[0]) drawBrokenBookshelf(PX+2, PY+22, 0);
-  else drawDecorRubble(PX+5, PY+39, 0);
-
-  if(!zone3Broken[1]) drawBrokenBookshelf(PX+PW-8, PY+20, 1);
-  else drawDecorRubble(PX+PW-5, PY+37, 1);
-
-  if(!zone3Broken[2]) drawBrokenRoundTableSet(GW/2-4, PY+35);
-  else drawDecorRubble(GW/2, PY+48, 2);
+  drawZoneBreakablesByLayer(3, 'main');
 
   drawZone3BrokenTreeCluster();
 
@@ -205,11 +195,9 @@ function drawDungeonZone3(){
   ctx.globalAlpha=0.10+0.04*Math.sin(frame*0.18+1.3);
   fr(PX+PW-24, PY+PH-28, 18, 16, '#6a4322');
   ctx.globalAlpha=1;
-  drawFloorLantern(GW/2-24, PY+PH-15);
-  drawFloorLantern(GW/2+16, PY+PH-17);
-  if(!zone3Broken[3]) drawBarrel(PX+PW-25, PY+PH-13, 1); else drawDecorRubble(PX+PW-22, PY+PH-6, 3);
+  drawZoneBreakablesByLayer(3, 'lights');
+  drawZoneBreakablesByLayer(3, 'bottom');
   drawCrate(PX+PW-18, PY+PH-11, true);
-  if(!zone3Broken[4]) drawBarrel(PX+PW-10, PY+PH-12, 2); else drawDecorRubble(PX+PW-7, PY+PH-5, 3);
 
   fr(PX-1,PY-1,PW+2,1,wallLight);
   fr(PX-1,PY-1,1,PH+2,wallLight);
@@ -489,7 +477,7 @@ function drawDungeonSecret2(){
   fr(cx-4,cy+1,8,5,'#667069');
   fr(cx-3,cy+2,6,3,'#788279');
 
-  // wounded NPC crawling toward the shrine
+  // wounded NPC - immagundam
   const nx=SECRET2_NPC_RECT.x, ny=SECRET2_NPC_RECT.y;
   ctx.globalAlpha=0.18;
   fr(nx-1,ny+6,14,3,C.DK);
@@ -505,7 +493,7 @@ function drawDungeonSecret2(){
   fr(nx+6,ny+4,1,2,C.BN3);
   fr(nx+4,ny+1,1,1,C.BLD);
 
-  // return portal - easter egg exit back to the main menu
+  // return portal - exit back to the main menu
   const rx=SECRET2_RETURN_PORTAL_RECT.x, ry=SECRET2_RETURN_PORTAL_RECT.y;
   const pulse=0.20 + 0.08*Math.sin(frame*0.12);
   ctx.globalAlpha=pulse;
@@ -538,6 +526,10 @@ function drawDungeonSecret2(){
 }
 
 function drawDungeon(){
+  if(window.BoneCrawlerZones && typeof BoneCrawlerZones.getActiveZone === 'function'){
+    const zone=BoneCrawlerZones.getActiveZone();
+    if(zone && typeof zone.render === 'function'){ zone.render(); return; }
+  }
   if(currentZone===2){ drawDungeonZone2(); return; }
   if(currentZone===3){ drawDungeonZone3(); return; }
   if(currentZone===ZONE_SECRET1){ drawDungeonSecret1(); return; }
@@ -651,16 +643,8 @@ function drawDungeonZone2(){
     if(x%16===0) fr(x+2, PY+17-height, 1, 1, mossB);
   }
 
-  if(!zone2Broken[0]) drawBrokenBookshelf(GW/2-14, PY+7, 0); else drawDecorRubble(GW/2-11, PY+23, 0);
-  if(!zone2Broken[1]) drawBrokenBookshelf(GW/2-6,  PY+7, 0); else drawDecorRubble(GW/2-3,  PY+23, 0);
-  if(!zone2Broken[2]) drawBrokenBookshelf(GW/2+2,  PY+7, 0); else drawDecorRubble(GW/2+5,  PY+23, 0);
-  if(!zone2Broken[3]) drawBrokenBookshelf(GW/2+10, PY+7, 1); else drawDecorRubble(GW/2+13, PY+23, 0);
-
-  if(!zone2Broken[4]) drawCrate(PX+PW-30, PY+12, true); else drawDecorRubble(PX+PW-26, PY+19, 3);
-  if(!zone2Broken[5]) drawBarrel(PX+PW-22, PY+10, 2); else drawDecorRubble(PX+PW-19, PY+18, 3);
-  if(!zone2Broken[6]) drawBarrel(PX+PW-14, PY+12, 1); else drawDecorRubble(PX+PW-11, PY+19, 3);
-
-  drawFloorLantern(GW/2-23, PY+23);
+  drawZoneBreakablesByLayer(2, 'back');
+  drawZoneBreakablesByLayer(2, 'lights');
 
   const wallCracks = [
     [[PX+9,PY+10],[PX+10,PY+13],[PX+8,PY+16],[PX+10,PY+20],[PX+9,PY+24]],
@@ -724,10 +708,7 @@ function drawDungeonZone2(){
   }
 
   // extra bookshelves tucked into the back grass and side wall pockets
-  if(!zone2Broken[7]) drawBrokenBookshelf(PX+6, PY+7, 0); else drawDecorRubble(PX+9, PY+23, 0);
-  if(!zone2Broken[8]) drawBrokenBookshelf(PX+14, PY+7, 0); else drawDecorRubble(PX+17, PY+23, 0);
-  if(!zone2Broken[9]) drawBrokenBookshelf(PX+PW-20, PY+7, 1); else drawDecorRubble(PX+PW-17, PY+23, 0);
-  if(!zone2Broken[10]) drawBrokenBookshelf(PX+PW-12, PY+7, 1); else drawDecorRubble(PX+PW-9, PY+23, 0);
+  drawZoneBreakablesByLayer(2, 'late');
 
   // mushrooms around the tree and along the grassy back wall
   const mushSpots=[
@@ -1148,6 +1129,76 @@ function drawFloorLantern(lx,ly){
   if(Math.sin(frame*0.05 + lx*0.08)>0.25) fr(lx+2,ly+2,1,1,C.WH);
 }
 
+function drawBrokenFloorLantern(lx,ly){
+  const flicker=0.16 + 0.06*Math.sin(frame*0.17 + lx*0.11 + ly*0.07);
+  ctx.globalAlpha=0.10+flicker;
+  fr(lx-2,ly-1,10,8,C.FR2);
+  ctx.globalAlpha=0.08+flicker*0.6;
+  fr(lx,ly,6,6,C.FR1);
+  ctx.globalAlpha=1;
+  fr(lx+1,ly+5,5,1,'#1a1f22');
+  fr(lx+1,ly+4,2,1,'#3d4649');
+  fr(lx+4,ly+4,2,1,'#2b3133');
+  const f=Math.sin(frame*0.21 + lx*0.03);
+  fr(lx+2,ly+2,2,2,C.FR2);
+  fr(lx+3,ly+1+(f>0?0:1),1,2,C.FR1);
+  if(f>0.15) fr(lx+3,ly,1,1,C.BN1);
+}
+
+function isZoneBreakableBroken(zone, idx){
+  if(zone===2) return !!(zone2Broken && zone2Broken[idx]);
+  if(zone===3) return !!(zone3Broken && zone3Broken[idx]);
+  return false;
+}
+
+function getZoneBreakableRenderDefs(zone, layer){
+  try{
+    if(window.BoneCrawlerZoneObjects && typeof BoneCrawlerZoneObjects.getBreakablesByLayer === 'function'){
+      return BoneCrawlerZoneObjects.getBreakablesByLayer(zone, layer);
+    }
+  }catch(err){}
+  return [];
+}
+
+function drawZoneBreakableObject(def){
+  if(!def || !def.render) return;
+  const r=def.render;
+  const broken=isZoneBreakableBroken(def.zone, def.index);
+  if(!broken){
+    if(r.sprite==='bookshelf') drawBrokenBookshelf(r.x, r.y, r.variant||0);
+    else if(r.sprite==='crate') drawCrate(r.x, r.y, !!r.variant);
+    else if(r.sprite==='barrel') drawBarrel(r.x, r.y, r.variant||0);
+    else if(r.sprite==='roundTableSet') drawBrokenRoundTableSet(r.x, r.y);
+    else if(r.sprite==='floorLantern') drawFloorLantern(r.x, r.y);
+    return;
+  }
+  const b=def.broken || {};
+  if(b.sprite==='smallFlame') drawBrokenFloorLantern(b.x, b.y);
+  else drawDecorRubble(b.x || r.x, b.y || r.y, b.variant || 0);
+}
+
+function drawZoneBreakablesByLayer(zone, layer){
+  const defs=getZoneBreakableRenderDefs(zone, layer);
+  for(const def of defs) drawZoneBreakableObject(def);
+}
+
+function drawZoneBreakableOverlays(zone){
+  let defs=[];
+  try{
+    if(window.BoneCrawlerZoneObjects && typeof BoneCrawlerZoneObjects.getOverlayBreakables === 'function'){
+      defs=BoneCrawlerZoneObjects.getOverlayBreakables(zone);
+    }
+  }catch(err){}
+  for(const def of defs){
+    if(!def || !def.render || !def.render.overlayRect || isZoneBreakableBroken(def.zone, def.index)) continue;
+    const o=def.render.overlayRect;
+    withClipRect(o.x,o.y,o.w,o.h,()=>{
+      if(def.render.sprite==='bookshelf') drawBrokenBookshelf(def.render.x, def.render.y, def.render.variant||0);
+      else if(def.render.sprite==='roundTableSet') drawBrokenRoundTableSet(def.render.x, def.render.y);
+    });
+  }
+}
+
 
 function drawMushroom(lx,ly,cap='#c84a8d', stem='#d9d0c3'){
   fr(lx+1,ly+2,1,2,stem);
@@ -1255,7 +1306,6 @@ function drawZone1DoorDecor(){
   fr(carpetX+26, PY+51, 10, 4, '#7f2b24');
   fr(carpetX+27, PY+55, 7, 3, '#8d3329');
 
-  // hidden crack for Secret Zone 1 sits behind the left bookshelf
   drawZone1SecretCrack(zone1SecretEntranceReady(), zone1Broken[0]);
 
   // bookshelves along the walls (breakable)
@@ -1272,7 +1322,7 @@ function drawZone1DoorDecor(){
   if(!zone1Broken[3]) drawBarrel(PX+PW-14, PY+8, 4);
   else drawDecorRubble(PX+PW-11, PY+15, 3);
 
-  // rest of the barrels grouped together at the bottom-right
+  // barrels grouped together at the bottom-right
   if(!zone1Broken[4]) drawBarrel(PX+PW-24, PY+PH-22, 2);
   else drawDecorRubble(PX+PW-21, PY+PH-15, 4);
 
@@ -1288,7 +1338,6 @@ function drawZone1DoorDecor(){
   if(!zone1Broken[8]) drawBarrel(PX+PW-10, PY+PH-12, 1);
   else drawDecorRubble(PX+PW-7, PY+PH-5, 8);
 
-  // another corner keeps signs of former life
   if(!zone1Broken[2]) drawBrokenRoundTableSet(PX+10,PY+11);
   else drawDecorRubble(PX+17, PY+22, 2);
 
@@ -1341,20 +1390,12 @@ function drawZoneFrontOverlays(){
     return;
   }
   if(currentZone===2){
-    const shelfClips=[
-      [GW/2-14,PY+12,6,12,0],[GW/2-6,PY+12,6,12,1],[GW/2+2,PY+12,6,12,2],[GW/2+10,PY+12,6,12,3],
-      [PX+6,PY+12,6,12,7],[PX+14,PY+12,6,12,8],[PX+PW-20,PY+12,6,12,9],[PX+PW-12,PY+12,6,12,10],
-    ];
-    for(const [sx,sy,sw,sh,idx] of shelfClips){
-      if(!zone2Broken[idx]) withClipRect(sx,sy,sw,sh,()=>drawBrokenBookshelf(sx, PY+7, sx<GW/2?0:1));
-    }
+    drawZoneBreakableOverlays(2);
     withClipRect(GW/2-14,PY+30,29,24,()=>drawZone2Tree());
     return;
   }
   if(currentZone===3){
-    if(!zone3Broken[0]) withClipRect(PX+2,PY+22,6,11,()=>drawBrokenBookshelf(PX+2, PY+22, 0));
-    if(!zone3Broken[1]) withClipRect(PX+PW-8,PY+20,6,11,()=>drawBrokenBookshelf(PX+PW-8, PY+20, 1));
-    if(!zone3Broken[2]) withClipRect(GW/2-8,PY+35,16,7,()=>drawBrokenRoundTableSet(GW/2-4, PY+35));
+    drawZoneBreakableOverlays(3);
     withClipRect(PX+8,PY+PH-28,28,22,()=>drawZone3BrokenTreeCluster());
     return;
   }

@@ -1,11 +1,5 @@
-// BoneCrawler safe split module
+// constants-palette-sprites
 // Purpose: Base constants, logical canvas size, color palette, pixel sprite tables.
-// Source: app.js lines 25-332
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
-// ================================================================
-//  BONECRAWLER  ·  120×120 logic  ·  2× render (240×240 canvas)
-// ================================================================
 const SCALE = 2;
 const GW = 120, GH = 120;
 const PX = 4, PY = 17, PW = 112, PH = 99;

@@ -1,20 +1,19 @@
-// BoneCrawler safe split module
+// player-combat
 // Purpose: Player attacks, sword hit detection, whirlwind slash, and attack effects.
-// Source: app.js lines 2097-2197
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
 function performPlayerAttack(strength=1){
   const p=player;
   if(!p || p.atkCD>0 || p.atkT>0) return false;
   p.atkT=14;
   p.atkCD=30;
+  try{ if(window.AudioEvents) AudioEvents.playerAttack(); }catch(err){}
   const dmg = devGodMode ? 999 : Math.max(1, strength|0);
   const box=atkBox(p, p.swordReach);
   for(let i=enemies.length-1;i>=0;i--){
     const e=enemies[i];
-    if(!e) continue;
+    if(!e || e.spawnInvulnerable) continue;
     if(ov(box,{x:e.x,y:e.y,w:e.w,h:e.h})){
       e.hp -= dmg;
+      try{ if(window.AudioEvents) AudioEvents.enemyHit(); }catch(err){}
       burst(e.x+e.w/2, e.y+e.h/2);
       if(e.hp<=0){
         handleEnemyDefeat(i,e,false);
@@ -25,6 +24,9 @@ function performPlayerAttack(strength=1){
   }
   if(dragonBoss && dragonBoss.howlT<=0 && ov(box,getDragonHurtBox())){
     damageDragonBoss(devGodMode ? 10 : strength,false);
+  }
+  if(whyDragonsBoss && whyDragonsBoss.howlT<=0 && ov(box,getDragonHurtBox(whyDragonsBoss))){
+    damageWhyDragonsBoss(devGodMode ? 10 : strength,false);
   }
   if(shadowBoss && shadowBoss.howlT<=0 && ov(box,getShadowHurtBox())){
     damageShadowBoss(devGodMode ? 10 : strength,false);
@@ -68,6 +70,7 @@ function performWhirlwindSlash(){
   const radius=18 + Math.max(0, p.swordWidth||0);
   whirlwindSlashT=16;
   whirlwindCooldownT=WHIRLWIND_COOLDOWN_FRAMES;
+  try{ if(window.AudioEvents) AudioEvents.playerAttack(); }catch(err){}
   p.atkT=18;
   p.atkCD=30;
 
@@ -79,10 +82,11 @@ function performWhirlwindSlash(){
 
   for(let i=enemies.length-1;i>=0;i--){
     const e=enemies[i];
-    if(!e) continue;
+    if(!e || e.spawnInvulnerable) continue;
     const ex=e.x+e.w/2, ey=e.y+e.h/2;
     if(Math.hypot(ex-cx,ey-cy) <= radius + Math.max(e.w,e.h)/2){
       e.hp -= devGodMode ? 999 : 2;
+      try{ if(window.AudioEvents) AudioEvents.enemyHit(); }catch(err){}
       burst(ex, ey);
       if(e.hp<=0){
         handleEnemyDefeat(i,e,false);
@@ -95,6 +99,10 @@ function performWhirlwindSlash(){
   if(dragonBoss && dragonBoss.howlT<=0){
     const b=getDragonCenter();
     if(Math.hypot(b.x-cx,b.y-cy)<=radius+18) damageDragonBoss(devGodMode ? 10 : 2,false);
+  }
+  if(whyDragonsBoss && whyDragonsBoss.howlT<=0){
+    const b=getDragonCenter(whyDragonsBoss);
+    if(Math.hypot(b.x-cx,b.y-cy)<=radius+18) damageWhyDragonsBoss(devGodMode ? 10 : 2,false);
   }
   if(shadowBoss && shadowBoss.howlT<=0){
     const s=getShadowCenter();

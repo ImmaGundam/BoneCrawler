@@ -1,8 +1,5 @@
-// BoneCrawler safe split module
+// Bosses
 // Purpose: Dragon boss and corrupted/shadow boss spawning, AI updates, attacks, damage, and defeat flow.
-// Source: app.js lines 3025-3631
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
-
 function getDragonCenter(b=dragonBoss){
   return b ? {x:b.x+b.w/2, y:b.y+b.h/2} : {x:0,y:0};
 }
@@ -12,10 +9,20 @@ function getDragonHurtBox(b=dragonBoss){
   return {x:b.x+4,y:b.y+4,w:b.w-8,h:b.h-6};
 }
 
-function clearDragonHazards(){
-  dragonFlames=[];
-  dragonSwipe=null;
-  fireballs=fireballs.filter(f=>!f.dragon);
+function getDragonHazardOwner(b=dragonBoss){
+  return b && b.bonus ? 'whyDragonsBoss' : 'dragonBoss';
+}
+
+function clearDragonHazards(owner){
+  if(!owner){
+    dragonFlames=[];
+    dragonSwipe=null;
+    fireballs=fireballs.filter(f=>!f.dragon);
+    return;
+  }
+  dragonFlames=dragonFlames.filter(f=>f.owner!==owner);
+  if(dragonSwipe && dragonSwipe.owner===owner) dragonSwipe=null;
+  fireballs=fireballs.filter(f=>!(f.dragon && f.owner===owner));
 }
 
 function countDragonFightNormalAdds(){
@@ -94,10 +101,12 @@ function spawnNormalFromDragon(){
 }
 
 function spawnDragonBoss(){
-  if((currentZone!==1 && currentZone!==2) || dragonBoss || bossDefeated) return;
-  if(currentZone===1 && zone1MiniBossDefeated) return;
-  chest=null; clearKeyDrops();
-  enemies=[]; pSpawns=[]; fireballs=[]; dragonFlames=[]; dragonSwipe=null;
+  if((currentZone!==1 && currentZone!==2) || dragonBoss || bossDefeated) return false;
+  try{ if(window.AudioEvents) AudioEvents.dragonSpawn(currentZone); }catch(err){}
+  if(currentZone===1 && zone1MiniBossDefeated) return false;
+  // Boss spawn is additive: do not clear enemies, queued spawns, drops,
+  // chests, or active projectiles when the final-wave condition is met.
+  dragonFlames=[]; dragonSwipe=null;
   const zone1Mini=currentZone===1;
   const phaseHp=zone1Mini ? ZONE1_DRAGON_PHASE_HITS : DRAGON_PHASE_HITS;
   dragonBoss={
@@ -112,6 +121,27 @@ function spawnDragonBoss(){
     points:zone1Mini?200:300,
   };
   floatTexts.push({x:GW/2,y:PY+12,text:(zone1Mini?'MINIBOSS: BONE DRAGON':'BOSS: SKELETON DRAGON'),life:85,max:85,col:C.FR1});
+  return true;
+}
+
+function spawnWhyDragonsBoss(){
+  if(whyDragonsBoss) return false;
+  try{ if(window.AudioEvents) AudioEvents.dragonSpawn(2); }catch(err){}
+  const phaseHp=DRAGON_PHASE_HITS;
+  whyDragonsBoss={
+    x:Math.max(PX, Math.min(PX+PW-36, GW/2+14)), y:PY+12, w:36, h:28,
+    dir:'right', speed:0.18, walkF:0,
+    phase:1, hp:phaseHp, maxHp:phaseHp,
+    phaseHp,
+    hurtT:0, atkT:0, atkName:'', howlT:0,
+    fireballCD:96, fireblastCD:132, tailCD:48,
+    summonT:DRAGON_SUMMON_INTERVAL, spawnLock:44,
+    zone1Mini:false,
+    bonus:true,
+    points:300,
+  };
+  floatTexts.push({x:GW/2,y:PY+22,text:'BONUS: SKELETON DRAGON',life:90,max:90,col:C.MG2});
+  return true;
 }
 
 function rollFireballSpeed(base){
@@ -129,6 +159,7 @@ function spawnDragonFireball(){
   const baseAng=Math.atan2(dy,dx);
   const spread=[-0.22,0,0.22];
   const sx=cx+(b.dir==='right'?8:-8), sy=cy-6;
+  const owner=getDragonHazardOwner(b);
 
   for(const off of spread){
     const ang=baseAng+off;
@@ -138,7 +169,8 @@ function spawnDragonFireball(){
       vx:Math.cos(ang)*spd,
       vy:Math.sin(ang)*spd,
       life:175,
-      dragon:true
+      dragon:true,
+      owner
     });
   }
 
@@ -147,15 +179,17 @@ function spawnDragonFireball(){
 }
 
 function spawnDragonFireblast(){
+  try{ if(window.AudioEvents) AudioEvents.dragonFireblast(); }catch(err){}
   const b=dragonBoss;
   if(!b) return;
+  const owner=getDragonHazardOwner(b);
   for(let i=0;i<6;i++){
     const w=6+i*3;
     const h=5+i*2;
     const depth=4+i*5;
     const x=b.dir==='right' ? b.x+b.w-4+depth : b.x-depth-w+4;
     const y=b.y+10-Math.floor(h/2);
-    dragonFlames.push({x,y,w,h,ttl:DRAGON_FIREBLAST_TTL,maxTtl:DRAGON_FIREBLAST_TTL});
+    dragonFlames.push({x,y,w,h,ttl:DRAGON_FIREBLAST_TTL,maxTtl:DRAGON_FIREBLAST_TTL,owner});
   }
   b.atkT=26;
   b.atkName='fireblast';
@@ -164,15 +198,17 @@ function spawnDragonFireblast(){
 function spawnDragonTailSwipe(){
   const b=dragonBoss;
   if(!b) return;
+  const owner=getDragonHazardOwner(b);
   const w=18, h=18;
   const x=b.dir==='right' ? b.x-16 : b.x+b.w-2;
   const y=b.y+8;
-  dragonSwipe={x,y,w,h,ttl:DRAGON_TAIL_TTL,maxTtl:DRAGON_TAIL_TTL};
+  dragonSwipe={x,y,w,h,ttl:DRAGON_TAIL_TTL,maxTtl:DRAGON_TAIL_TTL,owner};
   b.atkT=18;
   b.atkName='tail';
 }
 
 function startDragonPhase2(){
+  try{ if(window.AudioEvents) AudioEvents.dragonRoar(); }catch(err){}
   const b=dragonBoss;
   if(!b) return;
   b.phase=2;
@@ -191,6 +227,7 @@ function startDragonPhase2(){
 }
 
 function defeatDragonBoss(){
+  try{ if(window.AudioEvents) AudioEvents.dragonDeath(); }catch(err){}
   const b=dragonBoss;
   if(!b) return;
   const {x:cx,y:cy}=getDragonCenter(b);
@@ -205,8 +242,30 @@ function defeatDragonBoss(){
   clearDragonHazards();
   enemies=[];
   pSpawns=[];
-  chest=null;
+  clearChests();
+  let progressionHandled=false;
+  try{
+    if(window.BoneCrawlerProgression){
+      const eventResult=BoneCrawlerProgression.emit('boss.defeated', {
+        bossId:b.zone1Mini ? 'zone1Dragon' : 'dragonBoss',
+        zoneId:currentZone,
+        x:Math.round(cx),
+        y:Math.round(cy)
+      });
+      progressionHandled=!!(eventResult && eventResult.handled);
+    }
+  }catch(err){}
   if(b.zone1Mini){
+    // Progression rules own Zone 1 rewards. The normal Zone 1 door key
+    // is awarded by kill-count progression; the dragon fallback only protects
+    // the secret key if the progression runtime is unavailable.
+    if(!progressionHandled){
+      const keyY=Math.round(cy)-3;
+      if(player && !player.secret1Key && !hasKeyDropKind('secret1')){
+        spawnKeyDrop(Math.round(cx)+3,keyY,'secret1');
+        floatTexts.push({x:GW/2,y:PY+28,text:'SECRET KEY!',life:70,max:70,col:C.BN1});
+      }
+    }
     zone1MiniBossDefeated=true;
     // Do NOT set bossDefeated or bossClearTimer — zone 1 resumes normal spawning
   } else {
@@ -214,6 +273,9 @@ function defeatDragonBoss(){
     bossClearTimer=120;
   }
   dragonBoss=null;
+  if(!whyDragonsBoss){
+    try{ if(window.AudioEvents) AudioEvents.endBoss(currentZone); }catch(err){}
+  }
   floatTexts.push({x:GW/2,y:PY+16,text:'DRAGON SLAIN!',life:95,max:95,col:C.FR1});
 }
 
@@ -221,6 +283,7 @@ function damageDragonBoss(amount=1, fromShockwave=false){
   const b=dragonBoss;
   if(!b || bossDefeated || b.howlT>0) return false;
   b.hp-=amount;
+  try{ if(window.AudioEvents) AudioEvents.dragonHit(); }catch(err){}
   b.hurtT=10;
   const {x:cx,y:cy}=getDragonCenter(b);
   burst(cx,cy);
@@ -228,7 +291,7 @@ function damageDragonBoss(amount=1, fromShockwave=false){
     floatTexts.push({x:cx,y:b.y-6,text:'-1',life:24,max:24,col:C.SH});
   }
   if(b.hp<=0){
-    clearDragonHazards();
+    clearDragonHazards(getDragonHazardOwner(b));
     if(b.phase===1){
       b.hp=0;
       b.howlT=160;
@@ -242,18 +305,66 @@ function damageDragonBoss(amount=1, fromShockwave=false){
   return true;
 }
 
+
+function defeatWhyDragonsBoss(){
+  try{ if(window.AudioEvents) AudioEvents.dragonDeath(); }catch(err){}
+  const b=whyDragonsBoss;
+  if(!b) return;
+  const {x:cx,y:cy}=getDragonCenter(b);
+  for(let i=0;i<30;i++){
+    const a=Math.random()*Math.PI*2, sp=0.5+Math.random()*2.4;
+    parts.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,
+      life:22+(Math.random()*16|0),max:38,col:Math.random()<0.45?C.MG2:(Math.random()<0.7?C.BN1:C.FR1)});
+  }
+  score+=b.points||300;
+  killCount++;
+  giantKillCount++;
+  clearDragonHazards(getDragonHazardOwner(b));
+  whyDragonsBoss=null;
+  if(!dragonBoss && !shadowBoss){
+    try{ if(window.AudioEvents) AudioEvents.endBoss(currentZone); }catch(err){}
+  }
+  floatTexts.push({x:GW/2,y:PY+24,text:'BONUS DRAGON SLAIN!',life:95,max:95,col:C.MG2});
+}
+
+function damageWhyDragonsBoss(amount=1, fromShockwave=false){
+  const b=whyDragonsBoss;
+  if(!b || b.howlT>0) return false;
+  b.hp-=amount;
+  try{ if(window.AudioEvents) AudioEvents.dragonHit(); }catch(err){}
+  b.hurtT=10;
+  const {x:cx,y:cy}=getDragonCenter(b);
+  burst(cx,cy);
+  if(fromShockwave){
+    floatTexts.push({x:cx,y:b.y-6,text:'-1',life:24,max:24,col:C.SH});
+  }
+  if(b.hp<=0){
+    clearDragonHazards(getDragonHazardOwner(b));
+    if(b.phase===1){
+      b.hp=0;
+      b.howlT=160;
+      b.atkT=26;
+      b.atkName='howl';
+      floatTexts.push({x:GW/2,y:PY+22,text:'THE BONUS DRAGON HOWLS!',life:80,max:80,col:C.WH});
+    } else {
+      defeatWhyDragonsBoss();
+    }
+  }
+  return true;
+}
+
 function chooseDragonAttack(b, dist, playerBehind){
   const options=[];
   if(playerBehind && dist<34 && b.tailCD<=0) options.push(['tail',8]);
 
-  // Fireblast should feel dangerous, but not spammy.
+  // Prevents fireblast spam
   if(b.fireblastCD<=0){
     if(dist<24) options.push(['fireblast',2]);
     else if(dist<50) options.push(['fireblast',3]);
     else options.push(['fireblast',1]);
   }
 
-  // Fireball is now a 3-shot spread, so weight it lower and pace it out.
+  // Fireball wave
   if(b.fireballCD<=0){
     if(dist>60) options.push(['fireball',4]);
     else if(dist>34) options.push(['fireball',2]);
@@ -271,17 +382,7 @@ function chooseDragonAttack(b, dist, playerBehind){
   return options[0][0];
 }
 
-function updateDragonBoss(){
-  const b=dragonBoss;
-  if(!b || bossDefeated) return;
-  if(b.hurtT>0) b.hurtT--;
-  if(b.atkT>0) b.atkT--;
-  if(b.fireballCD>0) b.fireballCD--;
-  if(b.fireblastCD>0) b.fireblastCD--;
-  if(b.tailCD>0) b.tailCD--;
-  if(b.spawnLock>0) b.spawnLock--;
-  b.walkF++;
-
+function updateDragonHazards(){
   for(let i=dragonFlames.length-1;i>=0;i--){
     const f=dragonFlames[i];
     f.ttl--;
@@ -293,6 +394,20 @@ function updateDragonBoss(){
     if(dragonSwipe.ttl<=0) dragonSwipe=null;
     else if(ov({x:player.x,y:player.y,w:player.w,h:player.h},dragonSwipe)) hurtPlayer(1);
   }
+}
+
+function updateDragonBoss(options){
+  const b=dragonBoss;
+  if(!b || bossDefeated) return;
+  if(b.hurtT>0) b.hurtT--;
+  if(b.atkT>0) b.atkT--;
+  if(b.fireballCD>0) b.fireballCD--;
+  if(b.fireblastCD>0) b.fireblastCD--;
+  if(b.tailCD>0) b.tailCD--;
+  if(b.spawnLock>0) b.spawnLock--;
+  b.walkF++;
+
+  if(!(options && options.skipHazards)) updateDragonHazards();
 
   const {x:cx,y:cy}=getDragonCenter(b);
   const pcx=player.x+player.w/2, pcy=player.y+player.h/2;
@@ -346,6 +461,17 @@ function updateDragonBoss(){
   }
 }
 
+
+function updateWhyDragonsBoss(){
+  if(!whyDragonsBoss) return;
+  if(!dragonBoss) updateDragonHazards();
+  const savedDragonBoss=dragonBoss;
+  dragonBoss=whyDragonsBoss;
+  updateDragonBoss({skipHazards:true});
+  whyDragonsBoss=dragonBoss;
+  dragonBoss=savedDragonBoss;
+}
+
 function getShadowCenter(b=shadowBoss){
   return b ? {x:b.x+b.w/2, y:b.y+b.h/2} : {x:0,y:0};
 }
@@ -377,6 +503,7 @@ function triggerShadowCounter(){
 }
 
 function startShadowPhase2(){
+  try{ if(window.AudioEvents) AudioEvents.corruptedScreech(); }catch(err){}
   const b=shadowBoss;
   if(!b) return;
   b.phase=2;
@@ -397,9 +524,10 @@ function startShadowPhase2(){
 }
 
 function spawnShadowBoss(){
-  if(currentZone!==3 || shadowBoss || shadowBossDefeated) return;
-  chest=null; clearKeyDrops();
-  enemies=[]; pSpawns=[]; fireballs=[];
+  if(currentZone!==3 || shadowBoss || shadowBossDefeated) return false;
+  try{ if(window.AudioEvents) AudioEvents.corruptedSpawn(); }catch(err){}
+  // Boss spawn is additive: do not clear enemies, queued spawns, drops,
+  // chests, or active projectiles when the final-wave condition is met.
   shadowWaves=[];
   shadowBoss={
     x:GW/2-4, y:PY+12, w:8, h:8,
@@ -411,8 +539,8 @@ function spawnShadowBoss(){
     lungeVX:0, lungeVY:0
   };
   shadowWizardRespawns=[];
-  spawnWizardNearShadow();
   floatTexts.push({x:GW/2,y:PY+12,text:'BOSS: CORRUPTED CRAWLER',life:95,max:95,col:C.MG2});
+  return true;
 }
 
 function updateShadowBoss(){
@@ -463,6 +591,7 @@ function updateShadowBoss(){
     }
     if(b.screechStartupT<=0){
       b.screechT=SHADOW_SCREECH_DURATION_FRAMES;
+      try{ if(window.AudioEvents) AudioEvents.corruptedScreech(); }catch(err){}
       b.screechWaveT=1;
       b.atkName='screech';
     }
@@ -527,6 +656,7 @@ function updateShadowBoss(){
   if(b.counterT>0 && dist<18 && b.atkT<=0 && b.slashCD<=0){
     b.atkT=16;
     b.atkName='slash';
+    try{ if(window.AudioEvents) AudioEvents.corruptedAttack(); }catch(err){}
     b.slashCD=b.phase===1?36:24;
     return;
   }
@@ -542,6 +672,7 @@ function updateShadowBoss(){
   if(b.atkT<=0 && b.lungeCD<=0 && dist<60){
     b.atkT=b.phase===1?14:16;
     b.atkName='lunge';
+    try{ if(window.AudioEvents) AudioEvents.corruptedAttack(); }catch(err){}
     const duration=b.atkT;
     const baseSpeed=b.phase===1?1.15:1.35;
     const bonusDistance=b.phase===1?SHADOW_PHASE1_LUNGE_BONUS_DISTANCE:SHADOW_PHASE2_LUNGE_BONUS_DISTANCE;
@@ -555,6 +686,7 @@ function updateShadowBoss(){
   if(b.atkT<=0 && dist<14 && b.slashCD<=0){
     b.atkT=14;
     b.atkName='slash';
+    try{ if(window.AudioEvents) AudioEvents.corruptedAttack(); }catch(err){}
     b.slashCD=b.phase===1?34:22;
   }
 }
@@ -563,6 +695,7 @@ function damageShadowBoss(amount=1, fromShockwave=false){
   const b=shadowBoss;
   if(!b || shadowBossDefeated || b.howlT>0) return false;
   b.hp-=amount;
+  try{ if(window.AudioEvents) AudioEvents.corruptedHit(); }catch(err){}
   b.hurtT=10;
   const c=getShadowCenter(b);
   burst(c.x,c.y);
@@ -585,6 +718,7 @@ function damageShadowBoss(amount=1, fromShockwave=false){
 }
 
 function defeatShadowBoss(){
+  try{ if(window.AudioEvents) AudioEvents.corruptedDeath(); }catch(err){}
   const b=shadowBoss;
   if(!b) return;
   const c=getShadowCenter(b);
@@ -596,17 +730,25 @@ function defeatShadowBoss(){
   score+=500;
   killCount++;
   wizardKillCount++;
-  spawnKeyDrop(Math.round(c.x)-3,Math.round(c.y)-3,'zone3');
+  let progressionHandled=false;
+  try{
+    if(window.BoneCrawlerProgression){
+      const eventResult=BoneCrawlerProgression.emit('boss.defeated', {bossId:'shadowBoss', zoneId:3, x:Math.round(c.x), y:Math.round(c.y)});
+      progressionHandled=!!(eventResult && eventResult.handled);
+    }
+  }catch(err){}
+  if(!progressionHandled){
+    spawnKeyDrop(Math.round(c.x)-3,Math.round(c.y)-3,'zone3');
+  }
   shadowWaves=[];
   shadowWizardRespawns=[];
   enemies=enemies.filter(e=>!e.shadowBossWizard);
   shadowBossDefeated=true;
   shadowBoss=null;
+  try{ if(window.AudioEvents) AudioEvents.endBoss(3); }catch(err){}
   runCompleted=true;
   runTimeMs=performance.now()-runStartMs;
   floatTexts.push({x:GW/2,y:PY+16,text:'CORRUPTION SILENCED',life:95,max:95,col:C.FR1});
   floatTexts.push({x:Math.round(c.x),y:Math.round(c.y)-10,text:'KEY!',life:54,max:54,col:C.BN1});
   bossClearTimer=0;
 }
-
-

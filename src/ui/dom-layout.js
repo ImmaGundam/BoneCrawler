@@ -1,7 +1,5 @@
-// BoneCrawler safe split module
+// BoneCrawler 2.8
 // Purpose: Canvas/DOM references, display zoom, side panels, collapsible panels, responsive shell layout, and non-game UI handlers.
-// Source: app.js lines 345-889
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
 
 // ── Canvas ────────────────────────────────────────────────────
 const canvas = document.getElementById('gameCanvas');
