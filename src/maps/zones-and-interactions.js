@@ -1,7 +1,4 @@
-// BoneCrawler safe split module
 // Purpose: Zone obstacle collision, zone labels/rank info, zone transitions, secret-zone entry, interaction target detection.
-// Source: app.js lines 2432-2825
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
 
 function collidesZone2Tree(x,y,w,h){
   if(currentZone!==2) return false;
@@ -65,6 +62,7 @@ function openZoneTransition(nextZone, opts={}){
   gState='zone_transition';
 }
 function finishRunVictory(){
+  try{ if(window.AudioEvents) AudioEvents.stopAll(); }catch(err){}
   if(runStartMs>0 && runTimeMs<=0) runTimeMs=performance.now()-runStartMs;
   saveRunIfNeeded();
   pendingZoneTransition=0;
@@ -86,6 +84,7 @@ function continueZoneTransition(){
     gState='playing';
     return;
   }
+  try{ if(window.AudioEvents) AudioEvents.doorUnlock(); }catch(err){}
   if(nextZone===2) enterZone2();
   else if(nextZone===3) enterZone3();
   else if(nextZone===ZONE_SECRET1) enterSecretZone1();
@@ -114,17 +113,20 @@ function getZoneProgressKills(zone=currentZone){
 }
 
 function ensureZoneMomentum(){
+  if(window.BoneCrawlerZoneSpawn && BoneCrawlerZoneSpawn.usesManagedSpawns(currentZone)) return;
   if(isSecretZone(currentZone) || getZoneProgressKills(currentZone)>=getZoneKillTarget(currentZone) || pSpawns.length>0) return;
   const immediateDelay=Math.max(12, Math.floor(regularSpawnDelay()*0.55));
   qSpawn(immediateDelay, false, false, pickRegularEnemyType());
 }
 
 function enterZone2(){
+  try{ if(window.AudioEvents) AudioEvents.enterZone(2); }catch(err){}
   secret1RatTalkCount=0;
   currentZone=2;
-  chest=null; clearKeyDrops();
+  if(window.BoneCrawlerZoneSpawn) BoneCrawlerZoneSpawn.enterZone(2);
+  clearChests(); clearKeyDrops();
   enemies=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
+  dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   bossClearTimer=0;
   parts=[];
   zone2KillStart=killCount;
@@ -137,16 +139,17 @@ function enterZone2(){
   p.x=GW/2-4;
   p.y=PY+PH-14;
   p.atkT=0; p.atkCD=10; p.hurtT=18;
-  floatTexts.push({x:GW/2,y:PY+12,text:'ZONE 2',life:50,max:50,col:C.GR});
   ensureZoneMomentum();
   createZoneRetryCheckpoint(2);
 }
 function enterZone3(){
+  try{ if(window.AudioEvents) AudioEvents.enterZone(3); }catch(err){}
   secret1RatTalkCount=0;
   currentZone=3;
-  chest=null; clearKeyDrops();
+  if(window.BoneCrawlerZoneSpawn) BoneCrawlerZoneSpawn.enterZone(3);
+  clearChests(); clearKeyDrops();
   enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
+  dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
   parts=[];
@@ -163,7 +166,6 @@ function enterZone3(){
   p.x=GW/2-4;
   p.y=PY+PH-14;
   p.atkT=0; p.atkCD=10; p.hurtT=18;
-  floatTexts.push({x:GW/2,y:PY+12,text:'ZONE 3',life:60,max:60,col:C.MG2});
   ensureZoneMomentum();
   createZoneRetryCheckpoint(3);
 }
@@ -174,16 +176,16 @@ function applySecretZone1Blessing(){
   p.shield=true;
   p.shieldBreakT=0;
   p.shieldLevel=Math.max(p.shieldLevel||0,5);
-  score+=500;
-  floatTexts.push({x:GW/2,y:PY+16,text:'+500',life:65,max:65,col:C.BN1});
   floatTexts.push({x:GW/2,y:PY+24,text:'FAIRY BLESSING',life:90,max:90,col:C.MG2});
 }
 function enterSecretZone1(){
+  try{ if(window.AudioEvents) AudioEvents.enterZone(ZONE_SECRET1); }catch(err){}
   secret1RatTalkCount=0;
   currentZone=ZONE_SECRET1;
-  chest=null; clearKeyDrops();
+  if(window.BoneCrawlerZoneSpawn) BoneCrawlerZoneSpawn.enterZone(ZONE_SECRET1);
+  clearChests(); clearKeyDrops();
   enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
+  dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
   parts=[];
@@ -201,11 +203,13 @@ function enterSecretZone1(){
   secret1BlessingT=SECRET1_BLESSING_FRAMES;
 }
 function enterSecretZone2(){
+  try{ if(window.AudioEvents) AudioEvents.enterZone(ZONE_SECRET2); }catch(err){}
   secret1RatTalkCount=0;
   currentZone=ZONE_SECRET2;
-  chest=null; clearKeyDrops();
+  if(window.BoneCrawlerZoneSpawn) BoneCrawlerZoneSpawn.enterZone(ZONE_SECRET2);
+  clearChests(); clearKeyDrops();
   enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
-  dragonBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
+  dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   bossClearTimer=0;
   parts=[];
   const p=player;
