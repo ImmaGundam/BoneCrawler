@@ -1,0 +1,4017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>BoneCrawler Dev Kit Lite</title>
+<style>
+  :root{
+    --bg:#0c1012;
+    --panel:#12181b;
+    --line:#7c6a48;
+    --text:#e9debf;
+    --muted:#a89f87;
+    --accent:#e38c3a;
+    --accent2:#5a89d6;
+    --danger:#cf695a;
+    --ok:#4ca069;
+    --warn:#d69b45;
+    --bad:#be5959;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,#091015,#13191d 55%,#0d1215);
+    color:var(--text);
+    font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    overflow:hidden;
+  }
+
+  .appShell{
+    height:100vh;
+    height:100dvh;
+    max-height:100dvh;
+    display:grid;
+    grid-template-rows:auto minmax(0,1fr) auto;
+    overflow:hidden;
+  }
+
+  .programMenuBar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:8px 10px;
+    border-bottom:1px solid rgba(124,106,72,.45);
+    background:linear-gradient(180deg,rgba(20,27,31,.98),rgba(11,16,19,.96));
+    box-shadow:0 8px 22px rgba(0,0,0,.25);
+    position:relative;
+    z-index:40;
+  }
+
+  .menuBrand{
+    font-weight:700;
+    letter-spacing:.04em;
+    white-space:nowrap;
+  }
+
+  .menuSummary{
+    margin-left:auto;
+    color:var(--muted);
+    font-size:12px;
+    white-space:nowrap;
+  }
+
+  .menuBar{
+    display:flex;
+    align-items:center;
+    gap:2px;
+  }
+
+  .menuItem{
+    position:relative;
+  }
+
+  .menuTrigger{
+    border:1px solid transparent;
+    background:transparent;
+    color:var(--text);
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+  }
+
+  .menuTrigger:hover,
+  .menuItem.open .menuTrigger{
+    border-color:rgba(124,106,72,.38);
+    background:rgba(255,255,255,.035);
+  }
+
+  .menuPopup{
+    position:absolute;
+    top:calc(100% + 6px);
+    left:0;
+    min-width:220px;
+    background:linear-gradient(180deg,rgba(25,33,37,.98),rgba(14,20,23,.98));
+    border:1px solid rgba(124,106,72,.46);
+    border-radius:12px;
+    box-shadow:0 18px 40px rgba(0,0,0,.38);
+    padding:8px;
+    display:none;
+  }
+
+  .menuItem.open .menuPopup{display:block}
+
+  .menuPopup .menuSectionLabel{
+    color:var(--muted);
+    font-size:11px;
+    padding:6px 10px 4px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+
+  .menuPopup button{
+    width:100%;
+    text-align:left;
+    border:1px solid transparent;
+    background:transparent;
+    color:var(--text);
+    padding:9px 10px;
+    border-radius:8px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+
+  .menuPopup button small{
+    color:var(--muted);
+    font-size:11px;
+  }
+
+  .menuPopup button:hover{
+    border-color:rgba(124,106,72,.28);
+    background:rgba(255,255,255,.04);
+  }
+
+  .menuDivider{
+    height:1px;
+    background:rgba(124,106,72,.18);
+    margin:6px 2px;
+  }
+
+  .workspace{
+    min-height:0;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:340px minmax(0,1fr) 360px;
+    grid-template-areas:"left main right";
+  }
+
+  .workspace.hide-left{
+    grid-template-columns:minmax(0,1fr) 360px;
+    grid-template-areas:"main right";
+  }
+
+  .workspace.hide-right{
+    grid-template-columns:340px minmax(0,1fr);
+    grid-template-areas:"left main";
+  }
+
+  .workspace.hide-left.hide-right{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"main";
+  }
+
+  aside.leftPane{
+    grid-area:left;
+    border-right:1px solid rgba(124,106,72,.45);
+    background:rgba(8,12,14,.94);
+    overflow:auto;
+    min-width:0;
+  }
+
+  aside.rightPane{
+    grid-area:right;
+    border-left:1px solid rgba(124,106,72,.45);
+    background:rgba(8,12,14,.72);
+    overflow:auto;
+    min-width:0;
+  }
+
+  main.mainPane{
+    grid-area:main;
+    padding:18px;
+    min-width:0;
+    overflow:auto;
+  }
+
+  .workspace.hide-left .leftPane,
+  .workspace.hide-right .rightPane{
+    display:none;
+  }
+
+  .paneInner{
+    padding:16px;
+  }
+
+  h1,h2,h3,p{margin:0}
+  h1{font-size:22px;letter-spacing:.04em}
+  h2{font-size:15px;letter-spacing:.04em}
+  .sub{color:var(--muted)}
+
+  .panel{
+    background:linear-gradient(180deg,rgba(21,28,31,.98),rgba(15,20,23,.98));
+    border:1px solid rgba(124,106,72,.48);
+    border-radius:12px;
+    padding:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.3);
+  }
+
+  .stack{display:grid;gap:10px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .toolbarRow{display:flex;gap:8px;flex-wrap:wrap}
+  .full{grid-column:1 / -1}
+  .sectionRule{
+    height:1px;
+    background:rgba(124,106,72,.25);
+    margin:4px 0;
+  }
+
+  label{
+    display:grid;
+    gap:6px;
+    color:var(--muted);
+    font-size:12px;
+    letter-spacing:.04em;
+  }
+
+  button, select, input, textarea{
+    border:1px solid rgba(124,106,72,.4);
+    border-radius:10px;
+    background:#0d1417;
+    color:var(--text);
+    padding:10px 12px;
+    font:inherit;
+  }
+
+  input, select, textarea{width:100%}
+
+  button{
+    background:linear-gradient(180deg,#2a3539,#1c2529);
+    cursor:pointer;
+    font-weight:600;
+  }
+
+  button:hover{filter:brightness(1.08)}
+  button.primary{background:linear-gradient(180deg,#ad6a2f,#7d4b21)}
+  button.secondary{background:linear-gradient(180deg,#2c4740,#213730)}
+  button.warn{background:linear-gradient(180deg,#7d4038,#5c302a)}
+  button.active{
+    outline:2px solid rgba(227,140,58,.85);
+    outline-offset:1px;
+  }
+
+  .pill{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:999px;
+    background:#192126;
+    color:var(--muted);
+    font-size:12px;
+  }
+
+  .pill.ok{color:#b9efcc}
+  .pill.warn{color:#ffdba9}
+  .hint,.help,.status,.dockHint,.muted{
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  .hidden{display:none !important}
+  .subpanel{
+    border:1px solid rgba(124,106,72,.24);
+    border-radius:10px;
+    padding:10px;
+    background:rgba(0,0,0,.08);
+    display:grid;
+    gap:10px;
+  }
+  .miniGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .shortArea{min-height:110px}
+  .mediumArea{min-height:160px}
+  .tinyInput{padding:8px 10px}
+  .conditionList{display:grid;gap:8px}
+  .conditionRow{
+    display:grid;
+    grid-template-columns:1fr 1fr 92px 1fr auto;
+    gap:8px;
+    align-items:end;
+  }
+  .infoBox{
+    border:1px solid rgba(124,106,72,.2);
+    border-radius:10px;
+    background:rgba(0,0,0,.12);
+    padding:10px 12px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.45;
+  }
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  .paneHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:12px;
+  }
+
+  .dockStack{
+    display:grid;
+    gap:12px;
+  }
+
+  .moduleCard{
+    padding:0;
+    overflow:hidden;
+  }
+
+  .moduleHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px 14px;
+    border-bottom:1px solid rgba(124,106,72,.28);
+    background:linear-gradient(180deg,rgba(37,47,52,.9),rgba(23,30,34,.92));
+    cursor:grab;
+    user-select:none;
+  }
+
+  .moduleHeader:active{cursor:grabbing}
+
+  .moduleHeaderMain{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+  }
+
+  .moduleTitle{
+    font-weight:700;
+    letter-spacing:.03em;
+  }
+
+  .moduleMeta{
+    color:var(--muted);
+    font-size:12px;
+    white-space:nowrap;
+  }
+
+  .moduleHeaderTools{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+
+  .collapseBtn{
+    min-width:34px;
+    width:34px;
+    height:34px;
+    padding:0;
+    border-radius:8px;
+    font-size:14px;
+    line-height:1;
+  }
+
+  .moduleBody{padding:14px}
+  .moduleCard.dragging{opacity:.45;transform:scale(.985)}
+  .moduleCard.dropTarget{outline:1px dashed rgba(227,140,58,.9);outline-offset:2px}
+  .moduleCard.collapsed .moduleBody{display:none}
+  .moduleCard.collapsed .moduleHeader{border-bottom:none}
+
+  .previewShell{
+    padding:0;
+    overflow:hidden;
+  }
+
+  .previewHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    padding:14px 16px;
+    border-bottom:1px solid rgba(124,106,72,.25);
+    background:linear-gradient(180deg,rgba(37,47,52,.9),rgba(23,30,34,.92));
+  }
+
+  .previewHeaderTitle{
+    display:grid;
+    gap:4px;
+  }
+
+  .previewStatus{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
+  }
+
+  .previewWrap{
+    position:relative;
+    min-height:720px;
+    background:#06090b;
+  }
+
+  iframe{
+    width:100%;
+    height:calc(100vh - 170px);
+    min-height:720px;
+    border:0;
+    background:#000;
+    display:block;
+  }
+
+  canvas.overlay{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+  }
+
+  canvas.overlay.interactive{
+    pointer-events:auto;
+  }
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .checkLine{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--muted);
+    font-size:12px;
+    letter-spacing:.02em;
+  }
+  .checkLine input{width:auto}
+
+  .objectList{
+    display:grid;
+    gap:6px;
+    max-height:280px;
+    overflow:auto;
+    padding-right:4px;
+  }
+
+  .objectBtn{
+    width:100%;
+    text-align:left;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+
+  .objectBtn small{color:var(--muted)}
+
+  .stats{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:6px 10px;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .stats div:nth-child(odd){color:var(--muted)}
+
+  textarea{
+    min-height:220px;
+    resize:vertical;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12px;
+  }
+
+  code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12px;
+    color:#f0c98f;
+  }
+
+  .checklistStatus{display:grid;gap:8px;margin-top:4px}
+  .statusRow{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:6px 10px;
+    align-items:start;
+  }
+
+  .statusDot{
+    width:11px;
+    height:11px;
+    border-radius:999px;
+    margin-top:3px;
+    border:1px solid rgba(255,255,255,.15);
+    box-shadow:0 0 0 1px rgba(0,0,0,.25) inset;
+  }
+
+  .statusUnknown{background:#60656b}
+  .statusOk{background:var(--ok)}
+  .statusWarn{background:var(--warn)}
+  .statusBad{background:var(--bad)}
+  .statusLabel{font-weight:600}
+  .statusPath{
+    grid-column:2;
+    color:var(--muted);
+    font-size:12px;
+    word-break:break-all;
+  }
+
+  .statusBar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:8px 12px;
+    border-top:1px solid rgba(124,106,72,.35);
+    background:linear-gradient(180deg,rgba(16,23,26,.96),rgba(11,16,18,.98));
+    color:var(--muted);
+    font-size:12px;
+  }
+
+  .statusBar strong{color:var(--text)}
+
+  @media (max-width: 1380px){
+    .workspace{
+      grid-template-columns:340px minmax(0,1fr);
+      grid-template-areas:
+        "left main"
+        "right right";
+    }
+
+    aside.rightPane{
+      border-left:none;
+      border-top:1px solid rgba(124,106,72,.45);
+    }
+
+    .workspace.hide-left{
+      grid-template-columns:minmax(0,1fr);
+      grid-template-areas:
+        "main"
+        "right";
+    }
+
+    .workspace.hide-right{
+      grid-template-columns:340px minmax(0,1fr);
+      grid-template-areas:"left main";
+    }
+
+    .workspace.hide-left.hide-right{
+      grid-template-columns:minmax(0,1fr);
+      grid-template-areas:"main";
+    }
+
+    iframe{height:70vh;min-height:600px}
+    .previewWrap{min-height:600px}
+  }
+
+  @media (max-width: 980px){
+    .programMenuBar{
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+
+    .menuSummary{
+      margin-left:0;
+      width:100%;
+    }
+
+    .workspace,
+    .workspace.hide-left,
+    .workspace.hide-right,
+    .workspace.hide-left.hide-right{
+      grid-template-columns:1fr;
+      grid-template-areas:
+        "left"
+        "main"
+        "right";
+    }
+
+    aside.leftPane{
+      border-right:none;
+      border-bottom:1px solid rgba(124,106,72,.45);
+    }
+
+    aside.rightPane{
+      border-top:1px solid rgba(124,106,72,.45);
+    }
+
+    main.mainPane{padding:14px}
+    iframe{height:60vh;min-height:520px}
+    .previewWrap{min-height:520px}
+  }
+
+
+
+  .menuPopup button.disabled,
+  .menuPopup button:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+    filter:saturate(.55);
+  }
+
+  .menuPopup button.disabled:hover,
+  .menuPopup button:disabled:hover{
+    border-color:transparent;
+    background:transparent;
+    filter:saturate(.55);
+  }
+
+  .sessionControlGrid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+
+  .sessionControlGrid button{
+    width:100%;
+    min-width:0;
+    padding:9px 8px;
+    text-align:center;
+    line-height:1.15;
+    white-space:normal;
+  }
+
+  @media (max-width: 760px){
+    .sessionControlGrid{
+      grid-template-columns:1fr;
+    }
+  }
+
+  .mobileNavControls{
+    display:none;
+  }
+
+  .mobileNavControls button{
+    padding:7px 9px;
+    border-radius:8px;
+    font-size:12px;
+    line-height:1;
+    white-space:nowrap;
+  }
+
+  @media (max-width: 980px){
+    .appShell{
+      grid-template-rows:auto minmax(0,1fr);
+    }
+
+    .programMenuBar{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      align-items:center;
+      gap:6px 8px;
+      padding:6px 8px;
+    }
+
+    .menuBrand{
+      font-size:15px;
+      line-height:1.1;
+      white-space:normal;
+    }
+
+    .menuSummary{
+      grid-column:1 / -1;
+      margin-left:0;
+      width:100%;
+      font-size:11px;
+      line-height:1.2;
+    }
+
+  
+  .menuPopup button.disabled,
+  .menuPopup button:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+    filter:saturate(.55);
+  }
+
+  .menuPopup button.disabled:hover,
+  .menuPopup button:disabled:hover{
+    border-color:transparent;
+    background:transparent;
+    filter:saturate(.55);
+  }
+
+  .sessionControlGrid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+
+  .sessionControlGrid button{
+    width:100%;
+    min-width:0;
+    padding:9px 8px;
+    text-align:center;
+    line-height:1.15;
+    white-space:normal;
+  }
+
+  @media (max-width: 760px){
+    .sessionControlGrid{
+      grid-template-columns:1fr;
+    }
+  }
+
+  .mobileNavControls{
+      display:flex;
+      justify-content:flex-end;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+
+    .menuBar{
+      display:none;
+      grid-column:1 / -1;
+      width:100%;
+      gap:4px;
+      flex-wrap:wrap;
+    }
+
+    body.mobile-menu-open .menuBar{
+      display:flex;
+    }
+
+    body.mobile-menu-open .menuSummary{
+      display:none;
+    }
+
+    .menuTrigger{
+      padding:7px 9px;
+      font-size:12px;
+    }
+
+    .menuPopup{
+      position:fixed;
+      top:54px;
+      left:8px;
+      right:8px;
+      min-width:0;
+      z-index:80;
+      max-height:calc(100dvh - 70px);
+      overflow:auto;
+    }
+
+    .workspace,
+    .workspace.hide-left,
+    .workspace.hide-right,
+    .workspace.hide-left.hide-right{
+      min-height:0;
+      overflow:hidden;
+    }
+
+    .workspace{
+      grid-template-columns:280px minmax(0,1fr) 280px;
+      grid-template-areas:"left main right";
+    }
+
+    .workspace.hide-left{
+      grid-template-columns:minmax(0,1fr) 280px;
+      grid-template-areas:"main right";
+    }
+
+    .workspace.hide-right{
+      grid-template-columns:280px minmax(0,1fr);
+      grid-template-areas:"left main";
+    }
+
+    .workspace.hide-left.hide-right{
+      grid-template-columns:minmax(0,1fr);
+      grid-template-areas:"main";
+    }
+
+    aside.leftPane,
+    aside.rightPane,
+    main.mainPane{
+      min-height:0;
+      overflow:auto;
+    }
+
+    aside.leftPane{
+      border-right:1px solid rgba(124,106,72,.45);
+      border-bottom:0;
+    }
+
+    aside.rightPane{
+      border-left:1px solid rgba(124,106,72,.45);
+      border-top:0;
+    }
+
+    main.mainPane{
+      padding:6px;
+    }
+
+    .paneInner{
+      padding:8px;
+    }
+
+    .paneHeader{
+      margin-bottom:8px;
+    }
+
+    .paneHeader h1{
+      font-size:18px;
+    }
+
+    .paneHeader h2{
+      font-size:14px;
+    }
+
+    .paneHeader .sub,
+    .dockHint,
+    .hint,
+    .help,
+    .status{
+      font-size:11px;
+      line-height:1.3;
+    }
+
+    .panel{
+      border-radius:10px;
+      padding:8px;
+    }
+
+    .moduleHeader{
+      padding:8px 9px;
+    }
+
+    .moduleBody{
+      padding:9px;
+    }
+
+    .moduleTitle{
+      font-size:13px;
+    }
+
+    .moduleMeta{
+      font-size:11px;
+    }
+
+    .collapseBtn{
+      width:30px;
+      min-width:30px;
+      height:30px;
+    }
+
+    .previewShell{
+      height:100%;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr);
+    }
+
+    .previewHeader{
+      padding:7px 8px;
+      gap:6px;
+    }
+
+    .previewHeaderTitle strong{
+      font-size:14px;
+    }
+
+    .previewHeaderTitle .dockHint{
+      display:none;
+    }
+
+    .previewStatus{
+      gap:5px;
+    }
+
+    .pill{
+      font-size:10px;
+      padding:3px 6px;
+    }
+
+    .previewWrap{
+      min-height:0;
+      height:calc(100dvh - 132px);
+      max-height:calc(100dvh - 132px);
+      overflow:hidden;
+    }
+
+    iframe{
+      height:100%;
+      min-height:0;
+    }
+
+    .grid,
+    .grid2,
+    .miniGrid{
+      grid-template-columns:1fr;
+    }
+
+    button,
+    select,
+    input,
+    textarea{
+      padding:8px 9px;
+      border-radius:8px;
+      font-size:13px;
+    }
+
+    .objectList{
+      max-height:190px;
+    }
+
+    .statusBar{
+      display:none;
+    }
+  }
+
+  @media (max-width: 760px){
+    .workspace{
+      grid-template-columns:250px minmax(0,1fr) 250px;
+    }
+
+    .workspace.hide-left{
+      grid-template-columns:minmax(0,1fr) 250px;
+    }
+
+    .workspace.hide-right{
+      grid-template-columns:250px minmax(0,1fr);
+    }
+
+    .mobileNavControls button{
+      padding:7px 8px;
+      font-size:11px;
+    }
+
+    .previewWrap{
+      height:calc(100dvh - 124px);
+      max-height:calc(100dvh - 124px);
+    }
+  }
+
+  @media (max-height: 680px){
+    .programMenuBar{
+      padding:5px 7px;
+    }
+
+    .menuSummary{
+      display:none;
+    }
+
+    .previewHeader{
+      padding:5px 7px;
+    }
+
+    .previewWrap{
+      height:calc(100dvh - 96px);
+      max-height:calc(100dvh - 96px);
+    }
+  }
+
+
+  /* Dev Kit Lite: public mode. */
+  body.lite #exportModule,
+  body.lite #releaseModule,
+  body.lite button[data-action="exportLayout"],
+  body.lite button[data-action="copyLayout"],
+  body.lite button[data-action="showReleaseHelp"],
+  body.lite #selectedMetaGrid,
+  body.lite #dialogEditorBlock,
+  body.lite #conditionEditorBlock,
+  body.lite #objectDataStatus,
+  body.lite #statsModule .sectionRule,
+  body.lite .lite-hidden {
+    display:none !important;
+  }
+
+  body.lite .liteNotice{
+    border:1px solid rgba(227,140,58,.34);
+    border-radius:10px;
+    background:rgba(227,140,58,.075);
+    padding:10px 12px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.45;
+  }
+
+
+  /* Responsive editor-shell polish: dynamic desktop/tablet/mobile layout. */
+  :root{
+    --shell-gap:clamp(8px,1.1vw,16px);
+    --left-pane-w:clamp(276px,21vw,330px);
+    --right-pane-w:clamp(286px,22vw,350px);
+    --topbar-min-h:52px;
+    --panel-radius:14px;
+    --dock-h:clamp(220px,31dvh,340px);
+  }
+
+  body{
+    background:
+      radial-gradient(circle at 50% -18%,rgba(149,83,60,.24),transparent 36%),
+      radial-gradient(circle at 100% 0%,rgba(68,83,114,.18),transparent 30%),
+      linear-gradient(180deg,#071012,#10181b 58%,#070b0c);
+  }
+
+  .appShell{
+    grid-template-rows:minmax(var(--topbar-min-h),auto) minmax(0,1fr) auto;
+  }
+
+  .programMenuBar{
+    min-height:var(--topbar-min-h);
+    padding:8px clamp(10px,1.2vw,16px);
+    background:rgba(8,13,15,.92);
+    backdrop-filter:blur(8px);
+  }
+
+  .workspace,
+  .workspace.hide-left,
+  .workspace.hide-right,
+  .workspace.hide-left.hide-right{
+    min-height:0;
+    overflow:hidden;
+    gap:var(--shell-gap);
+    padding:var(--shell-gap);
+    background:linear-gradient(180deg,rgba(255,255,255,.018),rgba(0,0,0,.08));
+  }
+
+  .workspace{
+    grid-template-columns:var(--left-pane-w) minmax(420px,1fr) var(--right-pane-w);
+    grid-template-areas:"left main right";
+  }
+
+  .workspace.hide-left{
+    grid-template-columns:minmax(420px,1fr) var(--right-pane-w);
+    grid-template-areas:"main right";
+  }
+
+  .workspace.hide-right{
+    grid-template-columns:var(--left-pane-w) minmax(420px,1fr);
+    grid-template-areas:"left main";
+  }
+
+  .workspace.hide-left.hide-right{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"main";
+  }
+
+  aside.leftPane,
+  aside.rightPane,
+  main.mainPane{
+    min-height:0;
+    border:1px solid rgba(124,106,72,.34);
+    border-radius:var(--panel-radius);
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,0)),
+      rgba(9,14,16,.88);
+    box-shadow:0 14px 34px rgba(0,0,0,.34);
+    overflow:auto;
+  }
+
+  aside.leftPane{border-right:1px solid rgba(124,106,72,.34)}
+  aside.rightPane{border-left:1px solid rgba(124,106,72,.34)}
+
+  main.mainPane{
+    padding:0;
+    display:grid;
+    grid-template-rows:minmax(0,1fr);
+    overflow:hidden;
+  }
+
+  .paneInner{
+    padding:clamp(10px,1.25vw,16px);
+  }
+
+  .paneHeader{
+    align-items:flex-start;
+    gap:12px;
+  }
+
+  .paneHeader h1{
+    font-size:clamp(18px,1.65vw,23px);
+    line-height:1.1;
+  }
+
+  .panel{
+    border-color:rgba(124,106,72,.34);
+    border-radius:var(--panel-radius);
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,0)),
+      rgba(15,22,25,.94);
+  }
+
+  .moduleHeader{
+    min-height:44px;
+    padding:10px 13px;
+    background:linear-gradient(180deg,rgba(34,45,49,.96),rgba(18,27,30,.96));
+  }
+
+  .moduleBody{
+    padding:clamp(10px,1.2vw,14px);
+  }
+
+  .previewShell{
+    height:100%;
+    min-height:0;
+    display:grid;
+    grid-template-rows:auto minmax(0,1fr);
+    border-radius:var(--panel-radius);
+  }
+
+  .previewHeader{
+    padding:11px clamp(12px,1.2vw,16px);
+    gap:10px;
+    background:linear-gradient(180deg,rgba(34,45,49,.96),rgba(18,27,30,.96));
+  }
+
+  .previewWrap{
+    min-height:0;
+    height:100%;
+    max-height:none;
+    display:grid;
+    place-items:center;
+    padding:clamp(8px,1.2vw,18px);
+    overflow:auto;
+    background:
+      radial-gradient(circle at center,rgba(62,79,84,.28),transparent 58%),
+      #030608;
+  }
+
+  .previewWrap iframe,
+  iframe{
+    width:min(100%,960px);
+    height:min(100%,640px);
+    min-height:360px;
+    aspect-ratio:3 / 2;
+    border:0;
+    border-radius:10px;
+    background:#000;
+    box-shadow:
+      0 0 0 2px rgba(124,106,72,.22),
+      0 18px 45px rgba(0,0,0,.55);
+  }
+
+  canvas.overlay{
+    inset:clamp(8px,1.2vw,18px);
+    width:calc(100% - (clamp(8px,1.2vw,18px) * 2));
+    height:calc(100% - (clamp(8px,1.2vw,18px) * 2));
+  }
+
+  .statusBar{
+    min-height:34px;
+    padding:8px clamp(10px,1.2vw,16px);
+  }
+
+  .grid,
+  .grid2,
+  .miniGrid,
+  .sessionControlGrid{
+    gap:clamp(8px,1vw,12px);
+  }
+
+  button,select,input,textarea{
+    min-width:0;
+  }
+
+  .pill{
+    white-space:nowrap;
+  }
+
+  @media (max-width: 1180px){
+    html,body{
+      height:auto;
+      min-height:100%;
+      overflow:auto;
+    }
+
+    .appShell{
+      min-height:100dvh;
+      height:auto;
+      max-height:none;
+      grid-template-rows:auto auto auto;
+      overflow:visible;
+    }
+
+    .workspace,
+    .workspace.hide-left,
+    .workspace.hide-right,
+    .workspace.hide-left.hide-right{
+      grid-template-columns:1fr;
+      grid-template-areas:
+        "main"
+        "left"
+        "right";
+      overflow:visible;
+    }
+
+    .workspace.hide-left{
+      grid-template-areas:
+        "main"
+        "right";
+    }
+
+    .workspace.hide-right{
+      grid-template-areas:
+        "main"
+        "left";
+    }
+
+    .workspace.hide-left.hide-right{
+      grid-template-areas:"main";
+    }
+
+    aside.leftPane,
+    aside.rightPane,
+    main.mainPane{
+      max-height:none;
+      overflow:visible;
+    }
+
+    main.mainPane{
+      min-height:clamp(420px,64dvh,680px);
+    }
+
+    .previewWrap{
+      min-height:clamp(360px,56dvh,620px);
+      height:auto;
+    }
+
+    .previewWrap iframe,
+    iframe{
+      height:min(56dvh,620px);
+      min-height:340px;
+    }
+  }
+
+  @media (max-width: 760px){
+    :root{
+      --shell-gap:8px;
+      --panel-radius:11px;
+    }
+
+    .programMenuBar{
+      grid-template-columns:minmax(0,1fr) auto;
+      align-items:center;
+    }
+
+    .workspace,
+    .workspace.hide-left,
+    .workspace.hide-right,
+    .workspace.hide-left.hide-right{
+      padding:8px;
+    }
+
+    main.mainPane{
+      min-height:360px;
+    }
+
+    .previewHeader{
+      align-items:flex-start;
+    }
+
+    .previewStatus{
+      width:100%;
+    }
+
+    .previewWrap{
+      min-height:310px;
+      padding:8px;
+    }
+
+    .previewWrap iframe,
+    iframe{
+      width:100%;
+      height:clamp(300px,52dvh,460px);
+      min-height:300px;
+      aspect-ratio:4 / 3;
+    }
+
+    .paneHeader{
+      flex-direction:column;
+    }
+
+    .paneHeader button{
+      align-self:flex-start;
+    }
+
+    .conditionRow{
+      grid-template-columns:1fr;
+    }
+
+    .objectList{
+      max-height:220px;
+    }
+  }
+
+  @media (max-width: 520px){
+    .previewStatus .pill{
+      font-size:10px;
+      padding:3px 6px;
+    }
+
+    .moduleHeaderMain{
+      flex-wrap:wrap;
+      gap:4px 8px;
+    }
+
+    .moduleMeta{
+      white-space:normal;
+    }
+
+    .toolbarRow,
+    .row{
+      align-items:stretch;
+    }
+
+    .toolbarRow button,
+    .row button{
+      flex:1 1 auto;
+    }
+  }
+
+
+
+  /* ── Dev kit responsive template patch ────────────────────────────────── */
+  .layoutModeControl{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    color:var(--muted);
+    font-size:12px;
+    white-space:nowrap;
+    margin-left:6px;
+  }
+
+  .layoutModeControl select{
+    min-width:112px;
+    border:1px solid rgba(124,106,72,.48);
+    border-radius:9px;
+    background:rgba(8,12,14,.96);
+    color:var(--text);
+    padding:7px 9px;
+    font:600 12px/1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  body[data-layout-mode="desktop"] .workspace,
+  body[data-layout-mode="desktop"] .workspace.hide-left,
+  body[data-layout-mode="desktop"] .workspace.hide-right,
+  body[data-layout-mode="desktop"] .workspace.hide-left.hide-right{
+    grid-template-columns:clamp(280px,24vw,360px) minmax(0,1fr) clamp(280px,25vw,380px)!important;
+    grid-template-areas:"left main right"!important;
+  }
+
+  body[data-layout-mode="desktop"] .leftPane,
+  body[data-layout-mode="desktop"] .rightPane{
+    display:block!important;
+  }
+
+  body[data-layout-mode="tablet"]{
+    overflow:auto;
+  }
+
+  body[data-layout-mode="tablet"] .appShell{
+    min-height:100dvh;
+    height:auto;
+    max-height:none;
+    overflow:visible;
+  }
+
+  body[data-layout-mode="tablet"] .workspace,
+  body[data-layout-mode="tablet"] .workspace.hide-left,
+  body[data-layout-mode="tablet"] .workspace.hide-right,
+  body[data-layout-mode="tablet"] .workspace.hide-left.hide-right{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    grid-template-areas:
+      "main"
+      "left"
+      "right"!important;
+    overflow:visible!important;
+  }
+
+  body[data-layout-mode="tablet"] .leftPane,
+  body[data-layout-mode="tablet"] .rightPane{
+    display:block!important;
+    border:0;
+    border-top:1px solid rgba(124,106,72,.45);
+    max-height:none;
+    overflow:visible;
+  }
+
+  body[data-layout-mode="tablet"] main.mainPane{
+    overflow:visible;
+    padding:clamp(10px,2vw,18px);
+  }
+
+  body[data-layout-mode="tablet"] .previewWrap{
+    max-height:min(62dvh,640px);
+  }
+
+  body[data-layout-mode="focus"] .workspace,
+  body[data-layout-mode="focus"] .workspace.hide-left,
+  body[data-layout-mode="focus"] .workspace.hide-right,
+  body[data-layout-mode="focus"] .workspace.hide-left.hide-right{
+    grid-template-columns:1fr!important;
+    grid-template-areas:"main"!important;
+  }
+
+  body[data-layout-mode="focus"] .leftPane,
+  body[data-layout-mode="focus"] .rightPane,
+  body[data-layout-mode="focus"] .utilityDock,
+  body[data-layout-mode="focus"] footer.statusBar{
+    display:none!important;
+  }
+
+  body[data-layout-mode="focus"] main.mainPane{
+    padding:10px;
+    overflow:auto;
+  }
+
+  body[data-layout-mode="focus"] .previewWrap{
+    max-height:calc(100dvh - 130px);
+  }
+
+  @media (min-width:761px) and (max-width:1180px){
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .appShell{
+      min-height:100dvh;
+      height:auto;
+      max-height:none;
+      overflow:visible;
+    }
+
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace,
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-left,
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-right,
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-left.hide-right{
+      display:grid!important;
+      grid-template-columns:1fr!important;
+      grid-template-areas:
+        "main"
+        "left"
+        "right"!important;
+      overflow:visible!important;
+    }
+
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .leftPane,
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .rightPane{
+      display:block!important;
+      border:0;
+      border-top:1px solid rgba(124,106,72,.45);
+      max-height:none;
+      overflow:visible;
+    }
+
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) main.mainPane{
+      overflow:visible;
+      padding:clamp(10px,2vw,18px);
+    }
+  }
+
+  @media (max-width:760px){
+    .programMenuBar{
+      flex-wrap:wrap;
+      gap:8px;
+      padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 8px max(8px,env(safe-area-inset-left));
+    }
+
+    .layoutModeControl{
+      order:4;
+      width:100%;
+      justify-content:space-between;
+      margin-left:0;
+    }
+
+    .layoutModeControl select{
+      flex:1 1 auto;
+      max-width:220px;
+    }
+  }
+
+</style>
+</head>
+<body class="lite">
+<div class="appShell">
+  <header class="programMenuBar">
+    <div class="menuBrand">BoneCrawler Dev Kit Lite</div>
+
+    <nav class="menuBar" aria-label="Program menu">
+      <div class="menuItem">
+        <button class="menuTrigger" type="button">File</button>
+        <div class="menuPopup">
+          <div class="menuSectionLabel">Session</div>
+          <button class="menuAction disabled" data-action="loadGame" disabled title="Disabled in this public build">Load Game <small>Disabled</small></button>
+          <button class="menuAction" data-action="reloadFrame">Reload Frame <small>Ctrl+R</small></button>
+          <button class="menuAction" data-action="refreshAll">Refresh All <small>Ctrl+Shift+R</small></button>
+          <div class="menuDivider"></div>
+          <div class="menuSectionLabel">Resource Files</div>
+          <button class="menuAction disabled" data-action="openResource" disabled title="Disabled in this public build">Open Resource JSON <small>Disabled</small></button>
+          <button class="menuAction disabled" data-action="saveResource" disabled title="Disabled in this public build">Save Resource JSON <small>Disabled</small></button>
+          <button class="menuAction disabled" data-action="backupResource" disabled title="Disabled in this public build">Backup Resource JSON <small>Disabled</small></button>
+          <div class="menuDivider"></div>
+          <div class="menuSectionLabel">Export</div>
+          <button class="menuAction" data-action="exportLayout">Export Resource Data <small>Ctrl+E</small></button>
+          <button class="menuAction" data-action="copyLayout">Copy Resource Data <small>Ctrl+Shift+C</small></button>
+          <div class="menuDivider"></div>
+          <button class="menuAction" data-action="resetPanelOrders">Reset Panel Order <small>Alt+0</small></button>
+        </div>
+      </div>
+
+      <div class="menuItem">
+        <button class="menuTrigger" type="button">Edit</button>
+        <div class="menuPopup">
+          <div class="menuSectionLabel">Toolkit</div>
+          <button class="menuAction" data-action="toggleEditorInput">Toggle Editor Input <small>Alt+I</small></button>
+          <button class="menuAction" data-action="toggleOverlay">Toggle Overlay <small>Alt+O</small></button>
+          <div class="menuDivider"></div>
+          <div class="menuSectionLabel">Live Data</div>
+          <button class="menuAction" data-action="pullStats">Pull Current Stats <small>Alt+P</small></button>
+          <button class="menuAction" data-action="applyStats">Apply Stats <small>Alt+A</small></button>
+          <button class="menuAction" data-action="refreshSnapshot">Refresh Snapshot <small>Alt+S</small></button>
+          <button class="menuAction" data-action="refreshEditor">Refresh Editor State <small>Alt+D</small></button>
+        </div>
+      </div>
+
+      <div class="menuItem">
+        <button class="menuTrigger" type="button">View</button>
+        <div class="menuPopup">
+          <div class="menuSectionLabel">Workspace</div>
+          <button class="menuAction" data-action="toggleLeftPane">Toggle Left Pane <small>Alt+1</small></button>
+          <button class="menuAction" data-action="toggleRightPane">Toggle Right Pane <small>Alt+2</small></button>
+          <div class="menuDivider"></div>
+          <div class="menuSectionLabel">Panels</div>
+          <button class="menuAction" data-action="collapseAllPanels">Collapse All Panels <small>Alt+-</small></button>
+          <button class="menuAction" data-action="expandAllPanels">Expand All Panels <small>Alt+=</small></button>
+          <button class="menuAction" data-action="resetPanelOrders">Reset Panel Order <small>Alt+0</small></button>
+        </div>
+      </div>
+
+      <div class="menuItem">
+        <button class="menuTrigger" type="button">Help</button>
+        <div class="menuPopup">
+          <div class="menuSectionLabel">Guides</div>
+          <button class="menuAction" data-action="showShortcuts">Keyboard Shortcuts</button>
+          <button class="menuAction" data-action="showReleaseHelp">Release Checklist Help</button>
+          <div class="menuDivider"></div>
+          <button class="menuAction" data-action="showAbout">About Toolkit</button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="menuSummary">Lite Mode · Desktop recommended</div>
+
+    <label class="layoutModeControl" for="layoutModeSelect">
+      <span>Layout</span>
+      <select id="layoutModeSelect" aria-label="Dev kit layout mode">
+        <option value="auto">Auto</option>
+        <option value="desktop">Desktop</option>
+        <option value="tablet">Tablet</option>
+        <option value="focus">Focus Game</option>
+      </select>
+    </label>
+
+    <div class="mobileNavControls" aria-label="Mobile workspace controls">
+      <button id="mobileGameOnlyBtn" type="button">Game</button>
+      <button id="mobileToolsBtn" type="button">Tools</button>
+      <button id="mobileInspectorBtn" type="button">Inspect</button>
+      <button id="mobileMenuToggle" type="button">Menu</button>
+    </div>
+  </header>
+
+  <div class="workspace" id="workspace">
+    <aside class="leftPane">
+      <div class="paneInner">
+        <div class="paneHeader">
+          <div>
+            <h1>Toolkit Panels</h1>
+            <p class="sub">Lite public toolkit. Desktop or tablet recommended.</p>
+          </div>
+          <button id="resetLeftDockBtn" type="button">Reset</button>
+        </div>
+
+        <div id="leftDock" class="dockStack">
+          <section class="panel moduleCard" id="liteNoticeModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Lite Mode</div>
+                <div class="moduleMeta">public demo</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <div class="liteNotice">This version is for the public build. It can inspect and test the running game session, but it does not save files.</div>
+            </div>
+          </section>
+          <section class="panel moduleCard" id="projectModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Session</div>
+                <div class="moduleMeta">drag to move</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <div class="sessionControlGrid">
+                <button id="reloadBtn" type="button">Reload Frame</button>
+                <button id="refreshAllBtn" type="button">Refresh All</button>
+                <button id="editorInputBtn" class="secondary" type="button">Editor Input: OFF</button>
+                <button id="toggleOverlayBtn" type="button">Overlay Visible: ON</button>
+              </div>
+              <label class="checkLine" for="autoSceneSyncToggle">
+                <input id="autoSceneSyncToggle" type="checkbox" checked>
+                Auto-sync editor to active scene
+              </label>
+              <div class="hint">DevKit Lite uses the fixed bundled game page. Turn editor input on when moving props or spawns. Auto-sync follows title, zone, and secret-zone scene changes.</div>
+            </div>
+          </section>
+
+          <section class="panel moduleCard" id="quickModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Quick Commands</div>
+                <div class="moduleMeta">drag to move</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <div class="row"><strong>Live cheats</strong><span class="pill">same-origin only</span></div>
+              <div class="grid">
+                <button id="godBtn" class="secondary" type="button">Toggle God</button>
+                <button id="advanceBtn" type="button">Skip Ahead</button>
+                <button id="chestBtn" type="button">Spawn Chest</button>
+                <button id="phaseBtn" class="warn" type="button">Skip Boss Phase</button>
+              </div>
+              <div class="status" id="devCommandStatus">Waiting for a dev snapshot reply. Message-based quick commands need live game-side dev hooks.</div>
+              <div class="hint">Message commands are still sent first. Toggle God and Teleport Zone 1–3 also try keyboard fallbacks where available: <code>Shift+G</code>, <code>Shift+1</code>, <code>Shift+2</code>, <code>Shift+3</code>.</div>
+            </div>
+          </section>
+
+          <section class="panel moduleCard" id="transportModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Zone Transport</div>
+                <div class="moduleMeta">drag to move</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <div class="row"><strong>Teleport</strong><span class="pill">developer only</span></div>
+              <div class="grid">
+                <button class="teleportBtn" data-zone="zone1" type="button">Zone 1</button>
+                <button class="teleportBtn" data-zone="secret1" type="button">Secret Zone 1</button>
+                <button class="teleportBtn" data-zone="zone2" type="button">Zone 2</button>
+                <button class="teleportBtn" data-zone="zone3" type="button">Zone 3</button>
+                <button class="teleportBtn full" data-zone="secret2" type="button">Secret Zone 2</button>
+              </div>
+              <div class="hint">Instantly moves the current run to the selected area with test-friendly defaults.</div>
+            </div>
+          </section>
+
+          <section class="panel moduleCard" id="editorZoneModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Editor Zone</div>
+                <div class="moduleMeta">drag to move</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <div class="grid2">
+                <button class="editorZoneBtn primary" data-zone="0" type="button">Title</button>
+                <button class="editorZoneBtn" data-zone="1" type="button">Zone 1</button>
+                <button class="editorZoneBtn" data-zone="2" type="button">Zone 2</button>
+                <button class="editorZoneBtn" data-zone="3" type="button">Zone 3</button>
+                <button class="editorZoneBtn" data-zone="101" type="button">Secret 1</button>
+                <button class="editorZoneBtn full" data-zone="102" type="button">Secret 2</button>
+              </div>
+              <div class="status" id="zoneStatus">Waiting for editor state…</div>
+            </div>
+          </section>
+
+          <section class="panel moduleCard" id="filtersModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Overlay Filters</div>
+                <div class="moduleMeta">drag to move</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <div class="chips">
+                <label><input type="checkbox" class="filterBox" value="prop" checked> Props</label>
+                <label><input type="checkbox" class="filterBox" value="door" checked> Doors</label>
+                <label><input type="checkbox" class="filterBox" value="trigger" checked> Triggers</label>
+                <label><input type="checkbox" class="filterBox" value="spawn" checked> Spawns</label>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel moduleCard" id="spawnModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Spawn Tools</div>
+                <div class="moduleMeta">drag to move</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <label>
+                Spawn type
+                <select id="spawnType">
+                  <option value="normal">Normal skeleton</option>
+                  <option value="giant">Giant skeleton</option>
+                  <option value="wizard">Wizard skeleton</option>
+                </select>
+              </label>
+              <div class="toolbarRow">
+                <button id="addSpawnModeBtn" class="secondary" type="button">Add Spawn Marker</button>
+                <button id="spawnNowBtn" type="button">Spawn At Player</button>
+              </div>
+              <div class="help">Add Spawn Marker places a reusable spawn point on click. Spawn At Player immediately spawns the selected enemy at the live player position.</div>
+            </div>
+          </section>
+
+          <section class="panel moduleCard" id="selectionListModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Selection List</div>
+                <div class="moduleMeta">drag to move</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <div class="objectList" id="objectList"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </aside>
+
+    <main class="mainPane">
+      <section class="panel previewShell">
+        <div class="previewHeader">
+          <div class="previewHeaderTitle">
+            <strong>Shared Game Window</strong>
+            <div class="dockHint"></div>
+          </div>
+          <div class="previewStatus">
+            <span class="pill" id="inputStatusPill">Editor Input Off</span>
+            <span class="pill" id="overlayStatusPill">Overlay Visible</span>
+            <span class="pill" id="stateStatusPill">State: waiting…</span>
+          </div>
+        </div>
+        <div class="previewWrap" id="previewWrap">
+          <iframe id="gameFrame" src="../index.html" title="BoneCrawler game"></iframe>
+          <canvas class="overlay" id="overlayCanvas"></canvas>
+        </div>
+      </section>
+    </main>
+
+    <aside class="rightPane">
+      <div class="paneInner">
+        <div class="paneHeader">
+          <div>
+            <h2>Utility Dock</h2>
+            <div class="dockHint">Drag the panels by their headers to reorder them.</div>
+          </div>
+          <button id="resetRightDockBtn" type="button">Reset</button>
+        </div>
+
+        <div id="moduleDock" class="dockStack">
+          <section class="panel moduleCard" id="statsModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Edit Stats</div>
+                <div class="moduleMeta">drag to move</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <div class="row">
+                <strong>Current run values</strong>
+                <button id="pullStatsBtn" type="button">Pull Current</button>
+              </div>
+              <div class="grid">
+                <div>
+                  <label for="swordInput">Sword Level</label>
+                  <input id="swordInput" type="number" min="0" step="1" value="0">
+                </div>
+                <div>
+                  <label for="speedInput">Speed Level</label>
+                  <input id="speedInput" type="number" min="0" step="1" value="0">
+                </div>
+                <div>
+                  <label for="pointsInput">Points</label>
+                  <input id="pointsInput" type="number" min="0" step="1" value="0">
+                </div>
+                <div>
+                  <label for="killsInput">Kills</label>
+                  <input id="killsInput" type="number" min="0" step="1" value="0">
+                </div>
+                <button id="applyStatsBtn" class="primary full" type="button">Apply Stats</button>
+              </div>
+
+              <div class="sectionRule"></div>
+
+              <div class="row lite-hidden">
+                <strong>Selected object data</strong>
+                <span class="pill" id="selectedDataTypePill">No selection</span>
+              </div>
+              <div class="status" id="objectDataStatus">Select an object to edit dialog pages, trigger events, and runtime conditions.</div>
+
+              <div class="miniGrid" id="selectedMetaGrid">
+                <label>
+                  Event Type
+                  <input id="selectedEventTypeInput" type="text" placeholder="dialog_start / set_flag / spawn_wave">
+                </label>
+                <label>
+                  Target / Flag
+                  <input id="selectedTargetInput" type="text" placeholder="door id / npc id / flag name">
+                </label>
+              </div>
+
+              <div class="subpanel" id="dialogEditorBlock">
+                <div class="row">
+                  <strong>Dialog Pages</strong>
+                  <div class="toolbarRow">
+                    <button id="addDialogPageBtn" type="button">Add Page</button>
+                    <button id="removeDialogPageBtn" class="warn" type="button">Remove Page</button>
+                  </div>
+                </div>
+                <label>
+                  Page
+                  <select id="dialogPageSelect"></select>
+                </label>
+                <label>
+                  Speaker
+                  <input id="dialogSpeakerInput" type="text" placeholder="Narrator / Stranger / NPC name">
+                </label>
+                <label>
+                  Text
+                  <textarea id="dialogTextInput" class="shortArea" placeholder="Dialog text for the selected page."></textarea>
+                </label>
+              </div>
+
+              <div class="subpanel" id="conditionEditorBlock">
+                <div class="row">
+                  <strong>Trigger Conditions</strong>
+                  <button id="addConditionBtn" type="button">Add Condition</button>
+                </div>
+                <div class="conditionList" id="conditionList"></div>
+              </div>
+
+              <div class="subpanel lite-hidden">
+                <div class="row">
+                  <strong>Raw Object Data JSON</strong>
+                  <div class="toolbarRow">
+                    <button id="loadObjectJsonBtn" type="button">Load JSON</button>
+                    <button id="resetObjectDataBtn" type="button">Reset Draft</button>
+                    <button id="applyObjectDataBtn" class="primary" type="button">Apply Object Data</button>
+                  </div>
+                </div>
+                <textarea id="objectDataBox" class="mediumArea mono" placeholder="Selected object metadata, dialog pages, trigger conditions, and event data."></textarea>
+                <div class="infoBox">These selection-data edits are staged in the toolkit immediately and included in toolkit exports. For live runtime changes, the game also needs matching dev/editor hooks to accept the posted object-data messages.</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel moduleCard" id="snapshotModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Live Snapshot</div>
+                <div class="moduleMeta">drag to move</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <div class="row"><strong>Current game state</strong><button id="refreshSnapshotBtn" type="button">Refresh</button></div>
+              <div id="snapshot" class="stats">
+                <div>State</div><div>—</div>
+                <div>Zone</div><div>—</div>
+                <div>Score</div><div>—</div>
+                <div>Kills</div><div>—</div>
+                <div>Skeletons</div><div>—</div>
+                <div>Giants</div><div>—</div>
+                <div>Wizards</div><div>—</div>
+                <div>Sword</div><div>—</div>
+                <div>Speed</div><div>—</div>
+                <div>Dragon</div><div>—</div>
+                <div>God Mode</div><div>—</div>
+                <div>HP</div><div>—</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel moduleCard" id="objectModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Object Properties</div>
+                <div class="moduleMeta">drag to move</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <div class="status" id="selectionStatus">No object selected.</div>
+              <label>
+                Label
+                <input id="objLabel" type="text" readonly>
+              </label>
+              <div class="grid2">
+                <label>X<input id="objX" type="number" step="1"></label>
+                <label>Y<input id="objY" type="number" step="1"></label>
+                <label>W<input id="objW" type="number" step="1"></label>
+                <label>H<input id="objH" type="number" step="1"></label>
+              </div>
+              <div class="toolbarRow">
+                <button id="applyRectBtn" class="primary" type="button">Apply</button>
+                <button id="deleteSpawnBtn" class="warn" type="button">Delete Spawn</button>
+                <button id="refreshEditorBtn" type="button">Refresh Editor</button>
+              </div>
+              <div class="help">Drag boxes on the preview with editor input enabled. Delete Spawn only removes editor-added spawn markers.</div>
+            </div>
+          </section>
+
+          <section class="panel moduleCard" id="exportModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Resource Data Editor</div>
+                <div class="moduleMeta">drag to move</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <label>
+                Current resource file
+                <input id="resourceFileName" type="text" value="bonecrawler_resource_data.json" placeholder="data/zone_1.json">
+              </label>
+              <div class="toolbarRow">
+                <button id="openResourceBtn" type="button">Open File</button>
+                <button id="saveResourceBtn" class="primary" type="button">Save File</button>
+                <button id="backupResourceBtn" type="button">Backup File</button>
+              </div>
+              <div class="toolbarRow">
+                <button id="exportBtn" type="button">Pull From Game</button>
+                <button id="applyResourceBtn" class="secondary" type="button">Apply To Game</button>
+                <button id="copyExportBtn" type="button">Copy JSON</button>
+              </div>
+              <textarea id="exportBox" placeholder="Open, edit, export, save, or backup resource JSON here. This can hold zones, game objects, enemies, spawn points, waves, or map data."></textarea>
+              <input id="resourceOpenInput" class="hidden" type="file" accept=".json,application/json">
+              <div class="infoBox">Resource Data Editor is intentionally general. It can stage zone data, spawn points, waves, object metadata, enemy config, and future pixel-map data. In a browser it uses manual open/save/download; in a containerized runtime the same buttons can be wired to real filesystem writes.</div>
+            </div>
+          </section>
+
+          <section class="panel moduleCard" id="releaseModule" draggable="true">
+            <div class="moduleHeader">
+              <div class="moduleHeaderMain">
+                <div class="moduleTitle">Release Checklist</div>
+                <div class="moduleMeta">drag to move</div>
+              </div>
+              <div class="moduleHeaderTools">
+                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
+              </div>
+            </div>
+            <div class="moduleBody stack">
+              <div class="hint">Before publishing, remove this line from the main game page:</div>
+              <code>&lt;script src="dev_bootstrap.js"&gt;&lt;/script&gt;</code>
+              <div class="hint">Or keep the same code in <code>dev/dev_bootstrap.js</code> and exclude that folder from deployment.</div>
+
+              <div class="checklistStatus" id="releaseStatus">
+                <div class="statusRow">
+                  <span class="statusDot statusUnknown" id="bootstrapDot"></span>
+                  <div class="statusLabel" id="bootstrapLabel">Bootstrap file presence: checking…</div>
+                  <div class="statusPath" id="bootstrapPath">—</div>
+                </div>
+                <div class="statusRow">
+                  <span class="statusDot statusUnknown" id="panelDot"></span>
+                  <div class="statusLabel" id="panelLabel">Dev toolkit file presence: checking…</div>
+                  <div class="statusPath" id="panelPath">—</div>
+                </div>
+                <div class="statusRow">
+                  <span class="statusDot statusUnknown" id="importDot"></span>
+                  <div class="statusLabel" id="importLabel">Game import check: checking…</div>
+                  <div class="statusPath" id="importPath">—</div>
+                </div>
+              </div>
+
+              <div class="hint">Passive check only. Direct <code>file://</code> browsing can limit detection in some browsers.</div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="statusBar">
+    <div><strong>Status:</strong> <span id="statusText">Ready.</span></div>
+    <div id="workspaceStatus">Left pane on · Right pane on · Shared iframe live</div>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const DEFAULT_GAME_PATH = '../index.html';
+  const DEV_PANEL_SOURCE = 'bonecrawler-dev-panel';
+  const DEV_GAME_SOURCE = 'bonecrawler-dev';
+  const EDITOR_SOURCE = 'bonecrawler-editor';
+
+  const STORAGE_KEYS = {
+    leftOrder: 'bonecrawler-combined-left-order',
+    rightOrder: 'bonecrawler-combined-right-order',
+    collapsed: 'bonecrawler-combined-collapsed',
+    workspace: 'bonecrawler-combined-workspace',
+    autoSceneSync: 'bonecrawler-lite-auto-scene-sync'
+  };
+
+  const workspace = document.getElementById('workspace');
+  const mobileGameOnlyBtn = document.getElementById('mobileGameOnlyBtn');
+  const mobileToolsBtn = document.getElementById('mobileToolsBtn');
+  const mobileInspectorBtn = document.getElementById('mobileInspectorBtn');
+  const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+  const leftDock = document.getElementById('leftDock');
+  const rightDock = document.getElementById('moduleDock');
+  const statusText = document.getElementById('statusText');
+  const workspaceStatus = document.getElementById('workspaceStatus');
+
+  const gamePath = document.getElementById('gamePath') || { value: DEFAULT_GAME_PATH };
+  const frame = document.getElementById('gameFrame');
+  const overlay = document.getElementById('overlayCanvas');
+  const wrap = document.getElementById('previewWrap');
+  const ctx = overlay.getContext('2d');
+  const snapshotEl = document.getElementById('snapshot');
+
+  const swordInput = document.getElementById('swordInput');
+  const speedInput = document.getElementById('speedInput');
+  const pointsInput = document.getElementById('pointsInput');
+  const killsInput = document.getElementById('killsInput');
+  const selectedDataTypePill = document.getElementById('selectedDataTypePill');
+  const objectDataStatus = document.getElementById('objectDataStatus');
+  const selectedEventTypeInput = document.getElementById('selectedEventTypeInput');
+  const selectedTargetInput = document.getElementById('selectedTargetInput');
+  const dialogPageSelect = document.getElementById('dialogPageSelect');
+  const dialogSpeakerInput = document.getElementById('dialogSpeakerInput');
+  const dialogTextInput = document.getElementById('dialogTextInput');
+  const addDialogPageBtn = document.getElementById('addDialogPageBtn');
+  const removeDialogPageBtn = document.getElementById('removeDialogPageBtn');
+  const addConditionBtn = document.getElementById('addConditionBtn');
+  const conditionList = document.getElementById('conditionList');
+  const objectDataBox = document.getElementById('objectDataBox');
+  const loadObjectJsonBtn = document.getElementById('loadObjectJsonBtn');
+  const resetObjectDataBtn = document.getElementById('resetObjectDataBtn');
+  const applyObjectDataBtn = document.getElementById('applyObjectDataBtn');
+  const devCommandStatus = document.getElementById('devCommandStatus');
+
+  const objectList = document.getElementById('objectList');
+  const zoneStatus = document.getElementById('zoneStatus');
+  const selectionStatus = document.getElementById('selectionStatus');
+  const objLabel = document.getElementById('objLabel');
+  const objX = document.getElementById('objX');
+  const objY = document.getElementById('objY');
+  const objW = document.getElementById('objW');
+  const objH = document.getElementById('objH');
+  const exportBox = document.getElementById('exportBox');
+  const spawnType = document.getElementById('spawnType');
+  const addSpawnModeBtn = document.getElementById('addSpawnModeBtn');
+  const spawnNowBtn = document.getElementById('spawnNowBtn');
+  const deleteSpawnBtn = document.getElementById('deleteSpawnBtn');
+  const applyRectBtn = document.getElementById('applyRectBtn');
+  const exportBtn = document.getElementById('exportBtn');
+  const copyExportBtn = document.getElementById('copyExportBtn');
+  const openResourceBtn = document.getElementById('openResourceBtn');
+  const saveResourceBtn = document.getElementById('saveResourceBtn');
+  const backupResourceBtn = document.getElementById('backupResourceBtn');
+  const applyResourceBtn = document.getElementById('applyResourceBtn');
+  const resourceFileName = document.getElementById('resourceFileName');
+  const resourceOpenInput = document.getElementById('resourceOpenInput');
+  const filterBoxes = Array.from(document.querySelectorAll('.filterBox'));
+  const editorZoneBtns = Array.from(document.querySelectorAll('.editorZoneBtn'));
+
+  const inputStatusPill = document.getElementById('inputStatusPill');
+  const overlayStatusPill = document.getElementById('overlayStatusPill');
+  const autoSceneSyncToggle = document.getElementById('autoSceneSyncToggle');
+  const stateStatusPill = document.getElementById('stateStatusPill');
+
+  const bootstrapDot = document.getElementById('bootstrapDot');
+  const bootstrapLabel = document.getElementById('bootstrapLabel');
+  const bootstrapPath = document.getElementById('bootstrapPath');
+  const panelDot = document.getElementById('panelDot');
+  const panelLabel = document.getElementById('panelLabel');
+  const panelPath = document.getElementById('panelPath');
+  const importDot = document.getElementById('importDot');
+  const importLabel = document.getElementById('importLabel');
+  const importPath = document.getElementById('importPath');
+
+  let snapshotTimer = null;
+  let editorTimer = null;
+  let statsSeeded = false;
+  let forceStatsSync = false;
+
+  let editorState = null;
+  let editorViewZone = null;
+  let selectedId = null;
+  let addSpawnMode = false;
+  let dragState = null;
+  let overlayVisible = true;
+  let editorInputEnabled = false;
+  let autoSceneSyncEnabled = localStorage.getItem(STORAGE_KEYS.autoSceneSync) !== '0';
+  let lastAutoSceneKey = null;
+  let leftPaneVisible = true;
+  let rightPaneVisible = true;
+  let compactViewportActive = false;
+  let compactSavedLeftPaneVisible = null;
+  let compactSavedRightPaneVisible = null;
+  let openMenu = null;
+  let currentObjectData = null;
+  let currentDialogPageIndex = 0;
+  let devSnapshotSeen = false;
+  const objectDataDrafts = {};
+  let resourceFileHandle = null;
+  let resourceLoadedFromDisk = false;
+
+  const LEFT_DEFAULT_ORDER = [
+    'liteNoticeModule',
+    'projectModule',
+    'quickModule',
+    'transportModule',
+    'editorZoneModule',
+    'filtersModule',
+    'spawnModule',
+    'selectionListModule'
+  ];
+
+  const RIGHT_DEFAULT_ORDER = [
+    'statsModule',
+    'snapshotModule',
+    'objectModule',
+    'exportModule',
+    'releaseModule'
+  ];
+
+  function deepClone(value){
+    if(value == null) return value;
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function inferObjectData(item){
+    const data = {};
+    if(!item || typeof item !== 'object') return data;
+
+    ['data','meta','props'].forEach(key => {
+      if(item[key] && typeof item[key] === 'object' && !Array.isArray(item[key])){
+        Object.assign(data, deepClone(item[key]));
+      }
+    });
+
+    if(item.dialog != null && data.dialog == null) data.dialog = deepClone(item.dialog);
+    if(item.conditions != null && data.conditions == null) data.conditions = deepClone(item.conditions);
+    if(item.event != null && data.event == null) data.event = deepClone(item.event);
+    if(item.eventType != null && data.eventType == null) data.eventType = deepClone(item.eventType);
+    if(item.target != null && data.target == null) data.target = deepClone(item.target);
+    if(item.targetId != null && data.targetId == null) data.targetId = deepClone(item.targetId);
+    if(item.flag != null && data.flag == null) data.flag = deepClone(item.flag);
+
+    return data;
+  }
+
+  function normalizeDialogPages(data){
+    if(!data || typeof data !== 'object') return [];
+    let pages = [];
+    if(Array.isArray(data.dialog?.pages)) pages = data.dialog.pages;
+    else if(Array.isArray(data.dialog)) pages = data.dialog;
+    else if(Array.isArray(data.dialogPages)) pages = data.dialogPages;
+    else if(Array.isArray(data.pages)) pages = data.pages;
+
+    return pages.map(page => {
+      if(typeof page === 'string') return { speaker:'', text:page };
+      if(page && typeof page === 'object'){
+        return {
+          speaker: page.speaker ?? page.name ?? page.actor ?? '',
+          text: page.text ?? page.line ?? page.message ?? page.content ?? ''
+        };
+      }
+      return { speaker:'', text:'' };
+    });
+  }
+
+  function normalizeConditions(data){
+    if(!data || typeof data !== 'object') return [];
+    let conditions = [];
+    if(Array.isArray(data.conditions)) conditions = data.conditions;
+    else if(Array.isArray(data.triggerConditions)) conditions = data.triggerConditions;
+    return conditions.map(condition => {
+      if(condition && typeof condition === 'object'){
+        return {
+          kind: condition.kind ?? condition.type ?? 'flag',
+          key: condition.key ?? condition.flag ?? condition.name ?? '',
+          op: condition.op ?? condition.operator ?? '==',
+          value: condition.value ?? condition.expected ?? 'true'
+        };
+      }
+      return { kind:'flag', key:'', op:'==', value:String(condition ?? '') };
+    });
+  }
+
+  function normalizeObjectData(rawData, item){
+    const data = (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) ? deepClone(rawData) : {};
+    const dialogPages = normalizeDialogPages(data);
+    const conditions = normalizeConditions(data);
+
+    if(!data.dialog || typeof data.dialog !== 'object' || Array.isArray(data.dialog)){
+      data.dialog = {};
+    }
+    data.dialog.pages = dialogPages;
+    data.conditions = conditions;
+
+    if(!data.eventType){
+      if(typeof data.event === 'string') data.eventType = data.event;
+      else if(item && item.category === 'trigger') data.eventType = '';
+    }
+
+    if(!data.target){
+      data.target = data.targetId ?? data.flag ?? '';
+    }
+
+    return data;
+  }
+
+  function getEffectiveObjectData(item){
+    if(!item) return null;
+    const draft = objectDataDrafts[item.id];
+    const base = draft ? draft : inferObjectData(item);
+    return normalizeObjectData(base, item);
+  }
+
+  function commitCurrentObjectDataToRawBox(){
+    if(!currentObjectData){
+      objectDataBox.value = '';
+      return;
+    }
+    objectDataBox.value = JSON.stringify(currentObjectData, null, 2);
+  }
+
+  function renderDialogEditor(){
+    const hasSelection = !!selectedObject();
+    dialogPageSelect.innerHTML = '';
+    const pages = currentObjectData ? currentObjectData.dialog.pages : [];
+
+    if(!hasSelection){
+      dialogSpeakerInput.value = '';
+      dialogTextInput.value = '';
+      dialogPageSelect.disabled = true;
+      dialogSpeakerInput.disabled = true;
+      dialogTextInput.disabled = true;
+      addDialogPageBtn.disabled = true;
+      removeDialogPageBtn.disabled = true;
+      return;
+    }
+
+    dialogPageSelect.disabled = false;
+    dialogSpeakerInput.disabled = false;
+    dialogTextInput.disabled = false;
+    addDialogPageBtn.disabled = false;
+    removeDialogPageBtn.disabled = pages.length === 0;
+
+    if(!pages.length){
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'No pages yet';
+      dialogPageSelect.appendChild(option);
+      dialogSpeakerInput.value = '';
+      dialogTextInput.value = '';
+      return;
+    }
+
+    if(currentDialogPageIndex >= pages.length) currentDialogPageIndex = pages.length - 1;
+    if(currentDialogPageIndex < 0) currentDialogPageIndex = 0;
+
+    pages.forEach((page, index) => {
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = 'Page ' + (index + 1) + (page.speaker ? ' · ' + page.speaker : '');
+      dialogPageSelect.appendChild(option);
+    });
+
+    dialogPageSelect.value = String(currentDialogPageIndex);
+    const activePage = pages[currentDialogPageIndex] || { speaker:'', text:'' };
+    dialogSpeakerInput.value = activePage.speaker || '';
+    dialogTextInput.value = activePage.text || '';
+  }
+
+  function renderConditionEditor(){
+    conditionList.innerHTML = '';
+    const hasSelection = !!selectedObject();
+    const conditions = currentObjectData ? currentObjectData.conditions : [];
+    addConditionBtn.disabled = !hasSelection;
+    if(!hasSelection){
+      const empty = document.createElement('div');
+      empty.className = 'status';
+      empty.textContent = 'Select an object to edit trigger conditions.';
+      conditionList.appendChild(empty);
+      return;
+    }
+
+    if(!conditions.length){
+      const empty = document.createElement('div');
+      empty.className = 'status';
+      empty.textContent = 'No conditions yet. Add one to gate a trigger or dialog event.';
+      conditionList.appendChild(empty);
+      return;
+    }
+
+    conditions.forEach((condition, index) => {
+      const row = document.createElement('div');
+      row.className = 'conditionRow';
+      row.innerHTML = `
+        <label>Kind<input data-role="kind" class="tinyInput" type="text" value="${String(condition.kind ?? '').replace(/"/g,'&quot;')}"></label>
+        <label>Key<input data-role="key" class="tinyInput" type="text" value="${String(condition.key ?? '').replace(/"/g,'&quot;')}"></label>
+        <label>Op<input data-role="op" class="tinyInput mono" type="text" value="${String(condition.op ?? '').replace(/"/g,'&quot;')}"></label>
+        <label>Value<input data-role="value" class="tinyInput" type="text" value="${String(condition.value ?? '').replace(/"/g,'&quot;')}"></label>
+        <button type="button" class="warn" data-role="remove">✕</button>
+      `;
+      row.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', () => {
+          currentObjectData.conditions[index][input.dataset.role] = input.value;
+          commitCurrentObjectDataToRawBox();
+        });
+      });
+      row.querySelector('[data-role="remove"]').addEventListener('click', () => {
+        currentObjectData.conditions.splice(index, 1);
+        commitCurrentObjectDataToRawBox();
+        renderConditionEditor();
+      });
+      conditionList.appendChild(row);
+    });
+  }
+
+  function syncObjectDataPanel(){
+    const item = selectedObject();
+    if(!item){
+      currentObjectData = null;
+      selectedDataTypePill.textContent = 'No selection';
+      objectDataStatus.textContent = 'Select an object to edit dialog pages, trigger events, and runtime conditions.';
+      selectedEventTypeInput.value = '';
+      selectedTargetInput.value = '';
+      selectedEventTypeInput.disabled = true;
+      selectedTargetInput.disabled = true;
+      objectDataBox.value = '';
+      objectDataBox.disabled = true;
+      loadObjectJsonBtn.disabled = true;
+      resetObjectDataBtn.disabled = true;
+      applyObjectDataBtn.disabled = true;
+      renderDialogEditor();
+      renderConditionEditor();
+      return;
+    }
+
+    currentObjectData = getEffectiveObjectData(item);
+    selectedDataTypePill.textContent = (item.category || 'object').toUpperCase();
+    objectDataStatus.textContent = item.label + ' · ' + item.id;
+    selectedEventTypeInput.disabled = false;
+    selectedTargetInput.disabled = false;
+    objectDataBox.disabled = false;
+    loadObjectJsonBtn.disabled = false;
+    resetObjectDataBtn.disabled = false;
+    applyObjectDataBtn.disabled = false;
+
+    selectedEventTypeInput.value = currentObjectData.eventType || '';
+    selectedTargetInput.value = currentObjectData.target || '';
+    if(currentDialogPageIndex >= currentObjectData.dialog.pages.length) currentDialogPageIndex = Math.max(0, currentObjectData.dialog.pages.length - 1);
+    commitCurrentObjectDataToRawBox();
+    renderDialogEditor();
+    renderConditionEditor();
+  }
+
+  function loadObjectDataFromRawBox(){
+    const item = selectedObject();
+    if(!item) return false;
+    try{
+      const parsed = JSON.parse(objectDataBox.value || '{}');
+      currentObjectData = normalizeObjectData(parsed, item);
+      selectedEventTypeInput.value = currentObjectData.eventType || '';
+      selectedTargetInput.value = currentObjectData.target || '';
+      renderDialogEditor();
+      renderConditionEditor();
+      commitCurrentObjectDataToRawBox();
+      return true;
+    }catch(err){
+      setStatusText('Object data JSON parse error: ' + err.message);
+      return false;
+    }
+  }
+
+  function mirrorDraftIntoSelectedObject(item, data){
+    if(!item) return;
+    item.data = deepClone(data);
+    item.dialog = deepClone(data.dialog);
+    item.conditions = deepClone(data.conditions);
+    item.eventType = data.eventType || '';
+    item.target = data.target || '';
+  }
+
+  function applyObjectDataDraft(){
+    const item = selectedObject();
+    if(!item) return;
+    if(!loadObjectDataFromRawBox()) return;
+
+    objectDataDrafts[item.id] = deepClone(currentObjectData);
+    mirrorDraftIntoSelectedObject(item, currentObjectData);
+
+    postEditor({ type:'bc_editor_update_object_data', id:item.id, data:deepClone(currentObjectData) });
+    postEditor({ type:'bc_editor_update_object_meta', id:item.id, meta:deepClone(currentObjectData) });
+    postEditor({ type:'bc_editor_patch_object_data', id:item.id, patch:deepClone(currentObjectData) });
+
+    renderObjectList();
+    syncObjectDataPanel();
+    setStatusText('Applied object data draft for ' + item.label + '.');
+  }
+
+  function mergeDraftsIntoExport(exportData){
+    const clone = deepClone(exportData);
+    function walk(node){
+      if(Array.isArray(node)) return node.map(walk);
+      if(!node || typeof node !== 'object') return node;
+      const next = { ...node };
+      if(next.id && objectDataDrafts[next.id]){
+        const draft = deepClone(objectDataDrafts[next.id]);
+        next.data = draft;
+        next.dialog = deepClone(draft.dialog);
+        next.conditions = deepClone(draft.conditions);
+        next.eventType = draft.eventType || next.eventType;
+        next.target = draft.target || next.target;
+      }
+      Object.keys(next).forEach(key => {
+        next[key] = walk(next[key]);
+      });
+      return next;
+    }
+    return walk(clone);
+  }
+
+  function updateDevCommandStatus(){
+    devCommandStatus.textContent = devSnapshotSeen
+      ? 'Live dev snapshot replies are being received. Zone Transport and Quick Commands are talking to the game dev listener.'
+      : 'No dev snapshot reply yet. The editor channel is live, but Zone Transport and most Quick Commands need the separate game-side dev listener/bootstrap.';
+  }
+
+  function hotkeyCodeForKey(key){
+    if(/^[0-9]$/.test(key)) return 'Digit' + key;
+    if(/^[a-z]$/i.test(key)) return 'Key' + key.toUpperCase();
+    return key;
+  }
+
+  function dispatchHotkeyToGame(key, modifiers = {}){
+    const win = frame.contentWindow;
+    if(!win || !win.document) return false;
+    const options = {
+      key,
+      code: hotkeyCodeForKey(key),
+      bubbles: true,
+      cancelable: true,
+      shiftKey: !!modifiers.shiftKey,
+      ctrlKey: !!modifiers.ctrlKey,
+      altKey: !!modifiers.altKey
+    };
+    try{ frame.focus(); }catch(err){}
+    try{ win.focus(); }catch(err){}
+    const targets = [win.document.activeElement, win.document.body, win.document, win].filter(Boolean);
+    targets.forEach(target => {
+      try{ target.dispatchEvent(new KeyboardEvent('keydown', options)); }catch(err){}
+      try{ target.dispatchEvent(new KeyboardEvent('keyup', options)); }catch(err){}
+    });
+    return true;
+  }
+
+  function runDevFallback(command){
+    if(!command || typeof command !== 'object') return false;
+    if(command.type === 'toggle_god_mode') return dispatchHotkeyToGame('g', { shiftKey:true });
+    if(command.type === 'goto_zone'){
+      if(command.zone === 'zone1') return dispatchHotkeyToGame('1', { shiftKey:true });
+      if(command.zone === 'zone2') return dispatchHotkeyToGame('2', { shiftKey:true });
+      if(command.zone === 'zone3') return dispatchHotkeyToGame('3', { shiftKey:true });
+    }
+    return false;
+  }
+
+  function setStatusText(text){
+    statusText.textContent = text;
+  }
+
+  function updateWorkspaceStatus(){
+    workspaceStatus.textContent = [
+      leftPaneVisible ? 'Left pane on' : 'Left pane off',
+      rightPaneVisible ? 'Right pane on' : 'Right pane off',
+      'Shared iframe live'
+    ].join(' · ');
+  }
+
+  function saveWorkspaceState(){
+    try{
+      localStorage.setItem(STORAGE_KEYS.workspace, JSON.stringify({
+        leftPaneVisible,
+        rightPaneVisible,
+        overlayVisible,
+        editorInputEnabled
+      }));
+    }catch(err){}
+  }
+
+  function loadWorkspaceState(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.workspace) || 'null');
+      if(saved && typeof saved === 'object'){
+        if(typeof saved.leftPaneVisible === 'boolean') leftPaneVisible = saved.leftPaneVisible;
+        if(typeof saved.rightPaneVisible === 'boolean') rightPaneVisible = saved.rightPaneVisible;
+        if(typeof saved.overlayVisible === 'boolean') overlayVisible = saved.overlayVisible;
+        if(typeof saved.editorInputEnabled === 'boolean') editorInputEnabled = saved.editorInputEnabled;
+      }
+    }catch(err){}
+  }
+
+  function applyWorkspaceVisibility(){
+    workspace.classList.toggle('hide-left', !leftPaneVisible);
+    workspace.classList.toggle('hide-right', !rightPaneVisible);
+    updateWorkspaceStatus();
+    setTimeout(resizeOverlay, 30);
+  }
+
+  function setLeftPaneVisible(visible){
+    leftPaneVisible = !!visible;
+    applyWorkspaceVisibility();
+    saveWorkspaceState();
+    setStatusText('Left pane ' + (leftPaneVisible ? 'shown.' : 'hidden.'));
+  }
+
+  function setRightPaneVisible(visible){
+    rightPaneVisible = !!visible;
+    applyWorkspaceVisibility();
+    saveWorkspaceState();
+    setStatusText('Right pane ' + (rightPaneVisible ? 'shown.' : 'hidden.'));
+  }
+
+  function isCompactViewport(){
+    return window.matchMedia && window.matchMedia('(max-width: 980px)').matches;
+  }
+
+  function setPaneVisibilityTransient(leftVisible, rightVisible, statusMessage){
+    leftPaneVisible = !!leftVisible;
+    rightPaneVisible = !!rightVisible;
+    applyWorkspaceVisibility();
+    if(statusMessage) setStatusText(statusMessage);
+  }
+
+  function setMobileGameOnly(){
+    setPaneVisibilityTransient(false, false, 'Mobile game view enabled.');
+    document.body.classList.remove('mobile-menu-open');
+  }
+
+  function setMobileToolsView(){
+    setPaneVisibilityTransient(true, false, 'Mobile tools view enabled.');
+    document.body.classList.remove('mobile-menu-open');
+  }
+
+  function setMobileInspectorView(){
+    setPaneVisibilityTransient(false, true, 'Mobile inspector view enabled.');
+    document.body.classList.remove('mobile-menu-open');
+  }
+
+  function handleResponsivePaneMode(){
+    const compact = isCompactViewport();
+
+    if(compact && !compactViewportActive){
+      compactViewportActive = true;
+      compactSavedLeftPaneVisible = leftPaneVisible;
+      compactSavedRightPaneVisible = rightPaneVisible;
+      setPaneVisibilityTransient(false, false);
+      return;
+    }
+
+    if(!compact && compactViewportActive){
+      compactViewportActive = false;
+      leftPaneVisible = compactSavedLeftPaneVisible !== null ? compactSavedLeftPaneVisible : leftPaneVisible;
+      rightPaneVisible = compactSavedRightPaneVisible !== null ? compactSavedRightPaneVisible : rightPaneVisible;
+      compactSavedLeftPaneVisible = null;
+      compactSavedRightPaneVisible = null;
+      applyWorkspaceVisibility();
+    }
+  }
+
+  function applyResponsiveWorkspaceDefaults(){
+    handleResponsivePaneMode();
+  }
+
+
+  function postDevCommand(command){
+    if(!frame.contentWindow) return;
+    const win = frame.contentWindow;
+
+    try{
+      if(typeof win.__bonecrawlerReceiveDevCommand === 'function') win.__bonecrawlerReceiveDevCommand(command);
+    }catch(err){}
+    try{
+      if(typeof win.handleBoneCrawlerDevCommand === 'function') win.handleBoneCrawlerDevCommand(command);
+    }catch(err){}
+    try{
+      if(typeof win.dispatchEvent === 'function') win.dispatchEvent(new CustomEvent('bonecrawler-dev-command', { detail: command }));
+    }catch(err){}
+    try{
+      if(win.document && typeof win.document.dispatchEvent === 'function'){
+        win.document.dispatchEvent(new CustomEvent('bonecrawler-dev-command', { detail: command }));
+      }
+    }catch(err){}
+
+    try{ win.postMessage({ source: DEV_PANEL_SOURCE, command }, '*'); }catch(err){}
+    try{ win.postMessage({ source: DEV_PANEL_SOURCE, type:'bonecrawler_dev_command', command }, '*'); }catch(err){}
+    try{ win.postMessage({ source: DEV_PANEL_SOURCE, ...command }, '*'); }catch(err){}
+
+    runDevFallback(command);
+  }
+
+  function postEditor(message){
+    if(!frame.contentWindow) return;
+    frame.contentWindow.postMessage({ source: EDITOR_SOURCE, ...message }, '*');
+  }
+
+  function requestSnapshot(options = {}){
+    if(options.pullStats) forceStatsSync = true;
+    postDevCommand({ type: 'request_snapshot' });
+  }
+
+  function requestEditorState(){
+    postEditor({ type: 'bc_editor_request_state' });
+  }
+
+  function refreshAll(options = {}){
+    requestSnapshot(options);
+    requestEditorState();
+    setStatusText('Snapshot and editor state refreshed.');
+  }
+
+  function requestResourceExport(){
+    postEditor({ type: 'bc_editor_export' });
+    setStatusText('Requested resource data export.');
+  }
+
+  function cleanResourceFileName(name){
+    const fallback = 'bonecrawler_resource_data.json';
+    const raw = String(name || '').trim() || fallback;
+    return raw.endsWith('.json') ? raw : raw + '.json';
+  }
+
+  function getResourceFileName(){
+    return cleanResourceFileName(resourceFileName && resourceFileName.value);
+  }
+
+  function timestampSlug(){
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '_' +
+      pad(d.getHours()) + '-' + pad(d.getMinutes()) + '-' + pad(d.getSeconds());
+  }
+
+  function backupFileName(name){
+    const clean = cleanResourceFileName(name).replace(/\.json$/i, '');
+    return clean + '.backup-' + timestampSlug() + '.json';
+  }
+
+  function downloadTextFile(name, text){
+    const blob = new Blob([text], { type:'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = cleanResourceFileName(name);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 250);
+  }
+
+  function getResourceText(){
+    const text = exportBox.value.trim();
+    if(text) return text;
+    const fallback = {
+      resourceType: 'bonecrawler-project-data',
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      zones: {}
+    };
+    return JSON.stringify(fallback, null, 2);
+  }
+
+  function parseResourceText(){
+    try{
+      return JSON.parse(getResourceText());
+    }catch(err){
+      setStatusText('Resource JSON parse failed: ' + String(err && err.message || err));
+      return null;
+    }
+  }
+
+  function applyResourceToGame(){
+    const parsed = parseResourceText();
+    if(!parsed) return;
+    postEditor({ type:'bc_editor_import_resource', resource:parsed });
+    setStatusText('Applied resource data to the live editor bridge.');
+  }
+
+  function openResourceFile(){
+    resourceOpenInput.value = '';
+    resourceOpenInput.click();
+  }
+
+  async function saveResourceFile(){
+    const text = getResourceText();
+    const suggestedName = getResourceFileName();
+
+    if(window.showSaveFilePicker){
+      try{
+        const handle = resourceFileHandle || await window.showSaveFilePicker({
+          suggestedName,
+          types: [{ description:'JSON Resource File', accept:{ 'application/json':['.json'] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(text);
+        await writable.close();
+        resourceFileHandle = handle;
+        resourceFileName.value = handle.name || suggestedName;
+        setStatusText('Saved resource file: ' + (handle.name || suggestedName));
+        return;
+      }catch(err){
+        if(err && err.name === 'AbortError') return;
+        setStatusText('Direct save unavailable; downloaded a JSON copy instead.');
+      }
+    }
+
+    downloadTextFile(suggestedName, text);
+    setStatusText('Downloaded resource JSON. Move/replace the project file manually if needed.');
+  }
+
+  function backupResourceFile(){
+    const name = backupFileName(getResourceFileName());
+    downloadTextFile(name, getResourceText());
+    setStatusText('Created resource backup download: ' + name);
+  }
+
+  function setEditorInputEnabled(enabled){
+    editorInputEnabled = !!enabled;
+    overlay.classList.toggle('interactive', editorInputEnabled && overlayVisible);
+    const btn = document.getElementById('editorInputBtn');
+    btn.textContent = 'Editor Input: ' + (editorInputEnabled ? 'ON' : 'OFF');
+    btn.classList.toggle('active', editorInputEnabled);
+    inputStatusPill.textContent = editorInputEnabled ? 'Editor Input On' : 'Editor Input Off';
+    inputStatusPill.classList.toggle('ok', editorInputEnabled);
+    saveWorkspaceState();
+  }
+
+  function setOverlayVisible(visible){
+    overlayVisible = !!visible;
+    overlay.style.display = overlayVisible ? 'block' : 'none';
+    overlay.classList.toggle('interactive', overlayVisible && editorInputEnabled);
+    const btn = document.getElementById('toggleOverlayBtn');
+    btn.textContent = 'Overlay Visible: ' + (overlayVisible ? 'ON' : 'OFF');
+    btn.classList.toggle('active', overlayVisible);
+    overlayStatusPill.textContent = overlayVisible ? 'Overlay Visible' : 'Overlay Hidden';
+    overlayStatusPill.classList.toggle('warn', !overlayVisible);
+    drawOverlay();
+    saveWorkspaceState();
+  }
+
+  function renderSnapshot(snapshot){
+    const rows = [
+      ['State', snapshot.state || '—'],
+      ['Scene', sceneLabel(snapshot.zone)],
+      ['Runtime Zone', snapshot.runtimeZone ?? snapshot.zone ?? '—'],
+      ['Score', snapshot.score ?? '—'],
+      ['Kills', snapshot.kills ?? '—'],
+      ['Skeletons', snapshot.normalKills ?? '—'],
+      ['Giants', snapshot.giantKills ?? '—'],
+      ['Wizards', snapshot.wizardKills ?? '—'],
+      ['Sword', snapshot.swordLevel ?? '—'],
+      ['Speed', snapshot.speedLevel != null ? `${snapshot.speedLevel} (${snapshot.playerSpeed})` : '—'],
+      ['Dragon', snapshot.dragonActive ? `Phase ${snapshot.dragonPhase} (${snapshot.dragonHp} HP)` : (snapshot.bossDefeated ? 'Slain' : 'Inactive')],
+      ['God Mode', snapshot.godMode ? 'ON' : 'OFF'],
+      ['HP', snapshot.playerMaxHp ? `${snapshot.playerHp}/${snapshot.playerMaxHp}` : '—']
+    ];
+    snapshotEl.innerHTML = rows.map(([k,v]) => `<div>${k}</div><div>${v}</div>`).join('');
+    stateStatusPill.textContent = 'State: ' + (snapshot.state || 'unknown');
+    if(forceStatsSync || !statsSeeded){
+      populateEditableStats(snapshot);
+      statsSeeded = true;
+      forceStatsSync = false;
+    }
+  }
+
+  function populateEditableStats(snapshot){
+    swordInput.value = snapshot.swordLevel ?? 0;
+    speedInput.value = snapshot.speedLevel ?? 0;
+    pointsInput.value = snapshot.score ?? 0;
+    killsInput.value = snapshot.kills ?? 0;
+  }
+
+  function setStatus(dotEl, labelEl, pathEl, state, label, pathText){
+    dotEl.className = 'statusDot ' + (
+      state === 'ok' ? 'statusOk' :
+      state === 'warn' ? 'statusWarn' :
+      state === 'bad' ? 'statusBad' : 'statusUnknown'
+    );
+    labelEl.textContent = label;
+    pathEl.textContent = pathText || '—';
+  }
+
+  async function probePath(path){
+    try{
+      const res = await fetch(path, { cache:'no-store' });
+      if(res.ok) return { ok:true, path };
+      return { ok:false, path, status:res.status };
+    }catch(err){
+      return { ok:false, path, error:String(err && err.message || err) };
+    }
+  }
+
+  async function firstExistingPath(paths){
+    for(const path of paths){
+      const result = await probePath(path);
+      if(result.ok) return result;
+    }
+    return null;
+  }
+
+  async function updateReleaseChecklistStatus(){
+    const bootstrapCandidates = [
+      'dev_bootstrap.js',
+      'dev_bootstrap_stats.js',
+      'dev_bootstrap_stats_resilient.js',
+      'dev/dev_bootstrap.js',
+      '../dev_bootstrap.js',
+      '../dev_bootstrap_stats.js',
+      '../dev_bootstrap_stats_resilient.js',
+      '../dev/dev_bootstrap.js'
+    ];
+
+    const panelCandidates = [
+      'dev_controls.html',
+      'dev_controls_combined.html',
+      'bonecrawler_dev_toolkit_combined.html',
+      'bonecrawler_dev_toolkit_program_nav.html',
+      'editor.html',
+      'dev/dev_controls.html',
+      'dev/editor.html',
+      '../dev_controls.html',
+      '../dev_controls_combined.html',
+      '../bonecrawler_dev_toolkit_combined.html',
+      '../bonecrawler_dev_toolkit_program_nav.html',
+      '../editor.html',
+      '../dev/dev_controls.html',
+      '../dev/editor.html'
+    ];
+
+    const bootstrapFound = await firstExistingPath(bootstrapCandidates);
+    if(bootstrapFound){
+      setStatus(bootstrapDot, bootstrapLabel, bootstrapPath, 'warn', 'Bootstrap file detected in project.', bootstrapFound.path);
+    }else{
+      setStatus(bootstrapDot, bootstrapLabel, bootstrapPath, 'ok', 'No bootstrap file detected at common project paths.', 'clean / not found');
+    }
+
+    const panelFound = await firstExistingPath(panelCandidates);
+    if(panelFound){
+      setStatus(panelDot, panelLabel, panelPath, 'warn', 'Dev toolkit file detected in project.', panelFound.path);
+    }else{
+      setStatus(panelDot, panelLabel, panelPath, 'ok', 'No dev toolkit file detected at common project paths.', 'clean / not found');
+    }
+
+    const targetGamePath = gamePath.value.trim() || DEFAULT_GAME_PATH;
+    try{
+      const res = await fetch(targetGamePath, { cache:'no-store' });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const source = await res.text();
+      const importMatch = source.match(/<script\s+src=["']([^"']*dev_bootstrap[^"']*)["']/i);
+      if(importMatch){
+        setStatus(importDot, importLabel, importPath, 'warn', 'Game page still imports a dev bootstrap.', importMatch[1]);
+      }else{
+        setStatus(importDot, importLabel, importPath, 'ok', 'Game page does not appear to import a dev bootstrap.', targetGamePath);
+      }
+    }catch(err){
+      setStatus(importDot, importLabel, importPath, 'unknown', 'Game import check unavailable from this browser context.', targetGamePath);
+    }
+  }
+
+  function getDockOrder(container){
+    return Array.from(container.children).map(el => el.id);
+  }
+
+  function saveDockOrder(container, key){
+    try{
+      localStorage.setItem(key, JSON.stringify(getDockOrder(container)));
+    }catch(err){}
+  }
+
+  function applyDockOrder(container, key){
+    let order = null;
+    try{
+      order = JSON.parse(localStorage.getItem(key) || 'null');
+    }catch(err){}
+    if(!Array.isArray(order)) return;
+    const map = Object.fromEntries(Array.from(container.children).map(el => [el.id, el]));
+    for(const id of order){
+      if(map[id]) container.appendChild(map[id]);
+    }
+  }
+
+  function resetDockOrder(container, key, defaultOrder){
+    defaultOrder.forEach(id => {
+      const el = document.getElementById(id);
+      if(el && el.parentElement === container) container.appendChild(el);
+    });
+    saveDockOrder(container, key);
+  }
+
+  function setupDockDrag(container, key){
+    let dragging = null;
+
+    function clearTargets(){
+      container.querySelectorAll('.moduleCard').forEach(card => card.classList.remove('dropTarget'));
+    }
+
+    container.querySelectorAll('.moduleCard').forEach(card => {
+      const header = card.querySelector('.moduleHeader');
+      header.setAttribute('draggable', 'true');
+      header.addEventListener('dragstart', (event) => {
+        dragging = card;
+        card.classList.add('dragging');
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', card.id);
+      });
+
+      card.addEventListener('dragend', () => {
+        if(dragging) dragging.classList.remove('dragging');
+        dragging = null;
+        clearTargets();
+        saveDockOrder(container, key);
+      });
+
+      card.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        if(!dragging || dragging === card) return;
+        clearTargets();
+        card.classList.add('dropTarget');
+        const rect = card.getBoundingClientRect();
+        const after = event.clientY > rect.top + rect.height / 2;
+        if(after){
+          container.insertBefore(dragging, card.nextSibling);
+        }else{
+          container.insertBefore(dragging, card);
+        }
+      });
+
+      card.addEventListener('drop', (event) => {
+        event.preventDefault();
+        clearTargets();
+        saveDockOrder(container, key);
+      });
+    });
+  }
+
+  function getCollapsedSet(){
+    try{
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.collapsed) || '[]');
+      return new Set(Array.isArray(raw) ? raw : []);
+    }catch(err){
+      return new Set();
+    }
+  }
+
+  function saveCollapsedSet(set){
+    try{
+      localStorage.setItem(STORAGE_KEYS.collapsed, JSON.stringify(Array.from(set)));
+    }catch(err){}
+  }
+
+  function setCardCollapsed(card, collapsed, persist = true){
+    card.classList.toggle('collapsed', collapsed);
+    const btn = card.querySelector('.collapseBtn');
+    if(btn){
+      btn.textContent = collapsed ? '▸' : '▾';
+      btn.setAttribute('aria-expanded', String(!collapsed));
+      btn.title = collapsed ? 'Expand panel' : 'Collapse panel';
+    }
+    if(persist){
+      const set = getCollapsedSet();
+      if(collapsed){
+        set.add(card.id);
+      }else{
+        set.delete(card.id);
+      }
+      saveCollapsedSet(set);
+    }
+  }
+
+  function applyCollapsedStates(){
+    const set = getCollapsedSet();
+    document.querySelectorAll('.moduleCard').forEach(card => {
+      setCardCollapsed(card, set.has(card.id), false);
+    });
+  }
+
+  function collapseAllPanels(){
+    document.querySelectorAll('.moduleCard').forEach(card => setCardCollapsed(card, true));
+    setStatusText('All panels collapsed.');
+  }
+
+  function expandAllPanels(){
+    document.querySelectorAll('.moduleCard').forEach(card => setCardCollapsed(card, false));
+    setStatusText('All panels expanded.');
+  }
+
+  function setupCollapseButtons(){
+    document.querySelectorAll('.collapseBtn').forEach(btn => {
+      btn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const card = btn.closest('.moduleCard');
+        setCardCollapsed(card, !card.classList.contains('collapsed'));
+        setStatusText(card.querySelector('.moduleTitle').textContent + (card.classList.contains('collapsed') ? ' collapsed.' : ' expanded.'));
+      });
+      btn.addEventListener('dragstart', (event) => event.preventDefault());
+    });
+  }
+
+  function visibleCategories(){
+    return new Set(filterBoxes.filter(box => box.checked).map(box => box.value));
+  }
+
+  function getEditorViewZone(){
+    if(editorViewZone != null) return Number(editorViewZone);
+    if(editorState && editorState.activeZone != null) return Number(editorState.activeZone);
+    return null;
+  }
+
+  function zoneHasObjects(zone){
+    if(!editorState || !editorState.zones || zone == null) return false;
+    return Array.isArray(editorState.zones[String(zone)]) || Array.isArray(editorState.zones[zone]);
+  }
+
+  function sceneLabel(zone){
+    const z = Number(zone);
+    if(z === 0) return 'Title';
+    if(z === 101) return 'Secret 1';
+    if(z === 102) return 'Secret 2';
+    if(Number.isFinite(z)) return 'Zone ' + z;
+    return 'unknown';
+  }
+
+  function setAutoSceneSync(enabled){
+    autoSceneSyncEnabled = !!enabled;
+    localStorage.setItem(STORAGE_KEYS.autoSceneSync, autoSceneSyncEnabled ? '1' : '0');
+    if(autoSceneSyncToggle) autoSceneSyncToggle.checked = autoSceneSyncEnabled;
+    if(autoSceneSyncEnabled && editorState && editorState.activeZone != null){
+      editorViewZone = Number(editorState.activeZone);
+      setActiveZoneButton(editorViewZone);
+      if(selectedId && !getCurrentObjects().some(item => item.id === selectedId)){
+        selectedId = null;
+      }
+      syncSelectionInputs();
+      renderObjectList();
+      drawOverlay();
+    }
+    updateZoneStatus();
+  }
+
+  function syncEditorToActiveScene(reason){
+    if(!autoSceneSyncEnabled || !editorState || editorState.activeZone == null) return;
+    const active = Number(editorState.activeZone);
+    if(editorViewZone !== active){
+      editorViewZone = active;
+      selectedId = null;
+      setActiveZoneButton(editorViewZone);
+      syncSelectionInputs();
+      renderObjectList();
+      drawOverlay();
+      setStatusText('Editor synced to ' + sceneLabel(editorViewZone) + (reason ? ' (' + reason + ').' : '.'));
+    }
+  }
+
+  function updateZoneStatus(){
+    if(!editorState){
+      zoneStatus.textContent = 'Waiting for editor state…';
+      return;
+    }
+    const liveZone = editorState.activeZone ?? 'unknown';
+    const viewZone = getEditorViewZone() ?? liveZone;
+    const playerState = editorState.player ? 'player active' : 'no player';
+    const autoText = autoSceneSyncEnabled ? 'auto-sync on' : 'auto-sync off';
+    zoneStatus.textContent = 'Live scene ' + sceneLabel(liveZone) + ' · View ' + sceneLabel(viewZone) + ' · ' + playerState + ' · ' + autoText;
+  }
+
+  function getCurrentObjects(){
+    if(!editorState || !editorState.zones) return [];
+    const zone = getEditorViewZone();
+    if(zone == null) return [];
+    return editorState.zones[String(zone)] || editorState.zones[zone] || [];
+  }
+
+  function selectedObject(){
+    return getCurrentObjects().find(item => item.id === selectedId) || null;
+  }
+
+  function syncSelectionInputs(){
+    const item = selectedObject();
+    if(!item){
+      selectionStatus.textContent = 'No object selected.';
+      objLabel.value = '';
+      objX.value = '';
+      objY.value = '';
+      objW.value = '';
+      objH.value = '';
+      deleteSpawnBtn.disabled = true;
+      syncObjectDataPanel();
+      return;
+    }
+    selectionStatus.textContent = item.category.toUpperCase() + ' — ' + item.label;
+    objLabel.value = item.label || '';
+    objX.value = item.rect.x;
+    objY.value = item.rect.y;
+    objW.value = item.rect.w;
+    objH.value = item.rect.h;
+    deleteSpawnBtn.disabled = item.category !== 'spawn';
+    syncObjectDataPanel();
+  }
+
+  function renderObjectList(){
+    objectList.innerHTML = '';
+    const objects = getCurrentObjects();
+    const filters = visibleCategories();
+    const filtered = objects.filter(item => filters.has(item.category));
+    if(!filtered.length){
+      const empty = document.createElement('div');
+      empty.className = 'status';
+      empty.textContent = 'No visible objects in this zone.';
+      objectList.appendChild(empty);
+      return;
+    }
+    filtered.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'objectBtn' + (item.id === selectedId ? ' active' : '');
+      btn.innerHTML = '<span>' + item.label + '<br><small>' + item.category + ' · ' + item.rect.x + ',' + item.rect.y + ' · ' + item.rect.w + '×' + item.rect.h + '</small></span><small>' + item.id + '</small>';
+      btn.addEventListener('click', () => {
+        selectedId = item.id;
+        syncSelectionInputs();
+        renderObjectList();
+        drawOverlay();
+        setStatusText('Selected ' + item.label + '.');
+      });
+      objectList.appendChild(btn);
+    });
+  }
+
+  function setActiveZoneButton(zone){
+    editorZoneBtns.forEach(btn => btn.classList.toggle('active', Number(btn.dataset.zone) === Number(zone)));
+  }
+
+  function resizeOverlay(){
+    const rect = wrap.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+    overlay.width = Math.max(1, Math.floor(rect.width * ratio));
+    overlay.height = Math.max(1, Math.floor(rect.height * ratio));
+    overlay.style.width = rect.width + 'px';
+    overlay.style.height = rect.height + 'px';
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    drawOverlay();
+  }
+
+  function colorForCategory(category){
+    if(category === 'door') return '#ffd166';
+    if(category === 'trigger') return '#7bdff2';
+    if(category === 'spawn') return '#f25f5c';
+    return '#90be6d';
+  }
+
+  function worldToScreen(rect){
+    if(!editorState || !editorState.canvasRect || !editorState.logical) return null;
+    const c = editorState.canvasRect;
+    const l = editorState.logical;
+    if(!c || !l || !c.width || !c.height) return null;
+    const previewRect = wrap.getBoundingClientRect();
+    const iframeRect = frame.getBoundingClientRect();
+    const offsetX = iframeRect.left - previewRect.left + c.left;
+    const offsetY = iframeRect.top - previewRect.top + c.top;
+    const sx = c.width / l.gw;
+    const sy = c.height / l.gh;
+    return {
+      x: offsetX + rect.x * sx,
+      y: offsetY + rect.y * sy,
+      w: rect.w * sx,
+      h: rect.h * sy
+    };
+  }
+
+  function screenToWorld(clientX, clientY){
+    if(!editorState || !editorState.canvasRect || !editorState.logical) return null;
+    const c = editorState.canvasRect;
+    const l = editorState.logical;
+    const previewRect = wrap.getBoundingClientRect();
+    const iframeRect = frame.getBoundingClientRect();
+    const offsetX = iframeRect.left - previewRect.left + c.left;
+    const offsetY = iframeRect.top - previewRect.top + c.top;
+    const localX = clientX - previewRect.left - offsetX;
+    const localY = clientY - previewRect.top - offsetY;
+    const x = localX / (c.width / l.gw);
+    const y = localY / (c.height / l.gh);
+    return { x, y };
+  }
+
+  function hitTest(clientX, clientY){
+    const objects = getCurrentObjects();
+    const filters = visibleCategories();
+    const candidates = objects.filter(item => filters.has(item.category));
+    for(let i = candidates.length - 1; i >= 0; i--){
+      const item = candidates[i];
+      const box = worldToScreen(item.rect);
+      if(!box) continue;
+      if(clientX >= box.x && clientX <= box.x + box.w && clientY >= box.y && clientY <= box.y + box.h){
+        return item;
+      }
+    }
+    return null;
+  }
+
+  function drawOverlay(){
+    const rect = wrap.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    if(!overlayVisible) return;
+
+    if(!editorState){
+      ctx.fillStyle = 'rgba(0,0,0,.25)';
+      ctx.fillRect(0, 0, rect.width, rect.height);
+      return;
+    }
+
+    const filters = visibleCategories();
+    const objects = getCurrentObjects().filter(item => filters.has(item.category));
+
+    for(const item of objects){
+      const box = worldToScreen(item.rect);
+      if(!box) continue;
+      const color = colorForCategory(item.category);
+
+      ctx.globalAlpha = item.id === selectedId ? 0.18 : 0.12;
+      ctx.fillStyle = color;
+      ctx.fillRect(box.x, box.y, box.w, box.h);
+
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = item.id === selectedId ? 3 : 2;
+      ctx.strokeStyle = color;
+      ctx.strokeRect(box.x, box.y, Math.max(1, box.w), Math.max(1, box.h));
+
+      const text = item.label;
+      ctx.font = '12px system-ui, sans-serif';
+      const textW = ctx.measureText(text).width;
+      const pad = 4;
+      const tx = box.x;
+      const ty = Math.max(0, box.y - 18);
+
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = 'rgba(7,12,14,.92)';
+      ctx.fillRect(tx, ty, textW + pad * 2, 16);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#e9debf';
+      ctx.fillText(text, tx + pad, ty + 12);
+    }
+
+    if(addSpawnMode){
+      ctx.globalAlpha = 0.92;
+      ctx.fillStyle = '#e38c3a';
+      ctx.fillRect(12, 12, 188, 28);
+      ctx.fillStyle = '#081014';
+      ctx.font = 'bold 13px system-ui, sans-serif';
+      ctx.fillText('ADD SPAWN MODE: click preview', 20, 31);
+      ctx.globalAlpha = 1;
+    }
+
+    if(!editorInputEnabled){
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = 'rgba(6,10,12,.82)';
+      ctx.fillRect(12, rect.height - 42, 192, 28);
+      ctx.fillStyle = '#e9debf';
+      ctx.font = 'bold 12px system-ui, sans-serif';
+      ctx.fillText('EDITOR INPUT OFF', 22, rect.height - 23);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function applySelectionPatch(){
+    const item = selectedObject();
+    if(!item) return;
+    const patch = {
+      x: Number(objX.value),
+      y: Number(objY.value),
+      w: Math.max(1, Number(objW.value)),
+      h: Math.max(1, Number(objH.value))
+    };
+    postEditor({ type: 'bc_editor_update_object', id: item.id, patch });
+    setStatusText('Updated rectangle for ' + item.label + '.');
+  }
+
+  function loadGame(){
+    setStatusText('Load Game is disabled in DevKit Lite. The bundled game path is fixed for safety.');
+  }
+
+  function closeAllMenus(){
+    document.querySelectorAll('.menuItem.open').forEach(item => item.classList.remove('open'));
+    openMenu = null;
+  }
+
+  function performMenuAction(action){
+    switch(action){
+      case 'loadGame':
+        loadGame();
+        break;
+      case 'reloadFrame':
+        if(frame.contentWindow) frame.contentWindow.location.reload();
+        updateReleaseChecklistStatus();
+        setStatusText('Shared iframe reloaded.');
+        break;
+      case 'refreshAll':
+        refreshAll({ pullStats:true });
+        break;
+      case 'openResource':
+      case 'saveResource':
+      case 'backupResource':
+        setStatusText('Resource file access is disabled in DevKit Lite.');
+        break;
+      case 'exportLayout':
+        requestResourceExport();
+        break;
+      case 'copyLayout':
+        copyExportBtn.click();
+        break;
+      case 'toggleEditorInput':
+        setEditorInputEnabled(!editorInputEnabled);
+        setStatusText('Editor input ' + (editorInputEnabled ? 'enabled.' : 'disabled.'));
+        break;
+      case 'toggleOverlay':
+        setOverlayVisible(!overlayVisible);
+        setStatusText('Overlay ' + (overlayVisible ? 'shown.' : 'hidden.'));
+        break;
+      case 'pullStats':
+        requestSnapshot({ pullStats:true });
+        setStatusText('Pulled current stats.');
+        break;
+      case 'applyStats':
+        document.getElementById('applyStatsBtn').click();
+        setStatusText('Applied edited stats.');
+        break;
+      case 'refreshSnapshot':
+        requestSnapshot();
+        setStatusText('Snapshot refreshed.');
+        break;
+      case 'refreshEditor':
+        requestEditorState();
+        setStatusText('Editor state refreshed.');
+        break;
+      case 'toggleLeftPane':
+        setLeftPaneVisible(!leftPaneVisible);
+        break;
+      case 'toggleRightPane':
+        setRightPaneVisible(!rightPaneVisible);
+        break;
+      case 'collapseAllPanels':
+        collapseAllPanels();
+        break;
+      case 'expandAllPanels':
+        expandAllPanels();
+        break;
+      case 'resetPanelOrders':
+        resetDockOrder(leftDock, STORAGE_KEYS.leftOrder, LEFT_DEFAULT_ORDER);
+        resetDockOrder(rightDock, STORAGE_KEYS.rightOrder, RIGHT_DEFAULT_ORDER);
+        expandAllPanels();
+        setStatusText('Panel order reset.');
+        break;
+      case 'showShortcuts':
+        alert(
+`Keyboard shortcuts
+
+Ctrl+L  Load game
+Ctrl+R  Reload frame
+Ctrl+Shift+R  Refresh all
+Ctrl+O  Open resource JSON
+Ctrl+S  Save resource JSON
+Ctrl+B  Backup resource JSON
+Ctrl+E  Pull resource data from game
+Ctrl+Shift+C  Copy resource JSON
+
+Alt+1  Toggle left pane
+Alt+2  Toggle right pane
+Alt+I  Toggle editor input
+Alt+O  Toggle overlay
+Alt+P  Pull current stats
+Alt+A  Apply edited stats
+Alt+S  Refresh snapshot
+Alt+D  Refresh editor state
+Alt+-  Collapse all panels
+Alt+=  Expand all panels
+Alt+0  Reset panel order`
+        );
+        break;
+      case 'showReleaseHelp':
+        alert(
+`Release checklist help
+
+1. Remove any dev bootstrap import from the public game page.
+2. Exclude the dev folder or toolkit HTML from production builds.
+3. Re-run the passive checks in the Release Checklist panel.
+4. Verify the public index does not expose debug hooks.`
+        );
+        break;
+      case 'showAbout':
+        alert(
+`BoneCrawler Dev Toolkit
+
+This build combines:
+- developer controls
+- engine editor
+- one shared game iframe
+- draggable docks
+- collapsible panels
+- program-style menu navigation`
+        );
+        break;
+    }
+    closeAllMenus();
+  }
+
+  function setupMenuBar(){
+    document.querySelectorAll('.menuTrigger').forEach(trigger => {
+      trigger.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const item = trigger.closest('.menuItem');
+        const isOpen = item.classList.contains('open');
+        closeAllMenus();
+        if(!isOpen){
+          item.classList.add('open');
+          openMenu = item;
+        }
+      });
+    });
+
+    document.querySelectorAll('.menuAction').forEach(btn => {
+      btn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if(btn.disabled || btn.classList.contains('disabled')){
+          setStatusText('This action is disabled in DevKit Lite.');
+          return;
+        }
+        performMenuAction(btn.dataset.action);
+      });
+    });
+
+    document.addEventListener('click', () => closeAllMenus());
+    document.addEventListener('keydown', (event) => {
+      if(event.key === 'Escape') closeAllMenus();
+
+      if(event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'l'){
+        event.preventDefault();
+        setStatusText('Load Game is disabled in DevKit Lite.');
+      }
+      if(event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'r'){
+        event.preventDefault();
+        if(frame.contentWindow) frame.contentWindow.location.reload();
+      }
+      if(event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'r'){
+        event.preventDefault();
+        refreshAll({ pullStats:true });
+      }
+      if(event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'o'){
+        event.preventDefault();
+        setStatusText('Resource file access is disabled in DevKit Lite.');
+      }
+      if(event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 's'){
+        event.preventDefault();
+        setStatusText('Resource file access is disabled in DevKit Lite.');
+      }
+      if(event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'b'){
+        event.preventDefault();
+        setStatusText('Resource file access is disabled in DevKit Lite.');
+      }
+      if(event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'e'){
+        event.preventDefault();
+        requestResourceExport();
+      }
+      if(event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'c'){
+        event.preventDefault();
+        copyExportBtn.click();
+      }
+
+      if(event.altKey && event.key === '1'){
+        event.preventDefault();
+        setLeftPaneVisible(!leftPaneVisible);
+      }
+      if(event.altKey && event.key === '2'){
+        event.preventDefault();
+        setRightPaneVisible(!rightPaneVisible);
+      }
+      if(event.altKey && event.key.toLowerCase() === 'i'){
+        event.preventDefault();
+        setEditorInputEnabled(!editorInputEnabled);
+      }
+      if(event.altKey && event.key.toLowerCase() === 'o'){
+        event.preventDefault();
+        setOverlayVisible(!overlayVisible);
+      }
+      if(event.altKey && event.key.toLowerCase() === 'p'){
+        event.preventDefault();
+        requestSnapshot({ pullStats:true });
+      }
+      if(event.altKey && event.key.toLowerCase() === 'a'){
+        event.preventDefault();
+        document.getElementById('applyStatsBtn').click();
+      }
+      if(event.altKey && event.key.toLowerCase() === 's'){
+        event.preventDefault();
+        requestSnapshot();
+      }
+      if(event.altKey && event.key.toLowerCase() === 'd'){
+        event.preventDefault();
+        requestEditorState();
+      }
+      if(event.altKey && event.key === '-'){
+        event.preventDefault();
+        collapseAllPanels();
+      }
+      if(event.altKey && event.key === '='){
+        event.preventDefault();
+        expandAllPanels();
+      }
+      if(event.altKey && event.key === '0'){
+        event.preventDefault();
+        resetDockOrder(leftDock, STORAGE_KEYS.leftOrder, LEFT_DEFAULT_ORDER);
+        resetDockOrder(rightDock, STORAGE_KEYS.rightOrder, RIGHT_DEFAULT_ORDER);
+        expandAllPanels();
+      }
+    });
+  }
+
+  const loadBtn = document.getElementById('loadBtn');
+  if(loadBtn) loadBtn.addEventListener('click', loadGame);
+  document.getElementById('reloadBtn').addEventListener('click', () => {
+    if(frame.contentWindow) frame.contentWindow.location.reload();
+    updateReleaseChecklistStatus();
+    setStatusText('Shared iframe reloaded.');
+  });
+  document.getElementById('refreshAllBtn').addEventListener('click', () => refreshAll({ pullStats:true }));
+  document.getElementById('editorInputBtn').addEventListener('click', () => {
+    setEditorInputEnabled(!editorInputEnabled);
+    setStatusText('Editor input ' + (editorInputEnabled ? 'enabled.' : 'disabled.'));
+  });
+  document.getElementById('toggleOverlayBtn').addEventListener('click', () => {
+    setOverlayVisible(!overlayVisible);
+    setStatusText('Overlay ' + (overlayVisible ? 'shown.' : 'hidden.'));
+  });
+
+  if(autoSceneSyncToggle){
+    autoSceneSyncToggle.addEventListener('change', () => {
+      setAutoSceneSync(autoSceneSyncToggle.checked);
+      setStatusText('Auto editor scene sync ' + (autoSceneSyncEnabled ? 'enabled.' : 'disabled.'));
+    });
+  }
+
+  document.getElementById('godBtn').addEventListener('click', () => {
+    postDevCommand({ type:'toggle_god_mode' });
+    setStatusText('Toggled god mode.');
+  });
+  document.getElementById('advanceBtn').addEventListener('click', () => {
+    postDevCommand({ type:'advance_progress' });
+    setStatusText('Advanced run progress.');
+  });
+  document.getElementById('chestBtn').addEventListener('click', () => {
+    postDevCommand({ type:'spawn_chest' });
+    setStatusText('Spawned chest.');
+  });
+  document.getElementById('phaseBtn').addEventListener('click', () => {
+    postDevCommand({ type:'skip_boss_phase' });
+    setStatusText('Skipped boss phase.');
+  });
+
+  document.querySelectorAll('.teleportBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      postDevCommand({ type:'goto_zone', zone:btn.dataset.zone });
+      setStatusText(
+        devSnapshotSeen
+          ? 'Teleport requested for ' + btn.textContent + '.'
+          : 'Teleport requested for ' + btn.textContent + ', but no dev listener reply has been detected yet.'
+      );
+    });
+  });
+
+  document.getElementById('refreshSnapshotBtn').addEventListener('click', () => {
+    requestSnapshot();
+    setStatusText('Snapshot refreshed.');
+  });
+
+  document.getElementById('pullStatsBtn').addEventListener('click', () => {
+    requestSnapshot({ pullStats:true });
+    setStatusText('Pulled current stats.');
+  });
+
+  document.getElementById('applyStatsBtn').addEventListener('click', () => {
+    postDevCommand({
+      type:'set_stats',
+      stats:{
+        sword:Number(swordInput.value || 0),
+        speed:Number(speedInput.value || 0),
+        points:Number(pointsInput.value || 0),
+        kills:Number(killsInput.value || 0)
+      }
+    });
+    setTimeout(requestSnapshot, 120);
+  });
+
+  editorZoneBtns.forEach(btn => btn.addEventListener('click', () => {
+    addSpawnMode = false;
+    addSpawnModeBtn.classList.remove('active');
+    if(autoSceneSyncEnabled){
+      setAutoSceneSync(false);
+    }
+    editorViewZone = Number(btn.dataset.zone);
+    setActiveZoneButton(editorViewZone);
+    updateZoneStatus();
+    if(selectedId && !getCurrentObjects().some(item => item.id === selectedId)){
+      selectedId = null;
+    }
+    syncSelectionInputs();
+    renderObjectList();
+    drawOverlay();
+    setStatusText('Editor view set to ' + btn.textContent + '.');
+  }));
+
+  filterBoxes.forEach(box => box.addEventListener('change', () => {
+    renderObjectList();
+    drawOverlay();
+    setStatusText('Overlay filter changed.');
+  }));
+
+  addSpawnModeBtn.addEventListener('click', () => {
+    addSpawnMode = !addSpawnMode;
+    if(addSpawnMode && !editorInputEnabled) setEditorInputEnabled(true);
+    addSpawnModeBtn.classList.toggle('active', addSpawnMode);
+    drawOverlay();
+    setStatusText(addSpawnMode ? 'Spawn placement mode enabled.' : 'Spawn placement mode disabled.');
+  });
+
+  spawnNowBtn.addEventListener('click', () => {
+    if(!editorState || !editorState.player) return;
+    const p = editorState.player;
+    postEditor({
+      type: 'bc_editor_spawn_now',
+      kind: spawnType.value,
+      x: p.x,
+      y: p.y
+    });
+    setStatusText('Spawned ' + spawnType.value + ' at player.');
+  });
+
+  deleteSpawnBtn.addEventListener('click', () => {
+    const item = selectedObject();
+    if(!item || item.category !== 'spawn') return;
+    postEditor({ type: 'bc_editor_remove_spawn', id: item.id });
+    selectedId = null;
+    setStatusText('Deleted spawn marker.');
+  });
+
+  applyRectBtn.addEventListener('click', applySelectionPatch);
+  document.getElementById('refreshEditorBtn').addEventListener('click', () => {
+    requestEditorState();
+    setStatusText('Editor state refreshed.');
+  });
+
+  exportBtn.addEventListener('click', requestResourceExport);
+  openResourceBtn.addEventListener('click', openResourceFile);
+  saveResourceBtn.addEventListener('click', saveResourceFile);
+  backupResourceBtn.addEventListener('click', backupResourceFile);
+  applyResourceBtn.addEventListener('click', applyResourceToGame);
+
+  resourceOpenInput.addEventListener('change', async () => {
+    const file = resourceOpenInput.files && resourceOpenInput.files[0];
+    if(!file) return;
+    const text = await file.text();
+    exportBox.value = text;
+    resourceFileHandle = null;
+    resourceLoadedFromDisk = true;
+    resourceFileName.value = file.name || getResourceFileName();
+    setStatusText('Opened resource file: ' + resourceFileName.value);
+    applyResourceToGame();
+  });
+
+  copyExportBtn.addEventListener('click', async () => {
+    const text = exportBox.value.trim();
+    if(!text) return;
+    try{
+      await navigator.clipboard.writeText(text);
+      copyExportBtn.textContent = 'Copied';
+      setStatusText('Copied resource JSON.');
+      setTimeout(() => { copyExportBtn.textContent = 'Copy JSON'; }, 1200);
+    }catch(err){
+      setStatusText('Clipboard copy failed.');
+    }
+  });
+
+  selectedEventTypeInput.addEventListener('input', () => {
+    if(!currentObjectData) return;
+    currentObjectData.eventType = selectedEventTypeInput.value;
+    commitCurrentObjectDataToRawBox();
+  });
+
+  selectedTargetInput.addEventListener('input', () => {
+    if(!currentObjectData) return;
+    currentObjectData.target = selectedTargetInput.value;
+    commitCurrentObjectDataToRawBox();
+  });
+
+  dialogPageSelect.addEventListener('change', () => {
+    currentDialogPageIndex = Number(dialogPageSelect.value || 0);
+    renderDialogEditor();
+  });
+
+  dialogSpeakerInput.addEventListener('input', () => {
+    if(!currentObjectData || !currentObjectData.dialog.pages[currentDialogPageIndex]) return;
+    currentObjectData.dialog.pages[currentDialogPageIndex].speaker = dialogSpeakerInput.value;
+    commitCurrentObjectDataToRawBox();
+    renderDialogEditor();
+  });
+
+  dialogTextInput.addEventListener('input', () => {
+    if(!currentObjectData || !currentObjectData.dialog.pages[currentDialogPageIndex]) return;
+    currentObjectData.dialog.pages[currentDialogPageIndex].text = dialogTextInput.value;
+    commitCurrentObjectDataToRawBox();
+  });
+
+  addDialogPageBtn.addEventListener('click', () => {
+    if(!currentObjectData) return;
+    currentObjectData.dialog.pages.push({ speaker:'', text:'' });
+    currentDialogPageIndex = currentObjectData.dialog.pages.length - 1;
+    commitCurrentObjectDataToRawBox();
+    renderDialogEditor();
+    setStatusText('Added dialog page.');
+  });
+
+  removeDialogPageBtn.addEventListener('click', () => {
+    if(!currentObjectData || !currentObjectData.dialog.pages.length) return;
+    currentObjectData.dialog.pages.splice(currentDialogPageIndex, 1);
+    currentDialogPageIndex = Math.max(0, currentDialogPageIndex - 1);
+    commitCurrentObjectDataToRawBox();
+    renderDialogEditor();
+    setStatusText('Removed dialog page.');
+  });
+
+  addConditionBtn.addEventListener('click', () => {
+    if(!currentObjectData) return;
+    currentObjectData.conditions.push({ kind:'flag', key:'', op:'==', value:'true' });
+    commitCurrentObjectDataToRawBox();
+    renderConditionEditor();
+    setStatusText('Added trigger condition.');
+  });
+
+  loadObjectJsonBtn.addEventListener('click', () => {
+    if(loadObjectDataFromRawBox()) setStatusText('Loaded object data JSON into editors.');
+  });
+
+  resetObjectDataBtn.addEventListener('click', () => {
+    const item = selectedObject();
+    if(!item) return;
+    delete objectDataDrafts[item.id];
+    currentObjectData = getEffectiveObjectData(item);
+    currentDialogPageIndex = 0;
+    syncObjectDataPanel();
+    setStatusText('Reset selection-data draft for ' + item.label + '.');
+  });
+
+  applyObjectDataBtn.addEventListener('click', applyObjectDataDraft);
+
+  overlay.addEventListener('pointerdown', (event) => {
+    if(!editorInputEnabled || !overlayVisible) return;
+    overlay.setPointerCapture(event.pointerId);
+    const hit = hitTest(event.clientX, event.clientY);
+
+    if(addSpawnMode){
+      const pt = screenToWorld(event.clientX, event.clientY);
+      if(pt && editorState){
+        postEditor({
+          type: 'bc_editor_add_spawn',
+          zone: getEditorViewZone() || editorState.activeZone,
+          kind: spawnType.value,
+          x: Math.round(pt.x - 4),
+          y: Math.round(pt.y - 4)
+        });
+        setStatusText('Added spawn marker.');
+      }
+      addSpawnMode = false;
+      addSpawnModeBtn.classList.remove('active');
+      drawOverlay();
+      return;
+    }
+
+    if(hit){
+      selectedId = hit.id;
+      syncSelectionInputs();
+      renderObjectList();
+      drawOverlay();
+
+      const pt = screenToWorld(event.clientX, event.clientY);
+      dragState = {
+        id: hit.id,
+        startWorld: pt,
+        startRect: { ...hit.rect }
+      };
+      setStatusText('Selected ' + hit.label + '.');
+    }else{
+      selectedId = null;
+      dragState = null;
+      syncSelectionInputs();
+      renderObjectList();
+      drawOverlay();
+      setStatusText('Selection cleared.');
+    }
+  });
+
+  overlay.addEventListener('pointermove', (event) => {
+    if(!dragState || !editorInputEnabled || !overlayVisible) return;
+    const pt = screenToWorld(event.clientX, event.clientY);
+    if(!pt) return;
+    const dx = pt.x - dragState.startWorld.x;
+    const dy = pt.y - dragState.startWorld.y;
+    objX.value = Math.round(dragState.startRect.x + dx);
+    objY.value = Math.round(dragState.startRect.y + dy);
+    applySelectionPatch();
+  });
+
+  function endDrag(){
+    dragState = null;
+  }
+
+  overlay.addEventListener('pointerup', endDrag);
+  overlay.addEventListener('pointercancel', endDrag);
+  window.addEventListener('resize', () => {
+    handleResponsivePaneMode();
+    resizeOverlay();
+  });
+
+  frame.addEventListener('load', () => {
+    clearInterval(snapshotTimer);
+    clearInterval(editorTimer);
+    devSnapshotSeen = false;
+    editorState = null;
+    editorViewZone = null;
+    lastAutoSceneKey = null;
+    if(autoSceneSyncToggle) autoSceneSyncToggle.checked = autoSceneSyncEnabled;
+    updateDevCommandStatus();
+    updateZoneStatus();
+    resizeOverlay();
+    snapshotTimer = setInterval(requestSnapshot, 1200);
+    editorTimer = setInterval(requestEditorState, 250);
+    setTimeout(() => refreshAll({ pullStats:true }), 450);
+    updateReleaseChecklistStatus();
+    setStatusText('Shared iframe loaded.');
+  });
+
+  window.addEventListener('message', (event) => {
+    const data = event.data || {};
+
+    if(data.source === DEV_GAME_SOURCE && data.type === 'snapshot'){
+      devSnapshotSeen = true;
+      updateDevCommandStatus();
+      renderSnapshot(data.snapshot || {});
+      if(autoSceneSyncEnabled){
+        const snap = data.snapshot || {};
+        const key = String(snap.state || 'unknown') + ':' + String(snap.zone ?? 'unknown');
+        if(key !== lastAutoSceneKey){
+          lastAutoSceneKey = key;
+          requestEditorState();
+        }
+      }
+      return;
+    }
+
+    if(data.type === 'bc_editor_state' && data.state){
+      editorState = data.state;
+      if(autoSceneSyncEnabled){
+        editorViewZone = Number(data.state.activeZone);
+      }else if(editorViewZone == null){
+        editorViewZone = Number(data.state.activeZone);
+      }else if(!zoneHasObjects(editorViewZone)){
+        editorViewZone = Number(data.state.activeZone);
+      }
+      syncEditorToActiveScene('scene changed');
+      updateZoneStatus();
+      setActiveZoneButton(getEditorViewZone());
+      if(selectedId && !getCurrentObjects().some(item => item.id === selectedId)){
+        selectedId = null;
+      }
+      syncSelectionInputs();
+      renderObjectList();
+      drawOverlay();
+      return;
+    }
+
+    if(data.type === 'bc_editor_export_result' && data.exportData){
+      const mergedExport = mergeDraftsIntoExport(data.exportData);
+      exportBox.value = JSON.stringify(mergedExport, null, 2);
+      if(!resourceLoadedFromDisk){
+        resourceFileName.value = 'bonecrawler_resource_data.json';
+      }
+      setStatusText('Resource data exported. Toolkit object-data drafts were merged into this editor view.');
+    }
+  });
+
+  document.getElementById('resetLeftDockBtn').addEventListener('click', () => {
+    resetDockOrder(leftDock, STORAGE_KEYS.leftOrder, LEFT_DEFAULT_ORDER);
+    setStatusText('Left dock order reset.');
+  });
+
+  document.getElementById('resetRightDockBtn').addEventListener('click', () => {
+    resetDockOrder(rightDock, STORAGE_KEYS.rightOrder, RIGHT_DEFAULT_ORDER);
+    setStatusText('Right dock order reset.');
+  });
+
+  if(mobileGameOnlyBtn) mobileGameOnlyBtn.addEventListener('click', setMobileGameOnly);
+  if(mobileToolsBtn) mobileToolsBtn.addEventListener('click', setMobileToolsView);
+  if(mobileInspectorBtn) mobileInspectorBtn.addEventListener('click', setMobileInspectorView);
+  if(mobileMenuToggle) mobileMenuToggle.addEventListener('click', () => {
+    document.body.classList.toggle('mobile-menu-open');
+    setStatusText(document.body.classList.contains('mobile-menu-open') ? 'Mobile menu opened.' : 'Mobile menu collapsed.');
+  });
+
+  loadWorkspaceState();
+  applyResponsiveWorkspaceDefaults();
+  applyDockOrder(leftDock, STORAGE_KEYS.leftOrder);
+  applyDockOrder(rightDock, STORAGE_KEYS.rightOrder);
+  setupDockDrag(leftDock, STORAGE_KEYS.leftOrder);
+  setupDockDrag(rightDock, STORAGE_KEYS.rightOrder);
+  setupCollapseButtons();
+  applyCollapsedStates();
+  setupMenuBar();
+  setEditorInputEnabled(editorInputEnabled);
+  setOverlayVisible(overlayVisible);
+  applyWorkspaceVisibility();
+  syncSelectionInputs();
+  renderObjectList();
+  updateZoneStatus();
+  resizeOverlay();
+  updateDevCommandStatus();
+  updateReleaseChecklistStatus();
+  updateWorkspaceStatus();
+})();
+</script>
+
+<script>
+(function(){
+  var select = document.getElementById('layoutModeSelect');
+  if (!select) return;
+
+  var key = 'bonecrawler-devkit-layout-mode';
+
+  function normalize(value){
+    value = String(value || 'auto').toLowerCase();
+    return /^(auto|desktop|tablet|focus)$/.test(value) ? value : 'auto';
+  }
+
+  function inferAutoMode(){
+    var shortSide = Math.min(window.innerWidth || 0, window.innerHeight || 0);
+    var longSide = Math.max(window.innerWidth || 0, window.innerHeight || 0);
+    var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    var iPadOS = /Macintosh/i.test(navigator.userAgent || '') && (navigator.maxTouchPoints || 0) > 1;
+
+    if ((iPadOS || coarse) && shortSide >= 700 && longSide >= 900) return 'tablet';
+    if (window.innerWidth <= 1180) return 'tablet';
+    return 'desktop';
+  }
+
+  function applyLayout(value){
+    var selected = normalize(value);
+    var mode = selected === 'auto' ? inferAutoMode() : selected;
+    document.body.dataset.layoutMode = mode;
+    document.body.dataset.layoutPreference = selected;
+    select.value = selected;
+  }
+
+  select.addEventListener('change', function(){
+    var value = normalize(select.value);
+    localStorage.setItem(key, value);
+    applyLayout(value);
+  });
+
+  window.addEventListener('resize', function(){
+    if (normalize(select.value) === 'auto') applyLayout('auto');
+  });
+
+  applyLayout(localStorage.getItem(key) || 'auto');
+})();
+</script>
+
+</body>
+</html>
