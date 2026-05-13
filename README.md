@@ -21,11 +21,10 @@ Your heart hasn't beaten in over three hundred years.
 *Ahem!*
 
 "You've been sleeping for a long time.."
-
 "Welcome initiate. We have a task for you."
 "The king requests our services again. Complete this job and you'll earn your stay."
 
-Born in a crypt.. This voice calls me a Bonecrawler. For now.. maybe I should listen to what he has to say.
+Born in a tomb.. This voice calls me a Bonecrawler. For now.. maybe I should listen to what they have to say.
 ```
 
 ### Screenshots    
