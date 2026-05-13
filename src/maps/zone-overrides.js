@@ -1,8 +1,8 @@
-// runtime zone-overrides
-// Purpose: Route shared render/collision calls through registered zone modules.
+// zone-overrides
+// Purpose: Route shared render/collision calls through registered scene modules.
 (function(){
   'use strict';
-  if(!window.BoneCrawlerZones) return;
+  if(!window.SceneEngine) return;
 
   const original = {
     drawDungeon: window.drawDungeon,
@@ -11,10 +11,9 @@
     getZoneLabel: window.getZoneLabel,
     isSecretZone: window.isSecretZone,
   };
-  window.BoneCrawlerLegacyZoneFns = Object.assign(window.BoneCrawlerLegacyZoneFns || {}, original);
 
   function modularDrawDungeon(){
-    const zone = BoneCrawlerZones.getActiveZone();
+    const zone = SceneEngine.getActiveZone();
     if(zone && typeof zone.render === 'function'){
       zone.render();
       return;
@@ -23,30 +22,30 @@
   }
 
   function modularCollidesZoneObstacles(x,y,w,h){
-    const zone = BoneCrawlerZones.getActiveZone();
+    const zone = SceneEngine.getActiveZone();
     if(zone && typeof zone.collides === 'function'){
-      return !!zone.collides(BoneCrawlerZones.boxFromArgs(x,y,w,h));
+      return !!zone.collides(SceneEngine.boxFromArgs(x,y,w,h));
     }
     return typeof original.collidesZoneObstacles === 'function' ? !!original.collidesZoneObstacles(x,y,w,h) : false;
   }
 
   function modularCollidesZone2Tree(x,y,w,h){
-    const zone = BoneCrawlerZones.get(2);
+    const zone = SceneEngine.get(2);
     if(Number(currentZone) !== 2) return false;
     if(zone && typeof zone.collidesTree === 'function'){
-      return !!zone.collidesTree(BoneCrawlerZones.boxFromArgs(x,y,w,h));
+      return !!zone.collidesTree(SceneEngine.boxFromArgs(x,y,w,h));
     }
     return typeof original.collidesZone2Tree === 'function' ? !!original.collidesZone2Tree(x,y,w,h) : false;
   }
 
   function modularGetZoneLabel(zoneId){
-    const zone = BoneCrawlerZones.get(Number(zoneId));
+    const zone = SceneEngine.get(Number(zoneId));
     if(zone) return zone.label;
     return typeof original.getZoneLabel === 'function' ? original.getZoneLabel(zoneId) : 'ZONE';
   }
 
   function modularIsSecretZone(zoneId){
-    const zone = BoneCrawlerZones.get(Number(zoneId));
+    const zone = SceneEngine.get(Number(zoneId));
     if(zone) return zone.type === 'secret';
     return typeof original.isSecretZone === 'function' ? !!original.isSecretZone(zoneId) : false;
   }

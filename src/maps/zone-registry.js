@@ -1,5 +1,5 @@
 // zone-registry
-// Purpose: runtime definition for renderer/collision
+// Purpose: generic scene registry for renderer/collision.
 (function(){
   'use strict';
 
@@ -16,9 +16,9 @@
     return {x:x||0,y:y||0,w:w||0,h:h||0};
   }
 
-  function register(zone){
-    if(!zone || zone.id == null) return null;
-    const id = Number(zone.id);
+  function register(scene){
+    if(!scene || scene.id == null) return null;
+    const id = Number(scene.id);
     const normalized = Object.assign({
       id,
       label: 'ZONE '+id,
@@ -27,7 +27,12 @@
       collides: null,
       collidesTree: null,
       objective: null,
-    }, zone, {id});
+      objects: [],
+      environment: [],
+      npcs: [],
+      triggers: [],
+      items: []
+    }, scene, {id});
     registry.set(id, normalized);
     return normalized;
   }
@@ -59,7 +64,7 @@
     return !!(zone && zone.type === 'secret');
   }
 
-  window.BoneCrawlerZones = {
+  window.SceneEngine = {
     register,
     get,
     getAll: () => Array.from(registry.values()),
@@ -68,6 +73,6 @@
     getLabel,
     isSecret,
     isTitleState,
-    boxFromArgs,
+    boxFromArgs
   };
 })();

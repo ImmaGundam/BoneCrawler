@@ -125,10 +125,9 @@ function enterZone2(){
   currentZone=2;
   if(window.BoneCrawlerZoneSpawn) BoneCrawlerZoneSpawn.enterZone(2);
   clearChests(); clearKeyDrops();
-  enemies=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
+  enemies=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[]; parts=[]; if(window.RuntimeEntityManager && typeof RuntimeEntityManager.clear === 'function') RuntimeEntityManager.clear();
   dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   bossClearTimer=0;
-  parts=[];
   zone2KillStart=killCount;
   nextChestAt=Math.max(nextChestAt, killCount + ZONE2_FIRST_CHEST_DELAY);
   const p=player;
@@ -148,11 +147,10 @@ function enterZone3(){
   currentZone=3;
   if(window.BoneCrawlerZoneSpawn) BoneCrawlerZoneSpawn.enterZone(3);
   clearChests(); clearKeyDrops();
-  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
+  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[]; parts=[]; if(window.RuntimeEntityManager && typeof RuntimeEntityManager.clear === 'function') RuntimeEntityManager.clear();
   dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
-  parts=[];
   zone3KillStart=killCount;
   zone3IntroDialogShown=false;
   zone3Kill80DialogShown=false;
@@ -184,11 +182,10 @@ function enterSecretZone1(){
   currentZone=ZONE_SECRET1;
   if(window.BoneCrawlerZoneSpawn) BoneCrawlerZoneSpawn.enterZone(ZONE_SECRET1);
   clearChests(); clearKeyDrops();
-  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
+  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[]; parts=[]; if(window.RuntimeEntityManager && typeof RuntimeEntityManager.clear === 'function') RuntimeEntityManager.clear();
   dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;
-  parts=[];
   const p=player;
   p.hasKey=false;
   p.zone2Key=false;
@@ -208,10 +205,9 @@ function enterSecretZone2(){
   currentZone=ZONE_SECRET2;
   if(window.BoneCrawlerZoneSpawn) BoneCrawlerZoneSpawn.enterZone(ZONE_SECRET2);
   clearChests(); clearKeyDrops();
-  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[];
+  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[]; parts=[]; if(window.RuntimeEntityManager && typeof RuntimeEntityManager.clear === 'function') RuntimeEntityManager.clear();
   dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   bossClearTimer=0;
-  parts=[];
   const p=player;
   p.hasKey=false;
   p.zone2Key=false;
@@ -275,79 +271,19 @@ function isNearRect(rect,pad=4){
   return ov({x:p.x,y:p.y,w:p.w,h:p.h}, zone);
 }
 function getActiveZoneTransitionInteractable(){
-  if(!player) return null;
-  if(currentZone===1){
-    if(zone1SecretEntranceReady() && zone1Broken[0] && isNearRect(SECRET1_ENTRANCE_RECT,4)){
-      return {
-        id:'zone1_secret1',
-        rect:SECRET1_ENTRANCE_RECT,
-        promptX:SECRET1_ENTRANCE_RECT.x + SECRET1_ENTRANCE_RECT.w/2,
-        promptY:SECRET1_ENTRANCE_RECT.y - 4,
-        nextZone:ZONE_SECRET1,
-        transitionOpts:{fromZone:1}
-      };
-    }
-    if(player.zone1DoorKey && isNearRect(ZONE1_DOOR_RECT,4)){
-      return {
-        id:'zone1_zone2',
-        rect:ZONE1_DOOR_RECT,
-        promptX:ZONE1_DOOR_RECT.x + ZONE1_DOOR_RECT.w/2,
-        promptY:ZONE1_DOOR_RECT.y - 4,
-        nextZone:2,
-        transitionOpts:{fromZone:1}
-      };
-    }
-  }
-  if(currentZone===ZONE_SECRET1 && secret1BlessingT<=0 && isNearRect(SECRET1_EXIT_DOOR_RECT,4)){
-    return {
-      id:'secret1_exit',
-      rect:SECRET1_EXIT_DOOR_RECT,
-      promptX:SECRET1_EXIT_DOOR_RECT.x + SECRET1_EXIT_DOOR_RECT.w/2,
-      promptY:SECRET1_EXIT_DOOR_RECT.y - 4,
-      nextZone:2,
-      transitionOpts:{fromZone:ZONE_SECRET1, secret:true}
-    };
-  }
-  if(currentZone===3){
-    if(player.hasKey && isNearRect(ZONE3_DOOR_RECT,4)){
-      return {
-        id:'zone3_exit',
-        rect:ZONE3_DOOR_RECT,
-        promptX:ZONE3_DOOR_RECT.x + ZONE3_DOOR_RECT.w/2,
-        promptY:ZONE3_DOOR_RECT.y - 4,
-        nextZone:-1,
-        transitionOpts:{fromZone:3,title:'ZONE CLEAR',messageLines:['Well done,','Bonecrawler'],hideStats:false}
-      };
-    }
-    if(canInteractZone3Secret2Portal()){
-      return {
-        id:'zone3_secret2',
-        rect:ZONE3_SECRET2_PORTAL_RECT,
-        promptX:ZONE3_SECRET2_PORTAL_RECT.x + ZONE3_SECRET2_PORTAL_RECT.w/2,
-        promptY:ZONE3_SECRET2_PORTAL_RECT.y - 4,
-        nextZone:ZONE_SECRET2,
-        transitionOpts:{fromZone:3}
-      };
-    }
-  }
-  if(currentZone===ZONE_SECRET2 && canInteractSecret2ReturnPortal()){
-    return {
-      id:'secret2_return',
-      rect:SECRET2_RETURN_PORTAL_RECT,
-      promptX:SECRET2_RETURN_PORTAL_RECT.x + SECRET2_RETURN_PORTAL_RECT.w/2,
-      promptY:SECRET2_RETURN_PORTAL_RECT.y - 4,
-      nextZone:-1,
-      transitionOpts:{fromZone:3,title:'ZONE CLEAR',messageLines:['Well done,','Bonecrawler'],hideStats:false}
-    };
-  }
+  try{
+    if(window.EventEngine && typeof EventEngine.getActiveTransition === 'function') return EventEngine.getActiveTransition();
+  }catch(err){}
   return null;
 }
 function getCurrentInteractionTarget(){
   if(gState!=='playing') return null;
-  if(canInteractSecret2Sword()) return {type:'secret2Sword', promptX:SECRET2_SWORD_RECT.x + SECRET2_SWORD_RECT.w/2, promptY:SECRET2_SWORD_RECT.y - 3};
-  if(canInteractSecret2Npc()) return {type:'secret2Npc', promptX:SECRET2_NPC_RECT.x + SECRET2_NPC_RECT.w/2, promptY:SECRET2_NPC_RECT.y - 6};
-  if(canInteractZone3Tree()) return {type:'zone3Tree', promptX:ZONE3_TREE_INTERACT_RECT.x + ZONE3_TREE_INTERACT_RECT.w/2, promptY:ZONE3_TREE_INTERACT_RECT.y - 4};
-  if(canInteractSecret1Rat()) return {type:'secret1Rat', promptX:SECRET1_RAT_RECT.x + SECRET1_RAT_RECT.w/2, promptY:SECRET1_RAT_RECT.y - 5};
+  try{
+    if(window.EventEngine && typeof EventEngine.getActiveInteractionTarget === 'function'){
+      const target = EventEngine.getActiveInteractionTarget();
+      if(target) return target;
+    }
+  }catch(err){}
   const transition=getActiveZoneTransitionInteractable();
   if(transition) return {type:'transition', promptX:transition.promptX, promptY:transition.promptY, data:transition};
   return null;
