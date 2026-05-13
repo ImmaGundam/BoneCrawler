@@ -117,8 +117,6 @@ linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 18%,rgba(0,0,0,
 .etb-btn:hover{background:rgba(146,122,76,.18);color:rgba(220,200,150,1);}
 .etb-btn.etb-close:hover{background:rgba(160,42,34,.80);color:#fff;}
 .etb-btn svg{display:block;width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;}
-
-/* --- player menu layout --- */
 body{display:block;min-height:100vh;padding:20px 12px}
 body.has-titlebar{padding-top:calc(20px + 28px);}
 .screen-wrap{border-radius:3px;background:linear-gradient(180deg,#131816 0%,#0c100f 52%,#090908 100%);border:1px solid rgba(152,129,81,.44);box-shadow:0 0 0 1px rgba(32,38,35,.96) inset,0 0 0 2px rgba(10,12,10,.96),0 0 0 4px rgba(61,54,41,.75),0 16px 48px rgba(0,0,0,.82),0 0 20px rgba(99,84,56,.09)}
@@ -217,9 +215,6 @@ body.has-titlebar{padding-top:calc(20px + 28px);}
 .player-about-body .about-link{color:#9db3c0;text-decoration:none}
 .player-about-body .about-link:hover{text-decoration:underline}
 .player-card.is-hidden{display:none}
-/* ── Side-panel content scaling with --menu-zoom ─────────────────────────
-   The game canvas still uses --game-zoom. Desktop side menus use a softer
-   zoom so they remain beside the game at 175%+ instead of forcing a stack. */
 .player-menu{gap:calc(12px * var(--menu-zoom,1))}
 .player-menu .player-card{padding:calc(12px * var(--menu-zoom,1)) calc(12px * var(--menu-zoom,1)) calc(11px * var(--menu-zoom,1))}
 .player-menu .player-card-title{font-size:calc(9px * var(--menu-zoom,1));letter-spacing:.16em}
@@ -255,8 +250,6 @@ body.has-titlebar{padding-top:calc(20px + 28px);}
   width: 100%;
 }
 
-
-/* Electron desktop shell */
 html{
   scrollbar-width:thin;
   scrollbar-color:#7d7254 #0c0d0c;
@@ -369,18 +362,11 @@ body.desktop-has-titlebar.desktop-is-fullscreen{
   min-width:var(--player-stage-width,420px);
 }
 
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Integrated mobile browser controls and Game Boy style menu
-   - Desktop remains unchanged.
-   - Mobile browser mode is enabled by the script in index.html.
-   ═══════════════════════════════════════════════════════════════════════════ */
 .menu-toggle-btn,
 .side-menu-overlay {
   display: none !important;
 }
 
-/* Mobile browser layout: hide desktop side panels and center the game stage. */
 html.mobile-browser .player-shell {
   display: flex;
   flex-direction: column;
@@ -406,7 +392,6 @@ html.mobile-browser .menu-toggle-btn {
   margin-inline: auto;
 }
 
-/* Mobile menu toggle button */
 html.mobile-browser .menu-toggle-btn {
   appearance: none;
   display: inline-flex !important;
@@ -635,13 +620,11 @@ html.mobile-browser .side-menu-pane .panel-rule {
 }
 body.menu-open { overflow: hidden; }
 
-/* Hard desktop guard: never show mobile menu/overlay on desktop browser mode. */
 html.desktop-browser .menu-toggle-btn,
 html.desktop-browser .side-menu-overlay {
   display: none !important;
 }
 
-/* Spacing / collapsed-panel alignment refinements. */
 .player-stage .zoom-strip{
   margin-top:2px;
 }
@@ -675,10 +658,6 @@ html.desktop-browser .side-menu-overlay {
   transform:translateY(-50%);
 }
 
-/* ── Collapsed side-panel title alignment fix ─────────────────────────────
-   Normalizes CONTROLS and HOW TO PLAY collapsed headers so both titles share
-   the same vertical center line and the right-side buttons do not push text
-   downward or onto a second visual row. */
 .player-menu .player-card.collapsed,
 .player-menu #howToPlayPanel.collapsed{
   position:relative;
@@ -738,11 +717,6 @@ html.desktop-browser .side-menu-overlay {
   z-index:3;
 }
 
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   MOBILE GAME BOY / GBA-STYLE TOUCH CONTROLS
-   Uses html.mobile-browser from index.html so desktop/touchscreen PCs stay desktop.
-   ═══════════════════════════════════════════════════════════════════════════ */
 .gamepad-shell{display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;gap:0;width:100%;position:relative}.gp-half{display:none;flex-direction:column;align-items:center;justify-content:space-between;flex-shrink:0;position:relative}.gp-screen-slot{flex-shrink:0;display:flex;align-items:center;justify-content:center}.gp-portrait-bar,.menu-toggle-btn-landscape{display:none}html.desktop-browser .gp-half,html.desktop-browser .gp-portrait-bar,html.desktop-browser .menu-toggle-btn-landscape{display:none!important}
 html.mobile-browser #touchPauseBtn,html.mobile-browser #touchInteractBtn,html.mobile-browser #touchDodgeBtn{display:none!important}html.mobile-browser .player-stage{gap:0;padding-top:0}html.mobile-browser .player-stage>.zoom-strip{display:none!important}
 @media (orientation:landscape){html.mobile-browser body{padding-top:0;padding-bottom:0}html.mobile-browser .player-shell{max-width:none;width:100%}html.mobile-browser .player-stage{width:100%;max-width:none;margin-inline:auto}html.mobile-browser .gamepad-shell{flex-wrap:nowrap;flex-direction:row;align-items:stretch;min-height:0;height:auto;gap:0}html.mobile-browser .gp-half{display:flex;width:clamp(96px,18vw,140px);padding:10px 6px 14px;background:linear-gradient(180deg,rgba(11,14,12,.97) 0%,rgba(7,9,7,.98) 50%,rgba(9,12,10,.97) 100%);border:1px solid rgba(146,122,76,.28);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 0 28px rgba(0,0,0,.55);position:relative}html.mobile-browser .gp-left{border-right:none;border-radius:0 0 0 22px}html.mobile-browser .gp-right{border-left:none;border-radius:0 0 22px 0}html.mobile-browser .gp-half::after{content:'';position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:32px;height:12px;background-image:radial-gradient(circle,rgba(146,122,76,.25) 1.5px,transparent 1.5px);background-size:8px 6px;border-radius:4px;opacity:.7}html.mobile-browser .gp-half::before{content:'';position:absolute;top:0;left:4px;right:4px;height:3px;background:linear-gradient(90deg,transparent 0%,rgba(146,122,76,.30) 30%,rgba(146,122,76,.30) 70%,transparent 100%);border-radius:0 0 2px 2px;pointer-events:none}html.mobile-browser .gp-screen-slot{flex:1 1 auto;align-self:flex-start;align-items:flex-start}html.mobile-browser .gp-dpad-wrap,html.mobile-browser .gp-action-wrap{flex:1 1 auto;display:flex;align-items:center;justify-content:center}html.mobile-browser .gp-sys-row{flex-shrink:0;display:flex;gap:6px;justify-content:center;margin-bottom:6px}html.mobile-browser .player-stage>.menu-toggle-btn{display:none!important}html.mobile-browser .screen-wrap{margin-bottom:0}html.mobile-browser .menu-toggle-btn-landscape{display:flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;appearance:none;border:1px solid rgba(146,122,76,.44);border-radius:4px;background:linear-gradient(180deg,rgba(22,20,14,.98),rgba(10,9,6,.98));color:#d4c89a;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;box-shadow:0 0 0 1px rgba(10,9,7,.96) inset,0 2px 8px rgba(0,0,0,.45);transition:background .14s,color .14s,border-color .14s;position:relative;align-self:flex-start;margin-bottom:4px}html.mobile-browser .menu-toggle-btn-landscape .menu-toggle-icon{font-size:13px;line-height:1;opacity:.85}html.mobile-browser .menu-toggle-btn-landscape.active{border-color:rgba(240,176,32,.65);color:#f0b020;background:linear-gradient(180deg,rgba(40,35,18,.98),rgba(20,17,8,.98));box-shadow:0 0 0 1px rgba(14,12,7,.96) inset,0 0 12px rgba(240,176,32,.18)}html.mobile-browser .menu-toggle-btn-landscape.active .menu-toggle-icon{transform:rotate(90deg);display:inline-block;transition:transform .18s ease}}
@@ -751,9 +725,6 @@ html.mobile-browser #touchPauseBtn,html.mobile-browser #touchInteractBtn,html.mo
 .gp-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end}.gpa-btn{position:relative;appearance:none;border:none;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;transition:filter .08s,transform .06s;box-shadow:0 3px 0 rgba(0,0,0,.55),0 4px 12px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.14);flex-shrink:0}.gpa-a{width:54px;height:54px;background:radial-gradient(circle at 38% 32%,#f7d060 0%,#f0b020 46%,#c98e10 100%);border:2px solid rgba(200,140,10,.7);box-shadow:0 3px 0 rgba(100,60,0,.7),0 5px 14px rgba(240,176,32,.22),inset 0 1px 0 rgba(255,240,180,.35)}.gpa-a .gpa-letter{color:rgba(60,35,0,.85);font:700 13px/1 'Press Start 2P',monospace;text-shadow:0 1px 0 rgba(255,220,120,.4)}.gpa-a .gpa-label{color:rgba(60,35,0,.65);font:700 5px/1 'Press Start 2P',monospace;letter-spacing:.08em}.gpa-b{width:46px;height:46px;background:radial-gradient(circle at 38% 32%,#aad8f8 0%,#6baed4 46%,#4a86aa 100%);border:2px solid rgba(60,120,180,.65);box-shadow:0 3px 0 rgba(20,60,100,.7),0 5px 12px rgba(100,180,255,.15),inset 0 1px 0 rgba(200,235,255,.28)}.gpa-b .gpa-letter{color:rgba(0,30,60,.80);font:700 11px/1 'Press Start 2P',monospace;text-shadow:0 1px 0 rgba(180,220,255,.3)}.gpa-b .gpa-label{color:rgba(0,30,60,.60);font:700 5px/1 'Press Start 2P',monospace;letter-spacing:.06em}.gpa-btn.gp-pressed{transform:translateY(2px);filter:brightness(1.15);box-shadow:0 1px 0 rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1)}@media (orientation:landscape){html.mobile-browser .gp-actions.gp-actions-diamond{position:relative;width:100px;height:100px;flex-direction:unset;align-items:unset;gap:0}html.mobile-browser .gpa-diamond-top{position:absolute;top:0;right:0}html.mobile-browser .gpa-diamond-bot{position:absolute;bottom:0;left:0}html.mobile-browser .gp-actions-diamond .gpa-a,html.mobile-browser .gp-actions-diamond .gpa-b{width:53px;height:53px}html.mobile-browser .gp-actions-diamond .gpa-a .gpa-letter,html.mobile-browser .gp-actions-diamond .gpa-b .gpa-letter{font-size:12px}}
 .gp-sys-btn{appearance:none;border:1px solid rgba(146,122,76,.32);border-radius:20px;background:linear-gradient(180deg,rgba(26,28,24,.96),rgba(14,16,13,.96));color:#a09880;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 10px;min-width:48px;box-shadow:0 2px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);transition:background .1s,color .1s,transform .06s}.gps-icon{font-size:9px;line-height:1;color:#c8b888;letter-spacing:.05em}.gps-label{font:700 5px/1 'Press Start 2P',monospace;letter-spacing:.1em;color:#8a8070;text-transform:uppercase}.gp-sys-btn.gp-pressed{transform:translateY(1px);background:linear-gradient(180deg,rgba(36,34,24,.96),rgba(22,20,14,.96));color:#f0b020;box-shadow:0 1px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04)}.gp-sys-btn.gp-pressed .gps-icon{color:#f0b020}.gp-sys-btn.gp-pressed .gps-label{color:#c09820}.gp-sys-e{border-color:rgba(100,160,220,.28)}.gp-sys-e .gps-icon{color:#88c8ff}
 
-/* ── Mobile landscape menu button fix + footer copyright cleanup ───────────
-   Keeps the mobile menu button visible in landscape by making it independent
-   from the left controller panel height/layout. */
 .player-page-footer-copy{display:none!important}
 .player-page-footer-site{display:inline-flex;align-items:center;justify-content:center;gap:.55em;white-space:nowrap}
 .footer-copy-symbol{display:inline-block;color:rgba(188,196,204,.66);font-size:.95em;line-height:1;letter-spacing:0}
@@ -771,11 +742,6 @@ html.mobile-browser #touchPauseBtn,html.mobile-browser #touchInteractBtn,html.mo
   html.mobile-browser .gp-left{padding-top:52px}
 }
 
-
-/* ── Desktop side-menu title selector fix ────────────────────────────────
-   CONTROLS and HOW TO PLAY now have separate title selectors. This prevents
-   HOW TO PLAY from inheriting oversized/low summary spacing from the shared
-   .player-menu .info-panel summary rule. */
 html.desktop-browser .player-menu #aboutPanel:not(.collapsed):not(.panel-maximized) > .player-card-title.controls-title,
 html.desktop-browser .player-menu #howToPlayPanel:not(.collapsed):not(.panel-maximized) > summary.howto-summary{
   display:flex!important;
@@ -818,7 +784,6 @@ html.desktop-browser .player-menu #howToPlayPanel:not(.collapsed):not(.panel-max
 html.desktop-browser .player-menu #howToPlayPanel:not(.collapsed):not(.panel-maximized) > summary.howto-summary::-webkit-details-marker{display:none!important;}
 html.desktop-browser .player-menu #howToPlayPanel:not(.collapsed):not(.panel-maximized) > summary.howto-summary::marker{content:""!important;}
 
-/* Keep collapsed HOW TO PLAY using the same dedicated title span. */
 html.desktop-browser .player-menu #howToPlayPanel.collapsed > summary.howto-summary .howto-title{
   display:inline-flex!important;
   align-items:center!important;
@@ -828,12 +793,6 @@ html.desktop-browser .player-menu #howToPlayPanel.collapsed > summary.howto-summ
   transform:translateY(-1px);
 }
 
-/* ── HOW TO PLAY / GUIDE desktop title alignment fix ─────────────────────
-   Root cause: #howToPlayPanel is a <details class="player-card">, so its
-   <summary> was receiving the card's top padding PLUS the shared summary
-   padding. That made the right menu title sit lower than the CONTROLS title.
-   This rule removes the extra summary padding and aligns it to the same title
-   row as the left-side CONTROLS panel. */
 .player-menu #howToPlayPanel:not(.collapsed):not(.panel-maximized) > summary.howto-summary,
 .player-menu #howToPlayPanel:not(.collapsed):not(.panel-maximized) > summary:first-child{
   display:flex!important;
@@ -875,18 +834,12 @@ html.desktop-browser .player-menu #howToPlayPanel.collapsed > summary.howto-summ
   content:""!important;
 }
 
-/* Keep the right-side menu control icons locked to the same visual row. */
 .player-menu #howToPlayPanel:not(.collapsed):not(.panel-maximized) > .player-panel-tools,
 .player-menu #howToPlayPanel:not(.collapsed):not(.panel-maximized) > .panel-minimize,
 .player-menu #howToPlayPanel:not(.collapsed):not(.panel-maximized) > .panel-dismiss{
   top:calc(10px * var(--menu-zoom,1))!important;
 }
 
-/* ── Mobile Safari safe-area + portrait positioning fix ───────────────────
-   viewport-fit=cover in index.html lets the page paint into the iPhone
-   landscape safe areas. These rules make that area use the BoneCrawler
-   background instead of Safari's default white, and remove the large portrait
-   top offset that was pushing the game too low. */
 html.mobile-browser{
   width:100%;
   min-width:100%;
@@ -948,16 +901,10 @@ html.mobile-browser body{
     margin-right:0!important;
   }
   html.mobile-browser .gp-screen-slot{
-    /* Keep the portrait game window high in the viewport. */
     margin-top:0!important;
   }
 }
 
-
-/* ── Collapsed HOW TO PLAY title center fix ──────────────────────────────
-   The expanded title override above must not apply to the collapsed card.
-   Keep the minimized right-panel title centered between the card edges while
-   leaving room for the right-side + / x buttons. */
 .player-menu #howToPlayPanel.collapsed > summary.howto-summary,
 .player-menu #howToPlayPanel.collapsed > summary:first-child{
   position:absolute!important;
@@ -1001,11 +948,6 @@ html.mobile-browser body{
   transform:translateY(-50%)!important;
 }
 
-/* ── Mobile landscape controller unification fix ──────────────────────────
-   The landscape controller body should read as one continuous shell, not as
-   two separate side templates split around the game window. These overrides
-   move the shell treatment to .gamepad-shell and make the left/right control
-   holders transparent. */
 @media (orientation:landscape){
   html.mobile-browser .gamepad-shell{
     display:grid!important;
@@ -1068,10 +1010,6 @@ html.mobile-browser body{
   }
 }
 
-
-/* ── Mobile landscape D-pad size/position adjustment ─────────────────────
-   Enlarges only the landscape on-screen D-pad by roughly 15% and nudges it
-   farther left inside the unified controller shell. Portrait is unchanged. */
 @media (orientation:landscape){
   html.mobile-browser .gp-left .gp-dpad{
     --dpd-sz:46px!important;
@@ -1083,10 +1021,6 @@ html.mobile-browser body{
   }
 }
 
-/* ── Mobile landscape A/B button size/position adjustment ──────────────────
-   Matches the previous D-pad landscape tuning: enlarges the right-side A/B
-   button cluster by roughly 15% and nudges it farther right. Portrait is
-   unchanged. */
 @media (orientation:landscape){
   html.mobile-browser .gp-right .gp-actions.gp-actions-diamond{
     width:115px!important;
@@ -1108,9 +1042,6 @@ html.mobile-browser body{
   }
 }
 
-/* ── Responsive tablet / desktop layout patch ─────────────────────────────
-   Phones keep the mobile controller. Tablets no longer get forced into the
-   phone controller layout when Safari reports an iPad as a touch Mac. */
 html.tablet-browser,
 html.tablet-browser body{
   min-height:100dvh;
@@ -1218,11 +1149,6 @@ html.tablet-browser #gameCanvas{
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   BoneCrawler screen-extension shell
-   Conservative pass: preserve the current 240x240 game viewport and in-game
-   HUD, remove page-side clutter, and attach a small RPG-style status module.
-   ═══════════════════════════════════════════════════════════════════════════ */
 html.screen-extension-enabled body{
   min-height:100dvh;
   overflow-x:hidden;
@@ -1249,7 +1175,6 @@ html.screen-extension-enabled:not(.mobile-browser) .player-shell{
   gap:clamp(10px, 1.6dvh, 16px);
 }
 
-/* Remove the outer webpage help/menu clutter from the primary game view. */
 html.screen-extension-enabled:not(.mobile-browser) .player-menu-left,
 html.screen-extension-enabled:not(.mobile-browser) .player-menu-right,
 html.screen-extension-enabled:not(.mobile-browser) .player-stage > .zoom-strip{
@@ -1455,7 +1380,6 @@ html.screen-extension-enabled:not(.mobile-browser) #gameCanvas{
   margin-top:auto;
 }
 
-/* Footer remains, but becomes small and fluid instead of forcing a fixed game width. */
 html.screen-extension-enabled .player-page-footer{
   width:min(100%, 980px);
   margin:0 auto;
@@ -1518,8 +1442,6 @@ html.screen-extension-enabled .player-page-footer-site{
   }
 }
 
-/* Keep the existing mobile controller flow stable for now. Touch controls will be
-   redesigned later around this shell. */
 html.screen-extension-enabled.mobile-browser .screen-extension-panel{
   display:none!important;
 }
@@ -1527,10 +1449,6 @@ html.screen-extension-enabled.mobile-browser .player-stage > .zoom-strip{
   display:none!important;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Screen-extension attached shell + flag-down guide nav
-   Keeps the game frame and status panel as one attached object.
-   ═══════════════════════════════════════════════════════════════════════════ */
 html.screen-extension-enabled:not(.mobile-browser) .gp-screen-slot{
   display:grid!important;
   place-items:center!important;
@@ -1771,10 +1689,6 @@ html.screen-extension-enabled.mobile-browser .screen-guide-popdown{
   display:none!important;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Screen-extension pseudo mini-map
-   Data-driven route indicator. This is not a terrain map.
-   ═══════════════════════════════════════════════════════════════════════════ */
 .screen-extension-minimap-section{
   margin-top:auto;
 }
@@ -1930,11 +1844,6 @@ html.screen-extension-enabled.mobile-browser .screen-guide-popdown{
   }
 }
 
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Compact NES pseudo mini-map refinement
-   Smaller route indicator, half-length connectors, hidden during title/menu.
-   ═══════════════════════════════════════════════════════════════════════════ */
 .screen-extension-panel[data-phase="title"] .screen-extension-minimap-section{
   display:none!important;
 }
@@ -2082,11 +1991,6 @@ html.screen-extension-enabled.mobile-browser .screen-guide-popdown{
   }
 }
 
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Center-focus guide overlay
-   Controls / How To Play no longer participate in the game/status shell size.
-   ═══════════════════════════════════════════════════════════════════════════ */
 .screen-guide-popdown{
   position:fixed!important;
   z-index:9999!important;
@@ -2178,11 +2082,6 @@ html.screen-guide-open .screen-extension-status-toggle{
   }
 }
 
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   NES menu stats + pseudo mini-map visual pass
-   Keeps logic/data intact; this is presentation-only.
-   ═══════════════════════════════════════════════════════════════════════════ */
 .screen-extension-run-data{
   gap:5px!important;
 }
@@ -2403,14 +2302,6 @@ html.screen-guide-open .screen-extension-status-toggle{
   }
 }
 
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Unified play-shell layout
-   Makes nav, game frame, and run/status panel share one sizing context.
-   This prevents width mismatches and keeps the status panel from forcing the
-   game/window off-page.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 html,
 body{
   overflow-x:hidden!important;
@@ -2441,7 +2332,6 @@ body{
   box-sizing:border-box!important;
 }
 
-/* The attached game/status shell should be measured by the same wrapper as nav. */
 .bc-play-shell .screen-extension-shell,
 .bc-play-shell .gp-screen-slot{
   width:100%!important;
@@ -2450,7 +2340,6 @@ body{
   box-sizing:border-box!important;
 }
 
-/* Wide layout: game and status panel act as one connected unit. */
 @media (min-width: 980px) and (orientation: landscape){
   .bc-play-shell .screen-extension-shell,
   .bc-play-shell .gp-screen-slot{
@@ -2514,7 +2403,6 @@ body{
   }
 }
 
-/* Height-aware game scaling when the status panel stacks below the game. */
 @media (max-width: 979px), (orientation: portrait){
   .bc-play-shell .screen-wrap-holder{
     --bc-stacked-panel-reserve: clamp(205px, 36dvh, 340px);
@@ -2560,7 +2448,6 @@ body{
   }
 }
 
-/* Prevent internal sections from forcing the panel wider/taller than the shell. */
 .bc-play-shell .screen-extension-panel *,
 .bc-play-shell .screen-extension-card,
 .bc-play-shell .screen-extension-section,
@@ -2573,19 +2460,13 @@ body{
   scrollbar-width:thin;
 }
 
-/* Center guide/modal remains independent of shell sizing. */
+
 .screen-guide-overlay,
 .screen-extension-guide-overlay,
 .screen-extension-guide-modal{
   max-width:100vw;
 }
 
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Legacy page UI removal
-   The new nav/status shell owns Controls, How To Play, Status, and footer
-   treatment. These old HTML panels are intentionally removed from layout.
-   ═══════════════════════════════════════════════════════════════════════════ */
 #zoomStrip,
 .zoom-strip,
 #playerPageFooter,
@@ -2609,12 +2490,6 @@ body{
   display:none!important;
 }
 
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Game Status / NES mini-map positioning / upgrade stack
-   Moves the pseudo-map into the zone status card and keeps it visually compact.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 .screen-extension-title,
 .screen-extension-header-title,
 [data-screen-extension-title]{
@@ -2627,12 +2502,10 @@ body{
   color:#f1df9f;
 }
 
-/* Explicit label rename safety for templates that are not regenerated. */
 .screen-extension-panel [data-label="run-status"]::before{
   content:"GAME STATUS";
 }
 
-/* Zone card becomes a two-column status row when the map is attached. */
 .screen-extension-zone-card,
 [data-screen-extension-zone-card],
 .screen-extension-panel .screen-extension-card:first-of-type{
@@ -2663,7 +2536,6 @@ body{
   }
 }
 
-/* Remove the old outer dungeon-map box feeling when it is inline. */
 .zone-status-inline-map .screen-extension-minimap-section{
   margin:0!important;
   padding:0!important;
@@ -2803,14 +2675,6 @@ body{
   font-size:6px;
   letter-spacing:.08em;
 }
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Fixed play-shell layout
-   bc-play-shell is now the sizing parent for:
-   nav + game frame + status panel.
-   This prevents bottom/status UI from flowing out due to mismatched wrappers.
-   ═══════════════════════════════════════════════════════════════════════════ */
 
 html,
 body{
@@ -2992,20 +2856,12 @@ body{
   pointer-events:none!important;
 }
 
-/* Guide overlay remains independent from the play shell. */
 .screen-guide-popdown,
 .screen-guide-overlay,
 .screen-extension-guide-overlay,
 .screen-extension-guide-modal{
   max-width:100vw;
 }
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Stacked status panel expansion
-   On narrow / portrait layouts, the GAME STATUS panel should expand naturally
-   and the page should scroll, instead of the panel creating its own scroll box.
-   ═══════════════════════════════════════════════════════════════════════════ */
 
 @media (max-width:979px), (orientation:portrait){
   html,
@@ -3015,11 +2871,6 @@ body{
   }
 
   .bc-play-shell{
-    /*
-      Stop trying to reserve an exact status-panel height.
-      Let the game use a comfortable portion of the viewport,
-      then let the status panel expand below it.
-    */
     --bc-game-size:min(92vw, 58dvh, 680px)!important;
     width:min(96vw, max(var(--bc-game-size), 320px))!important;
     padding-bottom:clamp(10px, 3dvh, 26px)!important;
@@ -3075,14 +2926,6 @@ body{
   }
 }
 
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Responsive status typography + internal GAME STATUS grid
-   UI/page-only pass. Scales status text, spacing, nav buttons, and mini-map
-   density with the shell so the panel remains proportional as the window
-   changes size.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 .bc-play-shell{
   --ui-font-xs:clamp(5px, 1.02vmin, 7px);
   --ui-font-sm:clamp(6px, 1.16vmin, 8px);
@@ -3093,7 +2936,6 @@ body{
   --ui-border:rgba(170,145,82,.24);
 }
 
-/* Navigation should scale like a game menu strip, not like browser UI. */
 .bc-play-shell .screen-extension-nav{
   gap:var(--ui-gap)!important;
   padding:calc(var(--ui-pad) * .9)!important;
@@ -3671,13 +3513,6 @@ body{
   }
 }
 
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Rank + Zone Key status boxes
-   Converts the old Secret status slot into player Rank, then orders the small
-   boxes as RANK followed by ZONE KEY inside the Zone status card.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 .bc-play-shell .zone-status-key-grid{
   grid-template-columns:1fr 1fr!important;
 }
@@ -3702,13 +3537,6 @@ body{
   background:
     linear-gradient(180deg,rgba(24,22,9,.92),rgba(4,7,5,.96))!important;
 }
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Upgrade chip sizing pass
-   Keeps upgrade boxes orderly and proportional inside the GAME STATUS panel.
-   UI-only CSS. No gameplay/state changes.
-   ═══════════════════════════════════════════════════════════════════════════ */
 
 .bc-play-shell .screen-extension-upgrade-section{
   margin-top:calc(var(--ui-gap, 6px) * .85)!important;
@@ -3777,14 +3605,10 @@ body{
   font-weight:700!important;
 }
 
-/* If only one upgrade appears, keep it aligned with the grid instead of
-   letting it stretch into a long full-row tag. */
 .bc-play-shell .upgrade-chip:only-child{
   width:100%!important;
 }
 
-/* In very tight panel widths, keep the two-column structure but reduce density.
-   This keeps the upgrade section visually related to the score/key boxes. */
 @media (max-width:560px){
   .bc-play-shell .upgrade-stack{
     gap:3px!important;
@@ -3813,27 +3637,17 @@ body{
   }
 }
 
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   Upgrade spacing + internal line cleanup
-   UI-only CSS polish pass.
-   Adds breathing room inside upgrade boxes and removes/aligns stray internal
-   separator lines that made the GAME STATUS cards look uneven.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 .bc-play-shell .screen-extension-upgrade-section{
   margin-top:calc(var(--ui-gap, 6px) * 1.05)!important;
   padding-top:calc(var(--ui-gap, 6px) * .95)!important;
   border-top:1px solid rgba(135,115,67,.26)!important;
 }
 
-/* Space between the UPGRADES title and the chip grid. */
 .bc-play-shell .screen-extension-upgrade-section > .screen-extension-label{
   display:block!important;
   margin-bottom:5px!important;
 }
 
-/* Give text/icons more breathing room inside each chip. */
 .bc-play-shell .upgrade-stack{
   gap:5px!important;
 }
@@ -3865,9 +3679,6 @@ body{
   padding-inline-start:4px!important;
 }
 
-/* Clean up the faint mismatched internal lines.
-   Keep real card borders, but stop nested sections from drawing partial-width
-   separators that do not line up with the surrounding cards. */
 .bc-play-shell .screen-extension-player-card .screen-extension-meter-grid,
 .bc-play-shell .screen-extension-player-card .screen-extension-grid{
   border:0!important;
@@ -3877,14 +3688,11 @@ body{
 .bc-play-shell .screen-extension-player-card .screen-extension-stat-small{
   box-shadow:inset 0 0 0 1px #000!important;
 }
-
-/* Align the player card's internal separator with the full card width. */
 .bc-play-shell .screen-extension-player-card .screen-extension-upgrade-section{
   margin-inline:0!important;
   padding-inline:0!important;
 }
 
-/* Remove any leftover pseudo-lines from older card styling inside player card. */
 .bc-play-shell .screen-extension-player-card::before,
 .bc-play-shell .screen-extension-player-card::after,
 .bc-play-shell .screen-extension-upgrade-section::before,
@@ -3895,7 +3703,6 @@ body{
   display:none!important;
 }
 
-/* Keep the status card borders consistent and squared. */
 .bc-play-shell .screen-extension-section,
 .bc-play-shell .screen-extension-stat,
 .bc-play-shell .screen-extension-player-name,
@@ -3903,7 +3710,6 @@ body{
   border-color:rgba(135,115,67,.48)!important;
 }
 
-/* Smaller windows: keep the spacing improvement but avoid forcing wrapping. */
 @media (max-width:560px){
   .bc-play-shell .screen-extension-upgrade-section > .screen-extension-label{
     margin-bottom:4px!important;

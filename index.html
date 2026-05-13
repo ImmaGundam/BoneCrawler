@@ -1,16 +1,16 @@
-<!-- BoneCrawler.com - jamesdeitz.dev - version 2.9 -->
+<!-- BoneCrawler.com - jamesdeitz.dev - version 2.9.1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>BoneCrawler - NES-Style Dark Fantasy Arcade Action Game</title>
+<title>BoneCrawler - NES-Style Dark Fantasy Arcade Action</title>
 <link rel="icon" type="image/jpeg" href="assets/icon.jpg">
   <script>
 /* BoneCrawler browser mode detection */
 (function () {
   var ua = navigator.userAgent || '';
-  var mobileUA = /Android|iPhone|iPad|iPod|IEMobile|BlackBerry|Opera Mini|Mobile|Tablet/i.test(ua);
+  var mobileUA = /Android|iPhone|iPad|Mobile|Tablet/i.test(ua);
   var iPadOS = /Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1;
   var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
   var noHover = !!(window.matchMedia && window.matchMedia('(hover: none)').matches);
@@ -35,19 +35,6 @@
     <button id="desktopMaxBtn" class="desktop-window-btn" type="button" aria-label="Maximize">□</button>
     <button id="desktopCloseBtn" class="desktop-window-btn desktop-window-close" type="button" aria-label="Close">×</button>
   </div>
-</div>
-
-<!-- Electron custom titlebar (hidden in browser, shown in Electron via JS) -->
-<div id="electron-titlebar" role="toolbar" aria-label="Window controls">
-  <button class="etb-btn etb-min" id="etbMin" title="Minimize" aria-label="Minimize">
-    <svg viewBox="0 0 10 10"><line x1="1" y1="5" x2="9" y2="5"/></svg>
-  </button>
-  <button class="etb-btn etb-max" id="etbMax" title="Maximize" aria-label="Maximize / Restore">
-    <svg viewBox="0 0 10 10" id="etbMaxIcon"><rect x="1.5" y="1.5" width="7" height="7" rx="0.5"/></svg>
-  </button>
-  <button class="etb-btn etb-close" id="etbClose" title="Close" aria-label="Close">
-    <svg viewBox="0 0 10 10"><line x1="1.5" y1="1.5" x2="8.5" y2="8.5"/><line x1="8.5" y1="1.5" x2="1.5" y2="8.5"/></svg>
-  </button>
 </div>
 
 <div class="player-shell" id="playerShell">
@@ -576,68 +563,72 @@
 })();
 </script>
 <script src="dev/dev_bootstrap.js"></script>
-
 <script src="src/audio/audio-engine.js"></script>
-
 <script src="src/enemies/zone-spawn-config-baseline.js"></script>
 <script src="src/enemies/zone-spawn-system.js"></script>
-
 <script src="src/core/constants-palette-sprites.js"></script>
 <script src="src/core/decals.js"></script>
-
-<script src="src/ui/dom-layout.js"></script>
-
-<script src="src/engine/render-helpers.js"></script>
-<script src="src/engine/collision.js"></script>
-
-<script src="src/systems/upgrades.js"></script>
-<script src="src/objects/zone-object-definitions.js"></script>
-<script src="src/systems/menu-storage-touch.js"></script>
-
-<script src="src/state/game-state.js"></script>
-
-<script src="src/runtime/game-events.js"></script>
-<script src="src/runtime/spawn-system-registry.js"></script>
-<script src="src/runtime/zone-bindings.js"></script>
-
-<script src="src/objects/object-factory.js"></script>
-<script src="src/runtime/progression-rules.js"></script>
-
-<script src="src/systems/cheat-codes.js"></script>
-<script src="src/dev/dev-tools.js"></script>
-
-<script src="src/systems/run-flow.js"></script>
-
-<script src="src/player/player-combat.js"></script>
-<script src="src/enemies/spawning.js"></script>
-<script src="src/systems/items.js"></script>
-
-<script src="src/maps/zones-and-interactions.js"></script>
-<script src="src/systems/dialog-interactions.js"></script>
-
-<script src="src/enemies/bosses.js"></script>
-<script src="src/player/player-survival-upgrades.js"></script>
-
-<script src="src/engine/input.js"></script>
-<script src="src/main/update.js"></script>
-
-<script src="src/render/zone-renderers.js"></script>
-<script src="src/render/render-play-dispatch.js"></script>
-<script src="src/render/render-menus.js"></script>
-
-<script src="src/title/title-screen.js"></script>
-
+<script src="src/engine/content-registry.js"></script>
+<script src="src/engine/object-factory.js"></script>
+<script src="src/engine/npc-factory.js"></script>
 <script src="src/maps/zone-registry.js"></script>
+<script src="src/game/objects/bookshelf.js"></script>
+<script src="src/game/objects/barrel.js"></script>
+<script src="src/game/objects/crate.js"></script>
+<script src="src/game/objects/lantern.js"></script>
+<script src="src/game/objects/table.js"></script>
+<script src="src/game/objects/breakable-prop.js"></script>
+<script src="src/game/environment/blocker.js"></script>
+<script src="src/game/environment/root-barrier.js"></script>
+<script src="src/game/environment/rock-obstacle.js"></script>
+<script src="src/game/environment/door.js"></script>
+<script src="src/game/environment/portal.js"></script>
+<script src="src/game/environment/trigger-zone.js"></script>
+<script src="src/game/environment/water.js"></script>
+<script src="src/game/environment/tree.js"></script>
+<script src="src/game/environment/interactable-prop.js"></script>
+<script src="src/game/npcs/node.js"></script>
+<script src="src/game/npcs/rat.js"></script>
+<script src="src/game/npcs/wounded-stranger.js"></script>
+<script src="src/game/dialog/dialog-data.js"></script>
+<script src="src/game/events/scene-event-data.js"></script>
 <script src="src/maps/zones/zone1.js"></script>
 <script src="src/maps/zones/zone2.js"></script>
 <script src="src/maps/zones/zone3.js"></script>
 <script src="src/maps/zones/secret-zone1.js"></script>
 <script src="src/maps/zones/secret-zone2.js"></script>
+<script src="src/engine/scene-runtime.js"></script>
+<script src="src/ui/dom-layout.js"></script>
+<script src="src/engine/render-helpers.js"></script>
+<script src="src/engine/collision.js"></script>
+<script src="src/systems/upgrades.js"></script>
+<script src="src/systems/menu-storage-touch.js"></script>
+<script src="src/state/game-state.js"></script>
+<script src="src/runtime/game-events.js"></script>
+<script src="src/runtime/spawn-system-registry.js"></script>
+<script src="src/runtime/zone-bindings.js"></script>
+<script src="src/engine/object-spawn-engine.js"></script>
+<script src="src/runtime/progression-rules.js"></script>
+<script src="src/systems/cheat-codes.js"></script>
+<script src="src/dev/dev-tools.js"></script>
+<script src="src/systems/run-flow.js"></script>
+<script src="src/player/player-combat.js"></script>
+<script src="src/enemies/spawning.js"></script>
+<script src="src/systems/items.js"></script>
+<script src="src/maps/zones-and-interactions.js"></script>
+<script src="src/systems/dialog-interactions.js"></script>
+<script src="src/enemies/bosses.js"></script>
+<script src="src/player/player-survival-upgrades.js"></script>
+<script src="src/engine/input.js"></script>
+<script src="src/main/update.js"></script>
+<script src="src/engine/scene-render-cache.js"></script>
+<script src="src/render/zone-renderers.js"></script>
+<script src="src/render/render-play-dispatch.js"></script>
+<script src="src/render/render-menus.js"></script>
+<script src="src/title/title-screen.js"></script>
 <script src="src/maps/zone-overrides.js"></script>
-
 <script src="src/maps/mini-map-graph.js"></script>
 <script src="src/ui/screen-extension.js"></script>
-
 <script src="src/main/loop.js"></script>
 </body>
 </html>

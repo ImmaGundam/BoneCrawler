@@ -1473,6 +1473,120 @@
     }
   }
 
+
+  /* Final preview sizing cleanup: single source of truth for the Shared Game Window.
+     This neutralizes older overlapping iframe/preview breakpoint sizing rules. */
+  .previewShell{
+    display:grid;
+    grid-template-rows:auto minmax(0,1fr);
+    min-height:0;
+    overflow:hidden;
+  }
+
+  main.mainPane{
+    min-height:0;
+  }
+
+  .previewWrap{
+    position:relative;
+    min-height:0!important;
+    height:100%!important;
+    max-height:none!important;
+    display:block!important;
+    padding:0!important;
+    overflow:hidden!important;
+    background:transparent!important;
+  }
+
+  #gameFrame,
+  .previewWrap iframe,
+  iframe{
+    display:block;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    border:0;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+
+  canvas.overlay{
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+  }
+
+  @media (max-width: 1180px){
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace,
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-left,
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-right,
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-left.hide-right{
+      grid-template-columns:1fr!important;
+      grid-template-areas:
+        "main"
+        "left"
+        "right"!important;
+    }
+
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) main.mainPane{
+      min-height:0!important;
+      padding:clamp(10px,2vw,18px)!important;
+      overflow:visible!important;
+    }
+
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .previewShell{
+      min-height:clamp(420px,68dvh,860px)!important;
+    }
+  }
+
+  @media (max-width: 760px){
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]){
+      min-height:100dvh;
+    }
+
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .appShell{
+      min-height:100dvh!important;
+      grid-template-rows:auto minmax(0,1fr) auto!important;
+      overflow:visible!important;
+    }
+
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace,
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-left,
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-right,
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-left.hide-right{
+      grid-template-columns:1fr!important;
+      grid-template-areas:
+        "main"
+        "left"
+        "right"!important;
+      padding:8px!important;
+      overflow:visible!important;
+    }
+
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .previewShell{
+      min-height:calc(100dvh - 118px)!important;
+    }
+
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .previewWrap{
+      min-height:0!important;
+      height:100%!important;
+      max-height:none!important;
+      overflow:hidden!important;
+    }
+
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) #gameFrame,
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .previewWrap iframe,
+    body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) iframe{
+      width:100%!important;
+      height:100%!important;
+      min-height:0!important;
+      max-height:none!important;
+    }
+  }
+
 </style>
 </head>
 <body class="lite">
@@ -1696,8 +1810,12 @@
             <div class="moduleBody stack">
               <div class="chips">
                 <label><input type="checkbox" class="filterBox" value="prop" checked> Props</label>
+                <label><input type="checkbox" class="filterBox" value="environment" checked> Environment</label>
+                <label><input type="checkbox" class="filterBox" value="npc" checked> NPCs</label>
                 <label><input type="checkbox" class="filterBox" value="door" checked> Doors</label>
                 <label><input type="checkbox" class="filterBox" value="trigger" checked> Triggers</label>
+                <label><input type="checkbox" class="filterBox" value="item" checked> Items</label>
+                <label><input type="checkbox" class="filterBox" value="enemy" checked> Enemies</label>
                 <label><input type="checkbox" class="filterBox" value="spawn" checked> Spawns</label>
               </div>
             </div>
@@ -3128,16 +3246,26 @@
       objY.value = '';
       objW.value = '';
       objH.value = '';
+      objX.disabled = false;
+      objY.disabled = false;
+      objW.disabled = false;
+      objH.disabled = false;
       deleteSpawnBtn.disabled = true;
       syncObjectDataPanel();
       return;
     }
-    selectionStatus.textContent = item.category.toUpperCase() + ' — ' + item.label;
+    const rectModeLabel = item.meta && item.meta.rectModeLabel ? item.meta.rectModeLabel : 'Rect';
+    const visualPlacement = !!(item.meta && item.meta.rectMode === 'renderVisual');
+    selectionStatus.textContent = item.category.toUpperCase() + ' — ' + item.label + ' · ' + rectModeLabel;
     objLabel.value = item.label || '';
     objX.value = item.rect.x;
     objY.value = item.rect.y;
     objW.value = item.rect.w;
     objH.value = item.rect.h;
+    objX.disabled = false;
+    objY.disabled = false;
+    objW.disabled = visualPlacement;
+    objH.disabled = visualPlacement;
     deleteSpawnBtn.disabled = item.category !== 'spawn';
     syncObjectDataPanel();
   }
@@ -3157,7 +3285,8 @@
     filtered.forEach(item => {
       const btn = document.createElement('button');
       btn.className = 'objectBtn' + (item.id === selectedId ? ' active' : '');
-      btn.innerHTML = '<span>' + item.label + '<br><small>' + item.category + ' · ' + item.rect.x + ',' + item.rect.y + ' · ' + item.rect.w + '×' + item.rect.h + '</small></span><small>' + item.id + '</small>';
+      const rectModeLabel = item.meta && item.meta.rectModeLabel ? item.meta.rectModeLabel : 'Rect';
+      btn.innerHTML = '<span>' + item.label + '<br><small>' + item.category + ' · ' + rectModeLabel + ' · ' + item.rect.x + ',' + item.rect.y + ' · ' + item.rect.w + '×' + item.rect.h + '</small></span><small>' + item.id + '</small>';
       btn.addEventListener('click', () => {
         selectedId = item.id;
         syncSelectionInputs();
@@ -3187,41 +3316,90 @@
   function colorForCategory(category){
     if(category === 'door') return '#ffd166';
     if(category === 'trigger') return '#7bdff2';
+    if(category === 'environment') return '#4cc9f0';
+    if(category === 'npc') return '#c77dff';
+    if(category === 'item') return '#f7b267';
+    if(category === 'enemy') return '#ef476f';
     if(category === 'spawn') return '#f25f5c';
     return '#90be6d';
   }
 
-  function worldToScreen(rect){
-    if(!editorState || !editorState.canvasRect || !editorState.logical) return null;
-    const c = editorState.canvasRect;
+  function getCanvasProjection(){
+    if(!editorState || !editorState.logical) return null;
     const l = editorState.logical;
-    if(!c || !l || !c.width || !c.height) return null;
-    const previewRect = wrap.getBoundingClientRect();
+    const overlayRect = overlay.getBoundingClientRect();
     const iframeRect = frame.getBoundingClientRect();
-    const offsetX = iframeRect.left - previewRect.left + c.left;
-    const offsetY = iframeRect.top - previewRect.top + c.top;
+
+    let canvasLeft = 0;
+    let canvasTop = 0;
+    let canvasWidth = 0;
+    let canvasHeight = 0;
+
+    try{
+      const gameWin = frame.contentWindow;
+      const liveCanvas = gameWin && gameWin.gameCanvas;
+      if(liveCanvas && typeof liveCanvas.getBoundingClientRect === 'function'){
+        const liveRect = liveCanvas.getBoundingClientRect();
+        canvasLeft = iframeRect.left + liveRect.left;
+        canvasTop = iframeRect.top + liveRect.top;
+        canvasWidth = liveRect.width;
+        canvasHeight = liveRect.height;
+      }
+    }catch(err){}
+
+    if((!canvasWidth || !canvasHeight) && editorState.canvasRect){
+      const c = editorState.canvasRect;
+      canvasLeft = iframeRect.left + c.left;
+      canvasTop = iframeRect.top + c.top;
+      canvasWidth = c.width;
+      canvasHeight = c.height;
+    }
+
+    if(!canvasWidth || !canvasHeight || !l.gw || !l.gh) return null;
+
+    return {
+      overlayRect,
+      canvasLocal: {
+        left: canvasLeft - overlayRect.left,
+        top: canvasTop - overlayRect.top,
+        width: canvasWidth,
+        height: canvasHeight
+      },
+      logical: l
+    };
+  }
+
+  function clientToOverlayLocal(clientX, clientY){
+    const overlayRect = overlay.getBoundingClientRect();
+    return {
+      x: clientX - overlayRect.left,
+      y: clientY - overlayRect.top
+    };
+  }
+
+  function worldToScreen(rect){
+    const projection = getCanvasProjection();
+    if(!projection) return null;
+    const c = projection.canvasLocal;
+    const l = projection.logical;
     const sx = c.width / l.gw;
     const sy = c.height / l.gh;
     return {
-      x: offsetX + rect.x * sx,
-      y: offsetY + rect.y * sy,
+      x: c.left + rect.x * sx,
+      y: c.top + rect.y * sy,
       w: rect.w * sx,
       h: rect.h * sy
     };
   }
 
   function screenToWorld(clientX, clientY){
-    if(!editorState || !editorState.canvasRect || !editorState.logical) return null;
-    const c = editorState.canvasRect;
-    const l = editorState.logical;
-    const previewRect = wrap.getBoundingClientRect();
-    const iframeRect = frame.getBoundingClientRect();
-    const offsetX = iframeRect.left - previewRect.left + c.left;
-    const offsetY = iframeRect.top - previewRect.top + c.top;
-    const localX = clientX - previewRect.left - offsetX;
-    const localY = clientY - previewRect.top - offsetY;
-    const x = localX / (c.width / l.gw);
-    const y = localY / (c.height / l.gh);
+    const projection = getCanvasProjection();
+    if(!projection) return null;
+    const c = projection.canvasLocal;
+    const l = projection.logical;
+    const local = clientToOverlayLocal(clientX, clientY);
+    const x = (local.x - c.left) / (c.width / l.gw);
+    const y = (local.y - c.top) / (c.height / l.gh);
     return { x, y };
   }
 
@@ -3229,11 +3407,12 @@
     const objects = getCurrentObjects();
     const filters = visibleCategories();
     const candidates = objects.filter(item => filters.has(item.category));
+    const local = clientToOverlayLocal(clientX, clientY);
     for(let i = candidates.length - 1; i >= 0; i--){
       const item = candidates[i];
       const box = worldToScreen(item.rect);
       if(!box) continue;
-      if(clientX >= box.x && clientX <= box.x + box.w && clientY >= box.y && clientY <= box.y + box.h){
+      if(local.x >= box.x && local.x <= box.x + box.w && local.y >= box.y && local.y <= box.y + box.h){
         return item;
       }
     }
@@ -3241,7 +3420,7 @@
   }
 
   function drawOverlay(){
-    const rect = wrap.getBoundingClientRect();
+    const rect = overlay.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
 
     if(!overlayVisible) return;
@@ -3310,12 +3489,14 @@
     if(!item) return;
     const patch = {
       x: Number(objX.value),
-      y: Number(objY.value),
-      w: Math.max(1, Number(objW.value)),
-      h: Math.max(1, Number(objH.value))
+      y: Number(objY.value)
     };
+    if(!(item.meta && item.meta.rectMode === 'renderVisual')){
+      patch.w = Math.max(1, Number(objW.value));
+      patch.h = Math.max(1, Number(objH.value));
+    }
     postEditor({ type: 'bc_editor_update_object', id: item.id, patch });
-    setStatusText('Updated rectangle for ' + item.label + '.');
+    setStatusText('Updated ' + ((item.meta && item.meta.rectMode === 'renderVisual') ? 'visual placement' : 'rectangle') + ' for ' + item.label + '.');
   }
 
   function loadGame(){

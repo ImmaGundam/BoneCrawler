@@ -257,6 +257,84 @@
     return item;
   }
 
+  const SPRITE_EDITOR_BOUNDS = {
+    bookshelf: { x:0, y:0, w:6, h:17 },
+    crate: { x:0, y:0, w:7, h:7 },
+    barrel: { x:0, y:0, w:6, h:8 },
+    floorLantern: { x:0, y:0, w:6, h:6 },
+    roundTableSet: { x:-4, y:0, w:19, h:13 },
+    smallFlame: { x:0, y:0, w:6, h:6 },
+    rubble: { x:-4, y:0, w:8, h:4 }
+  };
+
+  function getSpriteEditorBounds(sprite){
+    return sprite ? SPRITE_EDITOR_BOUNDS[sprite] || null : null;
+  }
+
+  function getEntityRenderDisplayRect(entity){
+    if(!entity || !isPlainObject(entity.render)) return null;
+    const render = entity.render;
+    if(render.overlayRect) return cloneRect(render.overlayRect);
+    if(!Number.isFinite(render.x) || !Number.isFinite(render.y)) return null;
+    const bounds = getSpriteEditorBounds(render.sprite);
+    if(bounds){
+      return {
+        x: Math.round(render.x + bounds.x),
+        y: Math.round(render.y + bounds.y),
+        w: Math.round(bounds.w),
+        h: Math.round(bounds.h)
+      };
+    }
+    return null;
+  }
+
+  function getEntityPrimaryEditorRect(entity){
+    const visual = getEntityRenderDisplayRect(entity);
+    if(visual) return { rect: visual, mode: 'renderVisual' };
+    if(entity && entity.breakRect) return { rect: cloneRect(entity.breakRect), mode: 'breakRect' };
+    if(entity && entity.rect) return { rect: cloneRect(entity.rect), mode: 'rect' };
+    if(entity && entity.blockRect) return { rect: cloneRect(entity.blockRect), mode: 'blockRect' };
+    if(entity && entity.interactRect) return { rect: cloneRect(entity.interactRect), mode: 'interactRect' };
+    if(entity && entity.triggerRect) return { rect: cloneRect(entity.triggerRect), mode: 'triggerRect' };
+    return null;
+  }
+
+  function shiftRect(rect, dx, dy){
+    if(!rect) return;
+    if(Number.isFinite(rect.x)) rect.x = Math.round(rect.x + dx);
+    if(Number.isFinite(rect.y)) rect.y = Math.round(rect.y + dy);
+  }
+
+  function shiftEntityVisualPlacement(entity, dx, dy){
+    if(!entity || (!dx && !dy)) return false;
+    let moved = false;
+    if(entity.render){
+      if(Number.isFinite(entity.render.x)){
+        entity.render.x = Math.round(entity.render.x + dx);
+        moved = true;
+      }
+      if(Number.isFinite(entity.render.y)){
+        entity.render.y = Math.round(entity.render.y + dy);
+        moved = true;
+      }
+      if(entity.render.overlayRect){
+        shiftRect(entity.render.overlayRect, dx, dy);
+        moved = true;
+      }
+    }
+    if(entity.breakRect){ shiftRect(entity.breakRect, dx, dy); moved = true; }
+    if(entity.blockRect){ shiftRect(entity.blockRect, dx, dy); moved = true; }
+    if(entity.rect){ shiftRect(entity.rect, dx, dy); moved = true; }
+    if(entity.interactRect){ shiftRect(entity.interactRect, dx, dy); moved = true; }
+    if(entity.triggerRect){ shiftRect(entity.triggerRect, dx, dy); moved = true; }
+    if(entity.broken){
+      if(Number.isFinite(entity.broken.x)) entity.broken.x = Math.round(entity.broken.x + dx);
+      if(Number.isFinite(entity.broken.y)) entity.broken.y = Math.round(entity.broken.y + dy);
+      moved = true;
+    }
+    return moved;
+  }
+
   function pushItem(list, registry, zone, id, category, label, ref, meta){
     const stored = editorObjectStore[id];
     const item = {
@@ -277,106 +355,43 @@
     };
   }
 
-  function buildZoneObjects(zone, registry){
+  function buildZoneObjects(zone, registry, options){
+    const includeRuntime = !options || options.includeRuntime !== false;
     const list = [];
+    const entities = (window.SceneRuntime && typeof SceneRuntime.getSceneEntities === 'function')
+      ? SceneRuntime.getSceneEntities(zone)
+      : [];
 
-    if(zone === 1){
-      if(typeof ZONE1_DECOR_BREAK_RECTS !== 'undefined'){
-        for(let i=0;i<ZONE1_DECOR_BREAK_RECTS.length;i++){
-          pushItem(
-            list, registry, zone,
-            'zone1-break-' + i,
-            'prop',
-            labels.zone1Break[i] || ('Zone 1 Prop ' + (i + 1)),
-            ZONE1_DECOR_BREAK_RECTS[i],
-            {group:'breakable'}
-          );
-        }
-      }
-      if(typeof ZONE1_DOOR_RECT !== 'undefined'){
-        pushItem(list, registry, zone, 'zone1-door', 'door', 'Zone 1 Door', ZONE1_DOOR_RECT, {group:'door'});
-      }
-      if(typeof SECRET1_ENTRANCE_RECT !== 'undefined'){
-        pushItem(list, registry, zone, 'secret1-entrance', 'trigger', 'Secret Zone 1 Entrance', SECRET1_ENTRANCE_RECT, {group:'trigger'});
-      }
-    } else if(zone === 2){
-      const zone2Objects=(window.BoneCrawlerZoneObjects && typeof BoneCrawlerZoneObjects.getBreakables === 'function')
-        ? BoneCrawlerZoneObjects.getBreakables(2)
-        : [];
-      zone2Objects.forEach((obj,i) => {
-        pushItem(
-          list, registry, zone,
-          obj.id || ('zone2-break-' + i),
-          'prop',
-          obj.label || labels.zone2Books[i] || ('Zone 2 Breakable ' + (i + 1)),
-          obj.breakRect || ZONE2_DECOR_BREAK_RECTS[i],
-          {group:'breakable', kind:obj.kind || 'decor'}
-        );
-      });
-      if(typeof ZONE2_TREE_BLOCKERS !== 'undefined'){
-        for(let i=0;i<ZONE2_TREE_BLOCKERS.length;i++){
-          pushItem(
-            list, registry, zone,
-            'zone2-root-' + i,
-            'prop',
-            labels.zone2Roots[i] || ('Zone 2 Prop ' + (i + 1)),
-            ZONE2_TREE_BLOCKERS[i],
-            {group:'tree'}
-          );
-        }
-      }
-    } else if(zone === 3){
-      const zone3Objects=(window.BoneCrawlerZoneObjects && typeof BoneCrawlerZoneObjects.getBreakables === 'function')
-        ? BoneCrawlerZoneObjects.getBreakables(3)
-        : [];
-      zone3Objects.forEach((obj,i) => {
-        pushItem(
-          list, registry, zone,
-          obj.id || ('zone3-break-' + i),
-          'prop',
-          obj.label || labels.zone3Break[i] || ('Zone 3 Breakable ' + (i + 1)),
-          obj.breakRect || ZONE3_DECOR_BREAK_RECTS[i],
-          {group:'breakable', kind:obj.kind || 'decor'}
-        );
-      });
-      if(typeof ZONE3_TREE_BLOCKERS !== 'undefined'){
-        for(let i=0;i<ZONE3_TREE_BLOCKERS.length;i++){
-          pushItem(
-            list, registry, zone,
-            'zone3-tree-' + i,
-            'prop',
-            labels.zone3Trees[i] || ('Zone 3 Tree Prop ' + (i + 1)),
-            ZONE3_TREE_BLOCKERS[i],
-            {group:'tree'}
-          );
-        }
-      }
-      if(typeof ZONE3_DOOR_RECT !== 'undefined'){
-        pushItem(list, registry, zone, 'zone3-door', 'door', 'Zone 3 Door', ZONE3_DOOR_RECT, {group:'door'});
-      }
-    } else if(zone === 101){
-      if(typeof SECRET1_EXIT_DOOR_RECT !== 'undefined'){
-        pushItem(list, registry, zone, 'secret1-exit-door', 'door', 'Secret Zone 1 Exit Door', SECRET1_EXIT_DOOR_RECT, {group:'door'});
-      }
-      if(typeof SECRET1_POOL_WATER_RECT !== 'undefined'){
-        pushItem(list, registry, zone, 'secret1-water', 'trigger', 'Secret Zone 1 Pool Water', SECRET1_POOL_WATER_RECT, {group:'trigger'});
-      }
-    } else if(zone === 102){
-      if(typeof SECRET2_SWORD_RECT !== 'undefined'){
-        pushItem(list, registry, zone, 'secret2-sword', 'prop', 'Master Sword', SECRET2_SWORD_RECT, {group:'interactable'});
-      }
-      if(typeof SECRET2_NPC_RECT !== 'undefined'){
-        pushItem(list, registry, zone, 'secret2-npc', 'prop', 'Wounded Stranger', SECRET2_NPC_RECT, {group:'interactable'});
-      }
-      if(typeof SECRET2_RETURN_PORTAL_RECT !== 'undefined'){
-        pushItem(list, registry, zone, 'secret2-portal', 'trigger', 'Return Portal', SECRET2_RETURN_PORTAL_RECT, {group:'trigger'});
-      }
-      if(typeof SECRET2_STONE_BLOCKERS !== 'undefined'){
-        for(let i=0;i<SECRET2_STONE_BLOCKERS.length;i++){
-          pushItem(list, registry, zone, 'secret2-stone-' + i, 'prop', 'Shrine Base Blocker', SECRET2_STONE_BLOCKERS[i], {group:'blocker'});
-        }
-      }
-    }
+    entities.forEach((entity, i) => {
+      const primary = getEntityPrimaryEditorRect(entity);
+      if(!primary || !primary.rect) return;
+      const stored = editorObjectStore[entity.id];
+      const item = {
+        id: entity.id || ('zone-' + zone + '-entity-' + i),
+        zone,
+        category: entity.category || 'prop',
+        label: entity.label || entity.id || entity.kind || entity.type || ('Entity ' + (i + 1)),
+        rect: cloneRect(primary.rect),
+        meta: deepClone({
+          group: entity.group || '',
+          kind: entity.kind || entity.type || 'entity',
+          sourceType: entity.type || 'entity',
+          rectMode: primary.mode,
+          rectModeLabel: primary.mode === 'renderVisual' ? 'Visual Render' : primary.mode
+        }),
+        data: deepClone({entityId: entity.id || null, sceneId: zone})
+      };
+      applyStoredFields(item, stored);
+      list.push(item);
+      registry[item.id] = {
+        rectRef: primary.mode === 'renderVisual' ? null : (entity[primary.mode] || null),
+        entityRef: entity,
+        zone,
+        category: item.category,
+        label: item.label,
+        rectMode: primary.mode
+      };
+    });
 
     const spawns = editorSpawnStore[zone] || [];
     for(let i=0;i<spawns.length;i++){
@@ -400,6 +415,33 @@
       };
     }
 
+    const runtimeEntities = includeRuntime && window.RuntimeEntityManager && typeof RuntimeEntityManager.getEditorEntities === 'function'
+      ? RuntimeEntityManager.getEditorEntities(zone)
+      : [];
+    runtimeEntities.forEach((runtimeEntity, i) => {
+      if(!runtimeEntity || !runtimeEntity.rect) return;
+      const stored = editorObjectStore[runtimeEntity.id];
+      const item = {
+        id: runtimeEntity.id || ('zone-' + zone + '-runtime-' + i),
+        zone,
+        category: runtimeEntity.category || 'item',
+        label: runtimeEntity.label || runtimeEntity.id || ('Runtime Entity ' + (i + 1)),
+        rect: cloneRect(runtimeEntity.rect),
+        meta: deepClone(runtimeEntity.meta || {}),
+        data: deepClone(runtimeEntity.data || {})
+      };
+      applyStoredFields(item, stored);
+      list.push(item);
+      registry[item.id] = {
+        rectRef: runtimeEntity.sourceRef || null,
+        runtimeSourceRef: runtimeEntity.sourceRef || null,
+        zone,
+        category: item.category,
+        label: item.label,
+        rectMode: runtimeEntity.meta && runtimeEntity.meta.rectMode ? runtimeEntity.meta.rectMode : 'runtimeRect'
+      };
+    });
+
     return list;
   }
 
@@ -420,7 +462,7 @@
     const zones = [0, 1, 2, 3, 101, 102];
     const byZone = {};
     for(const zone of zones){
-      byZone[zone] = buildZoneObjects(zone, registry);
+      byZone[zone] = buildZoneObjects(zone, registry, { includeRuntime: true });
     }
 
     window.__bonecrawlerEditorRegistry = registry;
@@ -703,7 +745,19 @@
   function updateObjectRect(id, patch){
     const registry = window.__bonecrawlerEditorRegistry || {};
     const record = registry[id];
-    const ref = record && record.rectRef;
+    if(!record) return false;
+
+    if(record.rectMode === 'renderVisual' && record.entityRef){
+      const current = getEntityPrimaryEditorRect(record.entityRef);
+      if(!current || !current.rect) return false;
+      const nextX = Object.prototype.hasOwnProperty.call(patch || {}, 'x') ? Number(patch.x) : current.rect.x;
+      const nextY = Object.prototype.hasOwnProperty.call(patch || {}, 'y') ? Number(patch.y) : current.rect.y;
+      const dx = Number.isFinite(nextX) ? Math.round(nextX - current.rect.x) : 0;
+      const dy = Number.isFinite(nextY) ? Math.round(nextY - current.rect.y) : 0;
+      return shiftEntityVisualPlacement(record.entityRef, dx, dy);
+    }
+
+    const ref = record.rectRef;
     if(!ref) return false;
     ['x', 'y', 'w', 'h'].forEach(key => {
       if(Object.prototype.hasOwnProperty.call(patch || {}, key)){
@@ -716,12 +770,17 @@
 
   function updateObjectData(id, data, mode){
     const store = ensureObjectStore(id);
+    const registry = window.__bonecrawlerEditorRegistry || {};
+    const record = registry[id] || null;
     if(mode === 'replace'){
       store.data = isPlainObject(data) ? deepClone(data) : {};
       if(store.data.dialog != null) store.dialog = deepClone(store.data.dialog);
       if(store.data.conditions != null) store.conditions = deepClone(store.data.conditions);
       if(store.data.eventType != null) store.eventType = deepClone(store.data.eventType);
       if(store.data.target != null) store.target = deepClone(store.data.target);
+      if(record && record.runtimeSourceRef && window.RuntimeEntityManager && typeof RuntimeEntityManager.patchEntityData === 'function'){
+        RuntimeEntityManager.patchEntityData(id, store.data, 'replace');
+      }
       return true;
     }
     if(mode === 'patch'){
@@ -730,6 +789,9 @@
       if(store.data.conditions != null) store.conditions = deepClone(store.data.conditions);
       if(store.data.eventType != null) store.eventType = deepClone(store.data.eventType);
       if(store.data.target != null) store.target = deepClone(store.data.target);
+      if(record && record.runtimeSourceRef && window.RuntimeEntityManager && typeof RuntimeEntityManager.patchEntityData === 'function'){
+        RuntimeEntityManager.patchEntityData(id, data || {}, 'patch');
+      }
       return true;
     }
     if(mode === 'meta'){
@@ -739,6 +801,9 @@
       if(store.data.conditions != null) store.conditions = deepClone(store.data.conditions);
       if(store.data.eventType != null) store.eventType = deepClone(store.data.eventType);
       if(store.data.target != null) store.target = deepClone(store.data.target);
+      if(record && record.runtimeSourceRef && window.RuntimeEntityManager && typeof RuntimeEntityManager.patchEntityData === 'function'){
+        RuntimeEntityManager.patchEntityData(id, data || {}, 'patch');
+      }
       return true;
     }
     return false;
@@ -746,7 +811,7 @@
 
   function exportZoneObjects(zone){
     const registry = {};
-    return buildZoneObjects(zone, registry).map(item => ({
+    return buildZoneObjects(zone, registry, { includeRuntime: false }).map(item => ({
       id: item.id,
       zone: item.zone,
       category: item.category,
