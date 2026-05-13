@@ -1,7 +1,7 @@
 // BoneCrawler combined dev bootstrap + editor bridge
-// Drop-in dev/dev_bootstrap.js.
-// This file merges bootstrap responsibilities with the editor bridge,
-// so the combined toolkit can talk to a single runtime listener.
+// Drop-in dev/dev_bootstrap.js
+// This file merges bootstrap responsibilities with the editor bridge
+// so the combined toolkit can talk to a single runtime listener
 
 (function(){
   if(window.__bonecrawlerCombinedBridgeLoaded) return;
