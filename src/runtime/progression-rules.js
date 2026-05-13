@@ -1,7 +1,7 @@
 // progression rules
 // Purpose: separates progression, transitions, rewards, dialog triggers, and object events from zone map/spawn logic.
 (function(){
-  if(window.BoneCrawlerProgression) return;
+  if(window.EventEngine) return;
 
   function clone(value){ try{ return JSON.parse(JSON.stringify(value)); }catch(err){ return value; } }
   function asList(value){ return Array.isArray(value) ? value : (value ? [value] : []); }
@@ -100,6 +100,18 @@
     }catch(err){ return null; }
   }
 
+  function getRectByObjectId(objectId, field){
+    try{
+      if(window.SceneRuntime && typeof SceneRuntime.getEntity === 'function'){
+        const entity = SceneRuntime.getEntity(String(objectId || ''));
+        if(!entity) return null;
+        if(field && entity[field]) return entity[field];
+        return entity.rect || entity.breakRect || entity.blockRect || entity.interactRect || entity.triggerRect || null;
+      }
+    }catch(err){}
+    return null;
+  }
+
   function nearRect(rectName, pad){
     try{
       if(!player) return false;
@@ -140,6 +152,7 @@
       case 'globalAtLeast': return Number(getGlobalValue(cond.name)) >= Number(cond.value || cond.atLeast || 0);
       case 'worldFlag': return compare(getWorldFlag(cond.name), cond);
       case 'nearRect': return nearRect(cond.rect, cond.pad);
+      case 'nearObject': return nearRect(getRectByObjectId(cond.objectId, cond.field), cond.pad);
       case 'keyDropKind': return typeof hasKeyDropKind === 'function' ? hasKeyDropKind(cond.kind) : false;
       case 'noKeyDropKind': return typeof hasKeyDropKind === 'function' ? !hasKeyDropKind(cond.kind) : true;
       case 'zoneKillsAtLeast': return typeof getZoneProgressKills === 'function' ? getZoneProgressKills(cond.zone || currentZoneValue()) >= Number(cond.value || cond.atLeast || 0) : false;
@@ -153,100 +166,31 @@
   }
 
   function promptFromRect(rectName, yPad){
-    const rect = getRectByName(rectName);
+    const rect = typeof rectName === 'string' ? (getRectByObjectId(rectName) || getRectByName(rectName)) : rectName;
     if(!rect) return {promptX:60, promptY:30};
     return {promptX:rect.x + rect.w / 2, promptY:rect.y - (yPad == null ? 4 : yPad)};
   }
 
-  const transitionRules = [
-    {
-      id:'zone1_secret1', fromZone:1, nextZone:101, rect:'SECRET1_ENTRANCE_RECT', transitionOpts:{fromZone:1},
-      requires:{all:[
-        {type:'zone', equals:1},
-        {type:'playerFlag', name:'secret1Key', equals:true},
-        {type:'worldFlag', name:'zone1Broken.0', equals:true},
-        {type:'noKeyDropKind', kind:'secret1'},
-        {type:'nearRect', rect:'SECRET1_ENTRANCE_RECT', pad:4}
-      ]}
-    },
-    {
-      id:'zone1_zone2', fromZone:1, nextZone:2, rect:'ZONE1_DOOR_RECT', transitionOpts:{fromZone:1},
-      requires:{all:[
-        {type:'zone', equals:1},
-        {type:'playerFlag', name:'zone1DoorKey', equals:true},
-        {type:'nearRect', rect:'ZONE1_DOOR_RECT', pad:4}
-      ]}
-    },
-    {
-      id:'secret1_exit', fromZone:101, nextZone:2, rect:'SECRET1_EXIT_DOOR_RECT', transitionOpts:{fromZone:101, secret:true},
-      requires:{all:[
-        {type:'zone', equals:101},
-        {type:'globalValue', name:'secret1BlessingT', lte:0},
-        {type:'nearRect', rect:'SECRET1_EXIT_DOOR_RECT', pad:4}
-      ]}
-    },
-    {
-      id:'zone3_exit', fromZone:3, nextZone:-1, rect:'ZONE3_DOOR_RECT',
-      transitionOpts:{fromZone:3,title:'ZONE CLEAR',messageLines:['Well done,','Bonecrawler'],hideStats:false},
-      requires:{all:[
-        {type:'zone', equals:3},
-        {type:'playerFlag', name:'hasKey', equals:true},
-        {type:'nearRect', rect:'ZONE3_DOOR_RECT', pad:4}
-      ]}
-    },
-    {
-      id:'zone3_secret2', fromZone:3, nextZone:102, rect:'ZONE3_SECRET2_PORTAL_RECT', transitionOpts:{fromZone:3},
-      requires:{all:[
-        {type:'zone', equals:3},
-        {type:'globalFlag', name:'shadowBossDefeated', equals:true},
-        {type:'globalAtLeast', name:'score', value:999},
-        {type:'nearRect', rect:'ZONE3_SECRET2_PORTAL_RECT', pad:4}
-      ]}
-    },
-    {
-      id:'secret2_return', fromZone:102, nextZone:-1, rect:'SECRET2_RETURN_PORTAL_RECT',
-      transitionOpts:{fromZone:3,title:'ZONE CLEAR',messageLines:['Well done,','Bonecrawler'],hideStats:false},
-      requires:{all:[
-        {type:'zone', equals:102},
-        {type:'nearRect', rect:'SECRET2_RETURN_PORTAL_RECT', pad:4}
-      ]}
-    }
-  ];
+  const __eventData = (window.GameContent && typeof GameContent.getEventData === 'function') ? GameContent.getEventData() : {transitionRules:[], interactionRules:[], scriptedDialogRules:[], runtimeEventRules:[]};
+  const transitionRules = __eventData.transitionRules || [];
+  const interactionRules = __eventData.interactionRules || [];
+  const scriptedDialogRules = __eventData.scriptedDialogRules || [];
+  const eventRules = __eventData.runtimeEventRules || [];
 
-  const interactionRules = [
-    {id:'secret2Sword', type:'secret2Sword', zone:102, rect:'SECRET2_SWORD_RECT', yPad:3, requires:{all:[{type:'zone',equals:102},{type:'globalFlag',name:'masterSwordOwned',equals:false},{type:'nearRect',rect:'SECRET2_SWORD_RECT',pad:4}]}},
-    {id:'secret2Npc', type:'secret2Npc', zone:102, rect:'SECRET2_NPC_RECT', yPad:6, requires:{all:[{type:'zone',equals:102},{type:'nearRect',rect:'SECRET2_NPC_RECT',pad:4}]}},
-    {id:'zone3Tree', type:'zone3Tree', zone:3, rect:'ZONE3_TREE_INTERACT_RECT', yPad:4, requires:{all:[{type:'zone',equals:3},{type:'globalFlag',name:'zone3TreeAwake',equals:true},{type:'nearRect',rect:'ZONE3_TREE_INTERACT_RECT',pad:0}]}},
-    {id:'secret1Rat', type:'secret1Rat', zone:101, rect:'SECRET1_RAT_RECT', yPad:5, requires:{all:[{type:'zone',equals:101},{type:'nearRect',rect:'SECRET1_RAT_INTERACT_RECT',pad:0}]}}
-  ];
-
-  const scriptedDialogRules = [
-    {id:'zone1_key_drop_hint', onceFlag:'zone1DoorKeyDialogShown', requires:{all:[{type:'zone',equals:1},{type:'keyDropKind',kind:'zone1Door'}]}, title:'NODE', pages:[{speaker:'NODE',lines:['Grab the key!']}]},
-    {id:'zone1_secret_hint', onceFlag:'zone1Kill90DialogShown', requires:{all:[{type:'zone',equals:1},{type:'zoneKillsAtLeast',zone:1,value:90}]}, title:'NODE', pages:[{speaker:'NODE',lines:["There's a grate to the left..",'It looks locked..',"Maybe there's a way to unlock it?"]}]},
-    {id:'zone1_dragon_hint', onceFlag:'zone1Kill109DialogShown', requires:{all:[{type:'zone',equals:1},{type:'zoneKillsAtLeast',zone:1,value:109}]}, title:'NODE', pages:[{speaker:'NODE',lines:['I hear something..']},{speaker:'NODE',lines:['.. keep fighting.']}]},
-    {id:'zone2_intro', onceFlag:'zone2IntroDialogShown', requires:{all:[{type:'zone',equals:2}]}, title:'NODE', pages:[{speaker:'NODE',lines:['Seeesh. How many skellys was that?']},{speaker:'PLAYER',lines:['Too many.']},{speaker:'NODE',lines:['Yeah. Good job!','.... Now do it again!']},{speaker:'PLAYER',lines:['Here they come..']}]},
-    {id:'zone2_dragon_hint', onceFlag:'zone2Kill30DialogShown', requires:{all:[{type:'zone',equals:2},{type:'zoneKillsAtLeast',zone:2,value:25}]}, title:'NODE', pages:function(){ return [{speaker:'NODE',lines:['Shh.. do you hear that?','I smell a dragon!']},{speaker:'PLAYER',lines:[getGlobalValue('secret1NodeSpoken') ? 'Rats can smell dragons?' : 'Wait, what? Are you here?']},{speaker:'NODE',lines:['....']},{speaker:'PLAYER',lines:['Here we go again..']}]; }},
-    {id:'zone3_intro', onceFlag:'zone3IntroDialogShown', requires:{all:[{type:'zone',equals:3}]}, title:'NODE', pages:[{speaker:'NODE',lines:['I smell an evil soul..',"it's in here somewhere"]}]},
-    {id:'zone3_push', onceFlag:'zone3Kill80DialogShown', requires:{all:[{type:'zone',equals:3},{type:'zoneKillsAtLeast',zone:3,value:80}]}, title:'NODE', pages:[{speaker:'NODE',lines:["Don't give up!"]}]},
-    {id:'zone3_boss_defeat', onceFlag:'zone3BossDefeatDialogShown', requires:{all:[{type:'zone',equals:3},{type:'globalFlag',name:'shadowBossDefeated',equals:true}]}, title:'NODE', pages:[{speaker:'NODE',lines:['Good job..',"You'll do good Bonecrawler."]},{speaker:'NODE',lines:['See ya next game.']}]}
-  ];
-
-  const eventRules = [
-    {id:'zone1_wave_drop_zone1_key_80', on:'enemy.defeated', requires:{all:[{type:'payload',name:'zoneId',equals:1},{type:'spawnSystem',equals:'waves'},{type:'zoneKillsAtLeast',zone:1,value:80},{type:'playerFlag',name:'zone1DoorKey',equals:false},{type:'noKeyDropKind',kind:'zone1Door'}]}, actions:[{type:'spawnObject', objectType:'item', itemType:'key', kind:'zone1Door', x:'x', y:'y', xOffset:-3, yOffset:-3},{type:'showText', text:'ZONE 1 KEY!', y:28}]},
-    {id:'zone1_final_wave_spawn_dragon', on:'waves.finalWaveComplete', requires:{all:[{type:'payload',name:'zoneId',equals:1}]}, actions:[{type:'spawnObject', objectType:'boss', objectId:'zone1Dragon'}]},
-    {id:'zone2_final_wave_spawn_dragon', on:'waves.finalWaveComplete', requires:{all:[{type:'payload',name:'zoneId',equals:2}]}, actions:[{type:'spawnObject', objectType:'boss', objectId:'dragonBoss'}]},
-    {id:'zone3_final_wave_spawn_shadow', on:'waves.finalWaveComplete', requires:{all:[{type:'payload',name:'zoneId',equals:3}]}, actions:[{type:'spawnObject', objectType:'boss', objectId:'shadowBoss'}]},
-    {id:'zone1_dragon_drop_secret_key', on:'boss.defeated', requires:{all:[{type:'payload',name:'bossId',equals:'zone1Dragon'},{type:'playerFlag',name:'secret1Key',equals:false},{type:'noKeyDropKind',kind:'secret1'}]}, actions:[{type:'spawnObject', objectType:'item', itemType:'key', kind:'secret1', x:'x', y:'y', xOffset:3, yOffset:-3},{type:'showText', text:'SECRET KEY!', y:28}]},
-    {id:'zone3_shadow_drop_key', on:'boss.defeated', requires:{all:[{type:'payload',name:'bossId',equals:'shadowBoss'},{type:'noKeyDropKind',kind:'zone3'}]}, actions:[{type:'spawnObject', objectType:'item', itemType:'key', kind:'zone3', x:'x', y:'y', xOffset:-3, yOffset:-3}]}
-  ];
+  function resolveRuleRect(rule){
+    if(rule.objectId) return getRectByObjectId(rule.objectId, rule.field);
+    if(rule.rect) return getRectByName(rule.rect);
+    return null;
+  }
 
   function getActiveTransition(){
     for(const rule of transitionRules){
       if(!evaluateRequires(rule.requires)) continue;
-      const prompt = promptFromRect(rule.rect, 4);
+      const resolvedRect = resolveRuleRect(rule);
+      const prompt = rule.objectId ? promptFromRect(rule.objectId, 4) : promptFromRect(rule.rect, 4);
       return {
         id: rule.id,
-        rect: getRectByName(rule.rect),
+        rect: resolvedRect,
         promptX: prompt.promptX,
         promptY: prompt.promptY,
         nextZone: rule.nextZone,
@@ -259,7 +203,7 @@
   function getActiveInteractionTarget(){
     for(const rule of interactionRules){
       if(!evaluateRequires(rule.requires)) continue;
-      const prompt = promptFromRect(rule.rect, rule.yPad);
+      const prompt = rule.objectId ? promptFromRect(rule.objectId, rule.yPad) : promptFromRect(rule.rect, rule.yPad);
       return {type:rule.type, promptX:prompt.promptX, promptY:prompt.promptY, ruleId:rule.id};
     }
     return null;
@@ -271,9 +215,10 @@
       if(rule.onceFlag && getGlobalValue(rule.onceFlag)) continue;
       if(!evaluateRequires(rule.requires)) continue;
       if(rule.onceFlag) setGlobalValue(rule.onceFlag, true);
-      const pages = typeof rule.pages === 'function' ? rule.pages() : clone(rule.pages || []);
+      const dialog = rule.dialogId && window.GameContent && typeof GameContent.getDialog === 'function' ? GameContent.getDialog(rule.dialogId) : null;
+      const pages = dialog ? clone(dialog.pages || []) : (typeof rule.pages === 'function' ? rule.pages() : clone(rule.pages || []));
       if(typeof openDialogSequence === 'function'){
-        openDialogSequence(rule.title || 'NODE', pages, rule.mode || 'npc');
+        openDialogSequence((dialog && dialog.title) || rule.title || 'NODE', pages, (dialog && dialog.mode) || rule.mode || 'npc');
         return true;
       }
     }
@@ -304,7 +249,7 @@
     if(action.requires && !evaluateRequires(action.requires, payload)) return false;
     switch(String(action.type || '')){
       case 'spawnObject':
-        if(window.BoneCrawlerObjects && typeof BoneCrawlerObjects.spawn === 'function') return BoneCrawlerObjects.spawn(action, payload || {});
+        if(window.ObjectSpawnEngine && typeof ObjectSpawnEngine.spawn === 'function') return ObjectSpawnEngine.spawn(action, payload || {});
         return false;
       case 'showText': return showText(action, payload || {});
       case 'setGlobalFlag': return setGlobalValue(action.name, action.value !== false);
@@ -312,7 +257,7 @@
         try{ if(player && action.name){ player[action.name] = action.value !== false; return true; } }catch(err){}
         return false;
       case 'openDialog':
-        if(typeof openDialogSequence === 'function'){ openDialogSequence(action.title || 'NODE', clone(action.pages || []), action.mode || 'npc'); return true; }
+        if(typeof openDialogSequence === 'function'){ const dialog = action.dialogId && window.GameContent && typeof GameContent.getDialog === 'function' ? GameContent.getDialog(action.dialogId) : null; openDialogSequence((dialog && dialog.title) || action.title || 'NODE', clone((dialog && dialog.pages) || action.pages || []), (dialog && dialog.mode) || action.mode || 'npc'); return true; }
         return false;
       case 'call':
         try{ if(typeof window[action.name] === 'function') return !!window[action.name](...(action.args || [])); }catch(err){}
@@ -334,15 +279,15 @@
   }
 
   function emit(name, payload){
-    if(window.BoneCrawlerEvents && typeof BoneCrawlerEvents.emit === 'function') return BoneCrawlerEvents.emit(name, payload || {});
+    if(window.EventBus && typeof EventBus.emit === 'function') return EventBus.emit(name, payload || {});
     return {handled:handleEvent(name, payload || {}), results:[]};
   }
 
-  if(window.BoneCrawlerEvents && typeof BoneCrawlerEvents.on === 'function'){
-    BoneCrawlerEvents.on('*', function(payload, name){ return handleEvent(name, payload); });
+  if(window.EventBus && typeof EventBus.on === 'function'){
+    EventBus.on('*', function(payload, name){ return handleEvent(name, payload); });
   }
 
-  window.BoneCrawlerProgression = {
+  window.EventEngine = {
     evaluateRequires,
     evalCondition,
     getActiveTransition,

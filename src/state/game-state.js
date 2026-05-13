@@ -58,13 +58,9 @@ let startupSceneFadeT=0, startupSceneFadeMax=20;
 let startupScenePauseStartMs=0;
 const STARTUP_SCENE_DIALOG_DELAY_MS=1500;
 const INTRO_PAGE_COUNT=3;
-const STARTUP_GAME_DIALOG_PAGES=[
-  {speaker:'NODE',lines:['Welcome BoneCrawler..!','This dungeon will serve as your','training since waking up.','Good luck.']},
-  {speaker:'NODE',lines:['.. and if you see a Dragon,','well..',"I'm glad I mentioned it now."]},
-  {speaker:'PLAYER',lines:["I don't deal with dragons."]},
-  {speaker:'NODE',lines:['You do now.', ".. and don't forget the corrupted."]},     
-  {speaker:'PLAYER',lines:["That's great..",'I need to get out of this room.','There should be a key somewhere..']},
-];
+const STARTUP_GAME_DIALOG_PAGES=(window.GameContent && typeof GameContent.getDialog === 'function' && GameContent.getDialog('npc.node.startup'))
+  ? (GameContent.getDialog('npc.node.startup').pages || [])
+  : [];
 let mouseAttackQueued=false;
 let mouseAttackHeld=false;
 let mouseAttackReleaseQueued=false;
@@ -138,49 +134,36 @@ const ZONE_SECRET1=101;
 const ZONE_SECRET2=102;
 const SECRET2_SCORE_REQ=999;
 const SECRET1_BLESSING_FRAMES=170;
-const ZONE3_DOOR_RECT={x:GW/2-5,y:PY-2,w:10,h:10};
-const SECRET1_ENTRANCE_RECT={x:PX+3,y:PY+24,w:4,h:10};
-const SECRET1_EXIT_DOOR_RECT={x:GW/2-5,y:PY-2,w:10,h:10};
+const __gameStateSceneGeometry = (window.SceneRuntime && typeof SceneRuntime.getGeometry === 'function')
+  ? SceneRuntime.getGeometry()
+  : {};
+const ZONE3_DOOR_RECT=__gameStateSceneGeometry.ZONE3_DOOR_RECT || {x:0,y:0,w:0,h:0};
+const SECRET1_ENTRANCE_RECT=__gameStateSceneGeometry.SECRET1_ENTRANCE_RECT || {x:0,y:0,w:0,h:0};
+const SECRET1_EXIT_DOOR_RECT=__gameStateSceneGeometry.SECRET1_EXIT_DOOR_RECT || {x:0,y:0,w:0,h:0};
 function zone1SecretEntranceReady(){
-  // Secret Zone 1: Secret Zone key + broken bookshelf.
   return currentZone===1 && !!player && !!player.secret1Key && !!zone1Broken && !!zone1Broken[0] && !hasKeyDropKind('secret1');
 }
-const SECRET1_POOL_BLOCKERS=[];
-const SECRET1_POOL_WATER_RECT={x:GW/2-25,y:PY+25,w:50,h:20};
-const SECRET2_NPC_RECT={x:GW/2-18,y:PY+68,w:12,h:8};
-const SECRET2_SWORD_RECT={x:GW/2-6,y:PY+24,w:12,h:24};
-const ZONE3_TREE_RECT={x:PX+13,y:PY+PH-28,w:16,h:22};
-const ZONE3_TREE_INTERACT_RECT={x:PX+8,y:PY+PH-26,w:22,h:18};
-const ZONE3_SECRET2_PORTAL_RECT={x:GW/2-6,y:PY+57,w:12,h:12};
-const SECRET1_RAT_RECT={x:PX+10,y:PY+10,w:8,h:6};
-const SECRET1_RAT_INTERACT_RECT={x:PX+7,y:PY+7,w:15,h:12};
-const SECRET1_CHEESE_RECT={x:PX+20,y:PY+12,w:6,h:4};
-const SECRET2_RETURN_PORTAL_RECT={x:PX+PW-18,y:PY+70,w:12,h:12};
-const SECRET2_STONE_BLOCKERS=[
-  {x:GW/2-5,y:PY+42,w:10,h:7},
-];
+const SECRET1_POOL_BLOCKERS=__gameStateSceneGeometry.SECRET1_POOL_BLOCKERS || [];
+const SECRET1_POOL_WATER_RECT=__gameStateSceneGeometry.SECRET1_POOL_WATER_RECT || {x:0,y:0,w:0,h:0};
+const SECRET2_NPC_RECT=__gameStateSceneGeometry.SECRET2_NPC_RECT || {x:0,y:0,w:0,h:0};
+const SECRET2_SWORD_RECT=__gameStateSceneGeometry.SECRET2_SWORD_RECT || {x:0,y:0,w:0,h:0};
+const ZONE3_TREE_RECT=__gameStateSceneGeometry.ZONE3_TREE_RECT || {x:0,y:0,w:0,h:0};
+const ZONE3_TREE_INTERACT_RECT=__gameStateSceneGeometry.ZONE3_TREE_INTERACT_RECT || {x:0,y:0,w:0,h:0};
+const ZONE3_SECRET2_PORTAL_RECT=__gameStateSceneGeometry.ZONE3_SECRET2_PORTAL_RECT || {x:0,y:0,w:0,h:0};
+const SECRET1_RAT_RECT=__gameStateSceneGeometry.SECRET1_RAT_RECT || {x:0,y:0,w:0,h:0};
+const SECRET1_RAT_INTERACT_RECT=__gameStateSceneGeometry.SECRET1_RAT_INTERACT_RECT || {x:0,y:0,w:0,h:0};
+const SECRET1_CHEESE_RECT=__gameStateSceneGeometry.SECRET1_CHEESE_RECT || {x:0,y:0,w:0,h:0};
+const SECRET2_RETURN_PORTAL_RECT=__gameStateSceneGeometry.SECRET2_RETURN_PORTAL_RECT || {x:0,y:0,w:0,h:0};
+const SECRET2_STONE_BLOCKERS=__gameStateSceneGeometry.SECRET2_STONE_BLOCKERS || [];
 function isSecret1WaterZone(box){
   return !!box && ov(box, SECRET1_POOL_WATER_RECT);
 }
 
-const ZONE3_TREE_BLOCKERS=[
-  {x:PX+15,y:PY+PH-20,w:12,h:10},
-  {x:PX+10,y:PY+PH-12,w:20,h:7},
-];
-const ZONE3_EXTRA_BLOCKERS=[
-  {x:PX+PW-18,y:PY+PH-11,w:7,h:7},
-];
-const ZONE3_DECOR_BREAK_RECTS=(window.BoneCrawlerZoneObjects && BoneCrawlerZoneObjects.getBreakRects)
-  ? BoneCrawlerZoneObjects.getBreakRects(3)
-  : [];
-const ZONE3_DECOR_OBJECT_BLOCKERS=(window.BoneCrawlerZoneObjects && BoneCrawlerZoneObjects.getBlockerRects)
-  ? BoneCrawlerZoneObjects.getBlockerRects(3)
-  : [];
-const ZONE3_DECOR_BLOCKERS=[
-  ...ZONE3_DECOR_OBJECT_BLOCKERS,
-  ...ZONE3_TREE_BLOCKERS,
-  ...ZONE3_EXTRA_BLOCKERS,
-];
+const ZONE3_TREE_BLOCKERS=__gameStateSceneGeometry.ZONE3_TREE_BLOCKERS || [];
+const ZONE3_EXTRA_BLOCKERS=__gameStateSceneGeometry.ZONE3_EXTRA_BLOCKERS || [];
+const ZONE3_DECOR_BREAK_RECTS=__gameStateSceneGeometry.ZONE3_DECOR_BREAK_RECTS || [];
+const ZONE3_DECOR_OBJECT_BLOCKERS=__gameStateSceneGeometry.ZONE3_DECOR_OBJECT_BLOCKERS || [];
+const ZONE3_DECOR_BLOCKERS=__gameStateSceneGeometry.ZONE3_DECOR_BLOCKERS || [];
 const DRAGON_PHASE_HITS=20;
 const DRAGON_SUMMON_INTERVAL=7*60;
 const DRAGON_MAX_NORMAL_ADDS=4;

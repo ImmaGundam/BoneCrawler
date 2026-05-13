@@ -25,7 +25,7 @@ function resetGame(){
     player.visibleHearts=Math.max(player.visibleHearts||3, MASTER_SWORD_START_HEART_SLOTS);
   }
   enemies=[]; parts=[]; pSpawns=[]; frame=0; score=0; prevSpc=false;
-  killCount=0; nextChestAt=10; nextGiantAt=GIANT_KILL_INTERVAL_START; chests=[]; chest=null; floatTexts=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; keyDrop=[]; fireballs=[]; nextWizardAt=WIZARD_KILL_INTERVAL_START; giantKillInterval=GIANT_KILL_INTERVAL_START; wizardKillInterval=WIZARD_KILL_INTERVAL_START; currentZone=1;
+  killCount=0; nextChestAt=10; nextGiantAt=GIANT_KILL_INTERVAL_START; chests=[]; chest=null; floatTexts=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; keyDrop=[]; fireballs=[]; nextWizardAt=WIZARD_KILL_INTERVAL_START; giantKillInterval=GIANT_KILL_INTERVAL_START; wizardKillInterval=WIZARD_KILL_INTERVAL_START; currentZone=1; if(window.RuntimeEntityManager && typeof RuntimeEntityManager.clear === 'function') RuntimeEntityManager.clear();
   zone1KillStart=0; zone2KillStart=0; zone3KillStart=0;
   normalKillCount=0; giantKillCount=0; wizardKillCount=0;
   pendingZoneTransition=0;
@@ -236,7 +236,7 @@ function restoreRetryCheckpoint(){
   wizardKillInterval=Math.max(WIZARD_KILL_INTERVAL_MIN, cp.wizardKillInterval|0);
   if(!cp.nextGiantAt || !cp.nextWizardAt) syncKillSpawnSchedulesFromCount();
   clearChests(); clearKeyDrops();
-  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[]; parts=[];
+  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[]; parts=[]; if(window.RuntimeEntityManager && typeof RuntimeEntityManager.clear === 'function') RuntimeEntityManager.clear();
   dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
   bossClearTimer=0;

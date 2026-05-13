@@ -13,90 +13,27 @@ function handlePrimaryInteract(){
   else return false;
   return true;
 }
+
+function getDialogEntry(id){
+  try{
+    if(window.GameContent && typeof GameContent.getDialog === 'function') return GameContent.getDialog(id);
+  }catch(err){}
+  return null;
+}
 function maybeTriggerScriptedZoneDialog(){
   if(gState!=='playing') return false;
   try{
-    if(window.BoneCrawlerProgression && typeof BoneCrawlerProgression.maybeTriggerScriptedDialog === 'function' && BoneCrawlerProgression.maybeTriggerScriptedDialog()) return true;
+    if(window.EventEngine && typeof EventEngine.maybeTriggerScriptedDialog === 'function') return !!EventEngine.maybeTriggerScriptedDialog();
   }catch(err){}
-  if(currentZone===1){
-    const progress=getZoneProgressKills(1);
-    if(!zone1DoorKeyDialogShown && hasKeyDropKind('zone1Door')){
-      zone1DoorKeyDialogShown=true;
-      openDialogSequence('NODE', [{speaker:'NODE',lines:['Grab the key!']}]);
-      return true;
-    }
-    if(!zone1Kill90DialogShown && progress>=90){
-      zone1Kill90DialogShown=true;
-      openDialogSequence('NODE', [{speaker:'NODE',lines:["There's a grate to the left..","It looks locked..","Maybe there's a way to unlock it?"]}]);
-      return true;
-    }
-    if(!zone1Kill109DialogShown && progress>=109){
-      zone1Kill109DialogShown=true;
-      openDialogSequence('NODE', [
-        {speaker:'NODE',lines:['I hear something..']},
-        {speaker:'NODE',lines:['.. keep fighting.']}
-      ]);
-      return true;
-    }
-  }
-  if(currentZone===2){
-    const progress=getZoneProgressKills(2);
-    if(!zone2IntroDialogShown){
-      zone2IntroDialogShown=true;
-      openDialogSequence('NODE', [
-        {speaker:'NODE',lines:['Seeesh. How many skellys was that?']},
-        {speaker:'PLAYER',lines:['Too many.']},
-        {speaker:'NODE',lines:['Yeah. Good job!','.... Now do it again!']},
-        {speaker:'PLAYER',lines:['Here they come..']}
-      ]);
-      return true;
-    }
-    if(!zone2Kill30DialogShown && progress>=25){
-      zone2Kill30DialogShown=true;
-      openDialogSequence('NODE', [
-        {speaker:'NODE',lines:['Shh.. do you hear that?','I smell a dragon!']},
-        {speaker:'PLAYER',lines:[secret1NodeSpoken ? 'Rats can smell dragons?' : 'Wait, what? Are you here?']},
-        {speaker:'NODE',lines:['....']},
-        {speaker:'PLAYER',lines:['Here we go again..']}
-      ]);
-      return true;
-    }
-  }
-  if(currentZone===3){
-    const progress=getZoneProgressKills(3);
-    if(!zone3IntroDialogShown){
-      zone3IntroDialogShown=true;
-      openDialogSequence('NODE', [
-        {speaker:'NODE',lines:['I smell an evil soul..',"it's in here somewhere"]}
-      ]);
-      return true;
-    }
-    if(!zone3Kill80DialogShown && progress>=80){
-      zone3Kill80DialogShown=true;
-      openDialogSequence('NODE', [
-        {speaker:'NODE',lines:["Don't give up!"]}
-      ]);
-      return true;
-    }
-    if(!zone3BossDefeatDialogShown && shadowBossDefeated){
-      zone3BossDefeatDialogShown=true;
-      openDialogSequence('NODE', [
-        {speaker:'NODE',lines:['Good job..',"You'll do good Bonecrawler."]},
-        {speaker:'NODE',lines:['See ya next game.']}
-      ]);
-      return true;
-    }
-  }
   return false;
 }
 
 function startSecret2NpcDialog(){
   if(currentZone!==ZONE_SECRET2) return;
-  dialogTitle='WOUNDED STRANGER';
-  dialogMode='npc';
-  dialogPages = secret2NpcMet
-    ? [['......'],["There's a name engraved on his sword",'ImmaGundam']]
-    : [['You . . . found me . .','Thank you. . for. . playing. .'],['......'],["There's a name engraved on his sword",'ImmaGundam']];
+  const dialog = getDialogEntry(secret2NpcMet ? 'npc.woundedStranger.repeat' : 'npc.woundedStranger.initial');
+  dialogTitle=(dialog && dialog.title) || 'WOUNDED STRANGER';
+  dialogMode=(dialog && dialog.mode) || 'npc';
+  dialogPages=(dialog && dialog.pages) ? dialog.pages : [];
   secret2NpcMet = true;
   dialogPageIndex = 0;
   clearGameplayKeys();
@@ -126,13 +63,28 @@ function startSecret2SwordDialog(){
 }
 function startZone3TreeDialog(){
   if(currentZone!==3 || !zone3TreeAwake) return;
-  dialogTitle='DEKU';
-  dialogMode='npc';
-  dialogPages=[['.....']];
+  const dialog = getDialogEntry('npc.zone3Tree.default');
+  dialogTitle=(dialog && dialog.title) || 'DEKU';
+  dialogMode=(dialog && dialog.mode) || 'npc';
+  dialogPages=(dialog && dialog.pages) ? dialog.pages : [];
   zone3TreeMet=true;
   dialogPageIndex=0;
   clearGameplayKeys();
   gState='dialog';
+}
+
+
+function startSecret1RatDialog(){
+  if(currentZone!==ZONE_SECRET1) return;
+  const dialogId = secret1RatTalkCount<=0 ? 'npc.rat.initial' : 'npc.rat.repeat';
+  const dialog = getDialogEntry(dialogId);
+  if(secret1RatTalkCount<=0){
+    secret1RatTalkCount=1;
+  } else {
+    secret1RatTalkCount=2;
+    secret1NodeSpoken=true;
+  }
+  openDialogSequence((dialog && dialog.title) || 'NODE', (dialog && dialog.pages) || [], (dialog && dialog.mode) || 'npc');
 }
 
 function drawInteractPrompt(cx, cy){

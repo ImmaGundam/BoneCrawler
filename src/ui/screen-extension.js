@@ -106,8 +106,8 @@
   function getZoneLabel(zoneId, state) {
     if (isTitleLikeState(state)) return 'TITLE SCREEN';
     try {
-      if (window.BoneCrawlerZones && typeof BoneCrawlerZones.getLabel === 'function') {
-        return BoneCrawlerZones.getLabel(zoneId);
+      if (window.SceneEngine && typeof SceneEngine.getLabel === 'function') {
+        return SceneEngine.getLabel(zoneId);
       }
     } catch (err) {}
     return zoneId >= 100 ? 'SECRET ZONE ' + (zoneId - 100) : 'ZONE ' + zoneId;
@@ -119,8 +119,8 @@
     if (state === 'paused') return 'Paused. Return when ready.';
 
     try {
-      if (window.BoneCrawlerZones && typeof BoneCrawlerZones.get === 'function') {
-        var zone = BoneCrawlerZones.get(zoneId);
+      if (window.SceneEngine && typeof SceneEngine.get === 'function') {
+        var zone = SceneEngine.get(zoneId);
         if (zone && typeof zone.objective === 'function') return zone.objective();
       }
     } catch (err) {}

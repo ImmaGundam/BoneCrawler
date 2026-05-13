@@ -1,13 +1,14 @@
 // render-helpers
 // Purpose: Low-level canvas drawing helpers: sprite drawing, fills, borders, pixel font text.
+function rhctx(){ return window.__renderCtxOverride || ctx; }
 // ── Draw helpers ──────────────────────────────────────────────
 function ds(spr, lx, ly, fx){
   const rows=spr.length, cols=spr[0].length;
   for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
     const v=spr[r][fx?cols-1-c:c];
     if(!v) continue;
-    ctx.fillStyle=PAL[v];
-    ctx.fillRect((lx+c)*SCALE,(ly+r)*SCALE,SCALE,SCALE);
+    rhctx().fillStyle=PAL[v];
+    rhctx().fillRect((lx+c)*SCALE,(ly+r)*SCALE,SCALE,SCALE);
   }
 }
 // Draw sprite at 2× logical scale (giant skeleton)
@@ -16,8 +17,8 @@ function ds2(spr, lx, ly, fx){
   for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
     const v=spr[r][fx?cols-1-c:c];
     if(!v) continue;
-    ctx.fillStyle=PAL[v];
-    ctx.fillRect((lx+c*2)*SCALE,(ly+r*2)*SCALE,2*SCALE,2*SCALE);
+    rhctx().fillStyle=PAL[v];
+    rhctx().fillRect((lx+c*2)*SCALE,(ly+r*2)*SCALE,2*SCALE,2*SCALE);
   }
 }
 function dsScale(spr, lx, ly, scale, fx){
@@ -29,8 +30,8 @@ function dsScale(spr, lx, ly, scale, fx){
     const sc=Math.min(cols-1, Math.floor(c/scale));
     const v=spr[sr][fx?cols-1-sc:sc];
     if(!v) continue;
-    ctx.fillStyle=PAL[v];
-    ctx.fillRect((lx+c)*SCALE,(ly+r)*SCALE,SCALE,SCALE);
+    rhctx().fillStyle=PAL[v];
+    rhctx().fillRect((lx+c)*SCALE,(ly+r)*SCALE,SCALE,SCALE);
   }
 }
 
@@ -39,48 +40,48 @@ function dsMap(spr, lx, ly, map={}, fx){
   for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
     const v=spr[r][fx?cols-1-c:c];
     if(!v) continue;
-    ctx.fillStyle=(v in map) ? map[v] : PAL[v];
-    ctx.fillRect((lx+c)*SCALE,(ly+r)*SCALE,SCALE,SCALE);
+    rhctx().fillStyle=(v in map) ? map[v] : PAL[v];
+    rhctx().fillRect((lx+c)*SCALE,(ly+r)*SCALE,SCALE,SCALE);
   }
 }
 function fr(lx,ly,lw,lh,col){
-  ctx.fillStyle=col;
-  ctx.fillRect(lx*SCALE,ly*SCALE,lw*SCALE,lh*SCALE);
+  rhctx().fillStyle=col;
+  rhctx().fillRect(lx*SCALE,ly*SCALE,lw*SCALE,lh*SCALE);
 }
 // Draw pixel-perfect 1px border rect in logical coords
 function frBorder(lx,ly,lw,lh,col,alpha){
-  ctx.globalAlpha=alpha;
-  ctx.fillStyle=col;
-  ctx.fillRect(lx*SCALE,     ly*SCALE,          lw*SCALE, SCALE);        // top
-  ctx.fillRect(lx*SCALE,     (ly+lh-1)*SCALE,   lw*SCALE, SCALE);        // bottom
-  ctx.fillRect(lx*SCALE,     ly*SCALE,           SCALE,    lh*SCALE);     // left
-  ctx.fillRect((lx+lw-1)*SCALE, ly*SCALE,        SCALE,    lh*SCALE);     // right
-  ctx.globalAlpha=1;
+  rhctx().globalAlpha=alpha;
+  rhctx().fillStyle=col;
+  rhctx().fillRect(lx*SCALE,     ly*SCALE,          lw*SCALE, SCALE);        // top
+  rhctx().fillRect(lx*SCALE,     (ly+lh-1)*SCALE,   lw*SCALE, SCALE);        // bottom
+  rhctx().fillRect(lx*SCALE,     ly*SCALE,           SCALE,    lh*SCALE);     // left
+  rhctx().fillRect((lx+lw-1)*SCALE, ly*SCALE,        SCALE,    lh*SCALE);     // right
+  rhctx().globalAlpha=1;
 }
 function pt(text,x,y,size,color,align='left',shadow=C.DK){
-  ctx.textBaseline='top';
-  ctx.textAlign=align;
-  ctx.font=size+'px "Press Start 2P",monospace';
+  rhctx().textBaseline='top';
+  rhctx().textAlign=align;
+  rhctx().font=size+'px "Press Start 2P",monospace';
   if(shadow){
-    ctx.fillStyle=shadow;
-    ctx.fillText(text,x+1,y);
-    ctx.fillText(text,x-1,y);
-    ctx.fillText(text,x,y+1);
-    ctx.fillText(text,x,y-1);
+    rhctx().fillStyle=shadow;
+    rhctx().fillText(text,x+1,y);
+    rhctx().fillText(text,x-1,y);
+    rhctx().fillText(text,x,y+1);
+    rhctx().fillText(text,x,y-1);
   }
-  ctx.fillStyle=color;
-  ctx.fillText(text,x,y);
+  rhctx().fillStyle=color;
+  rhctx().fillText(text,x,y);
 }
 function ptHeavy(text,x,y,size,color,align='left',shadow=C.DK){
-  ctx.textBaseline='top';
-  ctx.textAlign=align;
-  ctx.font=size+'px "Press Start 2P",monospace';
+  rhctx().textBaseline='top';
+  rhctx().textAlign=align;
+  rhctx().font=size+'px "Press Start 2P",monospace';
   if(shadow){
-    ctx.fillStyle=shadow;
+    rhctx().fillStyle=shadow;
     const offs=[[2,0],[-2,0],[0,2],[0,-2],[1,1],[-1,1],[1,-1],[-1,-1]];
-    for(const [ox,oy] of offs) ctx.fillText(text,x+ox,y+oy);
+    for(const [ox,oy] of offs) rhctx().fillText(text,x+ox,y+oy);
   }
-  ctx.fillStyle=color;
-  ctx.fillText(text,x,y);
+  rhctx().fillStyle=color;
+  rhctx().fillText(text,x,y);
 }
 

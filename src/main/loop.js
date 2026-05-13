@@ -1,6 +1,21 @@
 // game loop
-// Purpose: Main requestAnimationFrame loop and font-ready startup.
+// Purpose: Main requestAnimationFrame loop
 // ── Loop ──────────────────────────────────────────────────────
-function loop(now){ tickSceneClock(now); update(); render(); requestAnimationFrame(loop); }
-document.fonts.ready.then(()=>{ loop(); }).catch(()=>{ loop(); });
 
+let __bcLoopStarted = false;
+
+function loop(now){
+  tickSceneClock(now);
+  update();
+  render();
+  requestAnimationFrame(loop);
+}
+
+function startLoop(){
+  if (__bcLoopStarted) return;
+  __bcLoopStarted = true;
+  requestAnimationFrame(loop);
+}
+
+// Start immediately
+startLoop();

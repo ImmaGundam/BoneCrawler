@@ -1,6 +1,5 @@
 // player-survival-upgrades
-// Purpose: Shield shockwave, enemy defeat rewards, 
-// health/potion/dodge, decor breaking, applying upgrades, title/start/scoreboard helpers.
+// Purpose: Progression rewards, health/potion/dodge, decor breaking, applying upgrades, title/start/scoreboard helpers.
 const SHIELD_SHOCKWAVE_BASE_RADIUS = 15;
 const SHIELD_SHOCKWAVE_STEP = 3;
 
@@ -35,7 +34,7 @@ function handleEnemyDefeat(i,e,fromShockwave){
     x: e.x + Math.floor((e.w || 8) / 2) - 3,
     y: e.y + Math.floor((e.h || 8) / 2) - 3
   };
-  try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('enemy.defeated', defeatPayload); }catch(err){}
+  try{ if(window.EventEngine) EventEngine.emit('enemy.defeated', defeatPayload); }catch(err){}
   const spawnSubsystemHandledDefeat = !!(window.BoneCrawlerZoneSpawn && typeof BoneCrawlerZoneSpawn.onEnemyDefeated === 'function' && BoneCrawlerZoneSpawn.onEnemyDefeated(defeatPayload));
   const usingManagedSpawnProgression = !!(window.BoneCrawlerZoneSpawn && BoneCrawlerZoneSpawn.usesManagedSpawns(currentZone));
   if(!spawnSubsystemHandledDefeat && !usingManagedSpawnProgression && currentZone===1 && killCount===ZONE1_ZONE2_KEY_KILLS && !player.zone1DoorKey && !hasKeyDropKind('zone1Door')){
@@ -272,8 +271,8 @@ function burstDecor(x,y){
 
 function getBreakableObjectDef(zone, idx){
   try{
-    if(window.BoneCrawlerZoneObjects && typeof BoneCrawlerZoneObjects.getBreakable === 'function'){
-      return BoneCrawlerZoneObjects.getBreakable(zone, idx);
+    if(window.SceneRuntime && typeof SceneRuntime.getBreakable === 'function'){
+      return SceneRuntime.getBreakable(zone, idx);
     }
   }catch(err){}
   return null;
@@ -302,8 +301,8 @@ function handleBreakableObjectBreak(zone, idx, brokenArray, breakRects){
   const cy=r.y+r.h/2;
   brokenArray[idx]=true;
   try{
-    if(window.BoneCrawlerProgression){
-      BoneCrawlerProgression.emit('prop.broken', {
+    if(window.EventEngine){
+      EventEngine.emit('prop.broken', {
         zoneId:zone,
         objectId:(def && def.id) || ('zone' + zone + '.decor' + idx),
         propType:'breakable',
@@ -328,7 +327,8 @@ function breakZone1Decor(idx){
   if(!zone1Broken || zone1Broken[idx]) return;
   const r=ZONE1_DECOR_BREAK_RECTS[idx];
   zone1Broken[idx]=true;
-  try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('prop.broken', {zoneId:1, objectId:'zone1.bookshelf'+idx, propType:'breakable', index:idx, x:r.x+r.w/2, y:r.y+r.h/2}); }catch(err){}
+  const def=getBreakableObjectDef(1, idx);
+  try{ if(window.EventEngine) EventEngine.emit('prop.broken', {zoneId:1, objectId:(def && def.id) || ('zone1.break'+idx), propType:'breakable', index:idx, x:r.x+r.w/2, y:r.y+r.h/2}); }catch(err){}
   burstDecor(r.x+r.w/2, r.y+r.h/2);
   if(Math.random()<BREAKABLE_HALF_HEART_DROP_CHANCE){
     spawnHalfHeartDrop(r.x+Math.floor(r.w/2)-3, r.y+Math.floor(r.h/2)-3);

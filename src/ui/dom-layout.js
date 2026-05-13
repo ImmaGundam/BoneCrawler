@@ -1,5 +1,6 @@
-// BoneCrawler 2.8
-// Purpose: Canvas/DOM references, display zoom, side panels, collapsible panels, responsive shell layout, and non-game UI handlers.
+// Dom-layout.js
+// Purpose: Canvas/DOM references, display zoom, side panels, collapsible panels,
+// responsive shell layout, and non-game UI handlers.
 
 // ── Canvas ────────────────────────────────────────────────────
 const canvas = document.getElementById('gameCanvas');
@@ -118,7 +119,7 @@ function getPlayerStageWidth(){
 }
 function getMenuZoomForDisplayZoom(){
   // Let the game canvas grow normally, but keep the desktop side panels compact
-  // so they do not get forced underneath the game at 175%+ display zoom.
+  // so they do not get forced underneath the game at a higher display zoom.
   const scaled = 1 + ((displayZoom || 1) - 1) * 0.25;
   return Math.min(1.22, Math.max(1, scaled));
 }

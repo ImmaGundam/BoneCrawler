@@ -1,7 +1,7 @@
 // Runtime event bus - game-events.js
 // Purpose: shared gameplay hooks for spawn systems, progression rules, objects, dialog, and editor/runtime bindings.
 (function(){
-  if(window.BoneCrawlerEvents) return;
+  if(window.EventBus) return;
 
   const listeners = Object.create(null);
   const history = [];
@@ -59,5 +59,5 @@
   function getHistory(){ return history.slice(); }
   function clearHistory(){ history.length = 0; }
 
-  window.BoneCrawlerEvents = {on, once, off:remove, emit, getHistory, clearHistory};
+  window.EventBus = {on, once, off:remove, emit, getHistory, clearHistory};
 })();

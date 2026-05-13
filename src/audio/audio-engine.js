@@ -1,7 +1,7 @@
-// BoneCrawler audio engine
+// audio-engine
 // Purpose: small global audio service for SFX, ambience, and music.
 (function(){
-  if(window.BoneCrawlerAudio) return;
+  if(window.AudioEngine) return;
 
   const manifest={
     sfx:{
@@ -202,6 +202,6 @@
     window.addEventListener(type, unlock, {once:true, passive:true});
   });
 
-  window.BoneCrawlerAudio=api;
+  window.AudioEngine=api;
   window.AudioEvents=events;
 })();

@@ -1,7 +1,5 @@
-// BoneCrawler safe split module
+// Player input
 // Purpose: Keyboard, mouse, and touch input listeners and input state transitions.
-// Source: app.js lines 4034-4406
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
 
 // ── Input ─────────────────────────────────────────────────────
 const keys={};

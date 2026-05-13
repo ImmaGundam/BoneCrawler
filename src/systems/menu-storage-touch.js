@@ -30,79 +30,25 @@ function openDevKitPrompt(){
 
   return true;
 }
-const ZONE1_DOOR_RECT={x:GW/2-5,y:PY-2,w:10,h:10};
-const ZONE1_DECOR_BREAK_RECTS=[
-  // left / right bookshelves
-  {x:PX+2,y:PY+22,w:6,h:17},
-  {x:PX+PW-8,y:PY+20,w:6,h:17},
-
-  // broken round table + chairs corner
-  {x:PX+7,y:PY+11,w:19,h:15},
-
-  // lone broken barrel near the top-right
-  {x:PX+PW-14,y:PY+8,w:6,h:8},
-
-  // bottom-right barrel cluster
-  {x:PX+PW-24,y:PY+PH-22,w:6,h:8},
-  {x:PX+PW-16,y:PY+PH-20,w:6,h:8},
-  {x:PX+PW-9,y:PY+PH-23,w:6,h:8},
-  {x:PX+PW-18,y:PY+PH-13,w:6,h:8},
-  {x:PX+PW-10,y:PY+PH-12,w:6,h:8},
-];
-const ZONE1_DECOR_BLOCKERS=[
-  // standing shelves only block at their lower/base portion so the player can walk under the upper body
-  {x:PX+2,y:PY+33,w:6,h:6},
-  {x:PX+PW-8,y:PY+31,w:6,h:6},
-
-  // broken round table + chairs corner
-  {x:PX+7,y:PY+11,w:19,h:15},
-
-  // lone broken barrel near the top-right
-  {x:PX+PW-14,y:PY+8,w:6,h:8},
-
-  // bottom-right barrel cluster
-  {x:PX+PW-24,y:PY+PH-22,w:6,h:8},
-  {x:PX+PW-16,y:PY+PH-20,w:6,h:8},
-  {x:PX+PW-9,y:PY+PH-23,w:6,h:8},
-  {x:PX+PW-18,y:PY+PH-13,w:6,h:8},
-  {x:PX+PW-10,y:PY+PH-12,w:6,h:8},
-];
-const ZONE2_TREE_BLOCKERS=[
-  // lower trunk / stump only; top half stays walkable so the player can appear under the tree
-  {x:GW/2-5,y:PY+46,w:10,h:15},
-
-  // main root mass / lower roots
-  {x:GW/2-13,y:PY+53,w:26,h:8},
-  {x:GW/2-7,y:PY+59,w:14,h:5},
-  {x:GW/2-23,y:PY+53,w:13,h:6},
-  {x:GW/2+10,y:PY+53,w:13,h:6},
-];
-const ZONE1_EXTRA_BLOCKERS=[
-  {x:PX+9,y:PY+PH-16,w:8,h:6},   // broken weapon rack
-  {x:PX+19,y:PY+PH-18,w:7,h:10}, // training dummy
-];
-
-const ZONE2_HOLE_BLOCKERS=[
-  {x:PX+15,y:PY+PH-24,w:4,h:4},
-  {x:PX+PW-27,y:PY+PH-25,w:4,h:4},
-];
-// Zone 2 object definitions may load after this split module in bundled builds.
-// Keep these arrays stable, then populate them once BoneCrawlerZoneObjects is available.
-const ZONE2_DECOR_BREAK_RECTS=[];
-const ZONE2_DECOR_BLOCKERS=[];
+const __menuSceneGeometry = (window.SceneRuntime && typeof SceneRuntime.getGeometry === 'function')
+  ? SceneRuntime.getGeometry()
+  : {};
+const ZONE1_DOOR_RECT=__menuSceneGeometry.ZONE1_DOOR_RECT || {x:0,y:0,w:0,h:0};
+const ZONE1_DECOR_BREAK_RECTS=__menuSceneGeometry.ZONE1_DECOR_BREAK_RECTS || [];
+const ZONE1_DECOR_BLOCKERS=__menuSceneGeometry.ZONE1_DECOR_BLOCKERS || [];
+const ZONE2_TREE_BLOCKERS=__menuSceneGeometry.ZONE2_TREE_BLOCKERS || [];
+const ZONE1_EXTRA_BLOCKERS=__menuSceneGeometry.ZONE1_EXTRA_BLOCKERS || [];
+const ZONE2_HOLE_BLOCKERS=__menuSceneGeometry.ZONE2_HOLE_BLOCKERS || [];
+const ZONE2_DECOR_BREAK_RECTS=__menuSceneGeometry.ZONE2_DECOR_BREAK_RECTS || [];
+const ZONE2_DECOR_BLOCKERS=__menuSceneGeometry.ZONE2_DECOR_BLOCKERS || [];
 function syncZone2ObjectGeometry(){
   try{
-    if(!window.BoneCrawlerZoneObjects) return false;
-    if(typeof BoneCrawlerZoneObjects.getBreakRects === 'function'){
-      ZONE2_DECOR_BREAK_RECTS.splice(0, ZONE2_DECOR_BREAK_RECTS.length, ...BoneCrawlerZoneObjects.getBreakRects(2));
+    if(window.SceneRuntime && typeof SceneRuntime.rebuild === 'function'){
+      SceneRuntime.rebuild();
+      return true;
     }
-    if(typeof BoneCrawlerZoneObjects.getBlockerRects === 'function'){
-      ZONE2_DECOR_BLOCKERS.splice(0, ZONE2_DECOR_BLOCKERS.length, ...BoneCrawlerZoneObjects.getBlockerRects(2));
-    }
-    return ZONE2_DECOR_BREAK_RECTS.length > 0;
-  }catch(err){
-    return false;
-  }
+  }catch(err){}
+  return false;
 }
 syncZone2ObjectGeometry();
 const SCORE_PAGE_SIZE=6;

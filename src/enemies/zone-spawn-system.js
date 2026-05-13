@@ -769,7 +769,7 @@
         }
         if(typeof spawnKeyDrop === 'function') spawnKeyDrop(x, y, reward.kind || 'zone');
         if(reward.text) showFloat(enemy ? enemy.x + (enemy.w || 8) / 2 : x, enemy ? enemy.y - 10 : y - 8, reward.text, reward.life || 52, resolveColor(reward.color, (window.C && C.BN1) ? C.BN1 : '#fff'));
-        try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('standard.reward', {zoneId:zone, rewardId:reward.id || null, action:reward.action, kind:reward.kind || null, x, y}); }catch(err){}
+        try{ if(window.EventEngine) EventEngine.emit('standard.reward', {zoneId:zone, rewardId:reward.id || null, action:reward.action, kind:reward.kind || null, x, y}); }catch(err){}
         return true;
       }catch(err){ return false; }
     }
@@ -781,12 +781,12 @@
         } else {
           if(typeof dragonBoss !== 'undefined' && !dragonBoss && !bossDefeated && !(zone === 1 && zone1MiniBossDefeated) && typeof spawnDragonBoss === 'function') spawnDragonBoss();
         }
-        try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('standard.boss.spawned', {zoneId:zone, bossId}); }catch(err){}
+        try{ if(window.EventEngine) EventEngine.emit('standard.boss.spawned', {zoneId:zone, bossId}); }catch(err){}
         return true;
       }catch(err){ return false; }
     }
     if(reward.action === 'emit'){
-      try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit(reward.event || 'standard.event', Object.assign({zoneId:zone, rewardId:reward.id || null}, reward.payload || {})); return true; }catch(err){ return false; }
+      try{ if(window.EventEngine) EventEngine.emit(reward.event || 'standard.event', Object.assign({zoneId:zone, rewardId:reward.id || null}, reward.payload || {})); return true; }catch(err){ return false; }
     }
     return false;
   }
@@ -857,7 +857,7 @@
     scheduleStandardSpecials();
     if(isStandardComplete(zone) && !state.standardComplete){
       state.standardComplete = true;
-      try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('standard.completed', {zoneId:zone, zoneKills:getZoneKills(zone), runKills:typeof killCount !== 'undefined' ? killCount : 0}); }catch(err){}
+      try{ if(window.EventEngine) EventEngine.emit('standard.completed', {zoneId:zone, zoneKills:getZoneKills(zone), runKills:typeof killCount !== 'undefined' ? killCount : 0}); }catch(err){}
     }
     return true;
   }
@@ -930,7 +930,7 @@
     const intro = getWaveIntroSettings(cfg, wave);
     if(!intro.enabled) return false;
     state.waveIntro = { phase: 'wave', t: intro.waveTextLife, shown: false, settings: intro, waveId: wave.id || null };
-    try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('wave.announced', {zoneId:state.zone, waveIndex:state.waveIndex, waveId:wave.id || null}); }catch(err){}
+    try{ if(window.EventEngine) EventEngine.emit('wave.announced', {zoneId:state.zone, waveIndex:state.waveIndex, waveId:wave.id || null}); }catch(err){}
     return true;
   }
   function setWaveIntroPhase(phase, life){
@@ -970,7 +970,7 @@
     state.pressureBursts = 0;
     const spawns = Array.isArray(wave.spawns) ? wave.spawns : [];
     for(let i = 0; i < spawns.length; i++) queueWaveSpawn(spawns[i], wave, i);
-    try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('wave.started', {zoneId:state.zone, waveIndex:state.waveIndex, waveId:wave.id || null}); }catch(err){}
+    try{ if(window.EventEngine) EventEngine.emit('wave.started', {zoneId:state.zone, waveIndex:state.waveIndex, waveId:wave.id || null}); }catch(err){}
   }
   function startWave(){
     const cfg = getZoneConfig(state.zone);
@@ -1109,9 +1109,9 @@
       activeEnemies: (typeof enemies !== 'undefined' && Array.isArray(enemies)) ? enemies.length : 0,
       queuedSpawns: state.queue.length
     };
-    try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('wave.completed', payload); }catch(err){}
-    try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('waves.finalWaveComplete', payload); }catch(err){}
-    try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('waves.completed', payload); }catch(err){}
+    try{ if(window.EventEngine) EventEngine.emit('wave.completed', payload); }catch(err){}
+    try{ if(window.EventEngine) EventEngine.emit('waves.finalWaveComplete', payload); }catch(err){}
+    try{ if(window.EventEngine) EventEngine.emit('waves.completed', payload); }catch(err){}
     return true;
   }
   function maybeCompleteFinalWave(){
@@ -1126,7 +1126,7 @@
   function advanceWave(){
     const cfg = getZoneConfig(state.zone);
     const waves = Array.isArray(cfg.waves) ? cfg.waves : [];
-    try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('wave.completed', {zoneId:state.zone, waveIndex:state.waveIndex, waveId:(getCurrentWave() && getCurrentWave().id) || null}); }catch(err){}
+    try{ if(window.EventEngine) EventEngine.emit('wave.completed', {zoneId:state.zone, waveIndex:state.waveIndex, waveId:(getCurrentWave() && getCurrentWave().id) || null}); }catch(err){}
     state.waveIndex++;
     if(state.waveIndex >= waves.length){ completeWaves(); return; }
     const next = waves[state.waveIndex];
@@ -1148,7 +1148,7 @@
   function runCompletionEvent(event){
     if(!event || !event.type) return;
     if(event.type === 'emit'){
-      try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit(event.event || 'progression.event', Object.assign({zoneId:state.zone}, event.payload || {})); }catch(err){}
+      try{ if(window.EventEngine) EventEngine.emit(event.event || 'progression.event', Object.assign({zoneId:state.zone}, event.payload || {})); }catch(err){}
       return;
     }
     if(event.type === 'grantZone1DoorKey'){ grantZone1DoorKey(); return; }
@@ -1173,7 +1173,7 @@
     // should not erase spawned game objects.
     if(state.lastCompleteZone === state.zone) return;
     state.lastCompleteZone = state.zone;
-    try{ if(window.BoneCrawlerProgression) BoneCrawlerProgression.emit('waves.completed', {zoneId:state.zone, waveIndex:state.waveIndex}); }catch(err){}
+    try{ if(window.EventEngine) EventEngine.emit('waves.completed', {zoneId:state.zone, waveIndex:state.waveIndex}); }catch(err){}
     const events = Array.isArray(cfg.onComplete) ? cfg.onComplete : (cfg.onComplete ? [cfg.onComplete] : []);
     for(const event of events) runCompletionEvent(event);
   }

@@ -57,7 +57,7 @@ function spawnWizardNearShadow(){
     if(enemies.some(e=>ov(box,{x:e.x,y:e.y,w:e.w,h:e.h}))) continue;
     enemies.push({x,y,w:8,h:8,speed:0.30,dir:'left',
       atkT:0,atkCD:140,walkF:0,hp:1,points:3,giant:false,wizard:true,hurtT:0,shootCD:64,
-      shadowBossWizard:true});
+      shadowBossWizard:true,enemyType:'wizardEnemy1',zone:(typeof currentZone !== 'undefined' ? currentZone : 0)});
     return true;
   }
   return false;
@@ -86,7 +86,7 @@ function spawnWizardNearDragon(){
   const x=Math.max(PX, Math.min(PX+PW-8, b.x + (b.dir==='right' ? b.w-10 : 2)));
   const y=Math.max(PY, Math.min(PY+PH-8, b.y+b.h+2));
   enemies.push({x,y,w:8,h:8,speed:0.26,dir:'left',
-    atkT:0,atkCD:150,walkF:0,hp:1,points:3,giant:false,wizard:true,hurtT:0,shootCD:70});
+    atkT:0,atkCD:150,walkF:0,hp:1,points:3,giant:false,wizard:true,hurtT:0,shootCD:70,enemyType:'wizardEnemy1',zone:(typeof currentZone !== 'undefined' ? currentZone : 0)});
 }
 
 function spawnNormalFromDragon(){
@@ -97,7 +97,7 @@ function spawnNormalFromDragon(){
   const y=Math.max(PY, Math.min(PY+PH-9, b.y+b.h-4 + ((Math.random()*4)|0)));
   enemies.push({x,y,w:9,h:9,speed:0.34,dir:b.dir,
     atkT:0,atkCD:90+(Math.random()*40|0),walkF:0,
-    hp:1,points:1,giant:false,hurtT:0,variant:normalVariants[(Math.random()*normalVariants.length)|0]});
+    hp:1,points:1,giant:false,hurtT:0,variant:normalVariants[(Math.random()*normalVariants.length)|0],enemyType:'normalEnemy1',zone:(typeof currentZone !== 'undefined' ? currentZone : 0)});
 }
 
 function spawnDragonBoss(){
@@ -119,6 +119,8 @@ function spawnDragonBoss(){
     summonT:DRAGON_SUMMON_INTERVAL, spawnLock:36,
     zone1Mini,
     points:zone1Mini?200:300,
+    bossId:'dragonBoss',
+    zone:currentZone
   };
   floatTexts.push({x:GW/2,y:PY+12,text:(zone1Mini?'MINIBOSS: BONE DRAGON':'BOSS: SKELETON DRAGON'),life:85,max:85,col:C.FR1});
   return true;
@@ -138,6 +140,8 @@ function spawnWhyDragonsBoss(){
     summonT:DRAGON_SUMMON_INTERVAL, spawnLock:44,
     zone1Mini:false,
     bonus:true,
+    bossId:'whyDragonsBoss',
+    zone:2,
     points:300,
   };
   floatTexts.push({x:GW/2,y:PY+22,text:'BONUS: SKELETON DRAGON',life:90,max:90,col:C.MG2});
@@ -245,8 +249,8 @@ function defeatDragonBoss(){
   clearChests();
   let progressionHandled=false;
   try{
-    if(window.BoneCrawlerProgression){
-      const eventResult=BoneCrawlerProgression.emit('boss.defeated', {
+    if(window.EventEngine){
+      const eventResult=EventEngine.emit('boss.defeated', {
         bossId:b.zone1Mini ? 'zone1Dragon' : 'dragonBoss',
         zoneId:currentZone,
         x:Math.round(cx),
@@ -536,7 +540,9 @@ function spawnShadowBoss(){
     hurtT:0, atkT:0, atkName:'', howlT:0,
     lungeCD:72, slashCD:30, counterT:0, waveT:SHADOW_WAVE_INTERVAL,
     screechCD:0, screechStartupT:0, screechT:0, screechWaveT:SHADOW_SCREECH_WAVE_INTERVAL,
-    lungeVX:0, lungeVY:0
+    lungeVX:0, lungeVY:0,
+    bossId:'shadowBoss',
+    zone:3
   };
   shadowWizardRespawns=[];
   floatTexts.push({x:GW/2,y:PY+12,text:'BOSS: CORRUPTED CRAWLER',life:95,max:95,col:C.MG2});
@@ -732,8 +738,8 @@ function defeatShadowBoss(){
   wizardKillCount++;
   let progressionHandled=false;
   try{
-    if(window.BoneCrawlerProgression){
-      const eventResult=BoneCrawlerProgression.emit('boss.defeated', {bossId:'shadowBoss', zoneId:3, x:Math.round(c.x), y:Math.round(c.y)});
+    if(window.EventEngine){
+      const eventResult=EventEngine.emit('boss.defeated', {bossId:'shadowBoss', zoneId:3, x:Math.round(c.x), y:Math.round(c.y)});
       progressionHandled=!!(eventResult && eventResult.handled);
     }
   }catch(err){}

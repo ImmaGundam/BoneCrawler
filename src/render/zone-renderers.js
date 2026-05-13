@@ -1,7 +1,51 @@
 // Maps - zone-renders
 // Purpose: Dungeon/zone renderers for Zone 1, Zone 2, Zone 3, Secret Zone 1, Secret Zone 2, decor, backgrounds.
+function zrctx(){ return window.__renderCtxOverride || ctx; }
+
+function getScenePlacementSignature(sceneId){
+  try{
+    if(!window.SceneRuntime || typeof SceneRuntime.getSceneEntities !== 'function') return '';
+    return (SceneRuntime.getSceneEntities(sceneId) || []).map(function(entity){
+      if(!entity) return '';
+      const r = entity.render || {};
+      const rect = entity.rect || entity.breakRect || entity.blockRect || entity.interactRect || entity.triggerRect || {};
+      const broken = entity.broken || {};
+      return [entity.id||'', r.x||'', r.y||'', r.layer||'', r.variant||'', rect.x||'', rect.y||'', rect.w||'', rect.h||'', broken.x||'', broken.y||'', broken.variant||'', entity.group||''].join(',');
+    }).join(';');
+  }catch(err){ return ''; }
+}
+
+function getZoneRenderCacheSignature(zone){
+  if(zone===1){
+    const broken = Array.isArray(zone1Broken) ? zone1Broken.map(function(v){ return v ? 1 : 0; }).join('') : '';
+    const crackOpen = (typeof zone1SecretEntranceReady === 'function' && zone1SecretEntranceReady()) ? 1 : 0;
+    return ['z1', broken, crackOpen, getScenePlacementSignature(1)].join('|');
+  }
+  if(zone===2){
+    const broken = Array.isArray(zone2Broken) ? zone2Broken.map(function(v){ return v ? 1 : 0; }).join('') : '';
+    return ['z2', broken, getScenePlacementSignature(2)].join('|');
+  }
+  if(zone===3){
+    const broken = Array.isArray(zone3Broken) ? zone3Broken.map(function(v){ return v ? 1 : 0; }).join('') : '';
+    const portalOpen = (!!shadowBossDefeated && score>=SECRET2_SCORE_REQ) ? 1 : 0;
+    return ['z3', broken, portalOpen, getScenePlacementSignature(3)].join('|');
+  }
+  return ['z', zone, getScenePlacementSignature(zone)].join('|');
+}
+
+function drawZoneCachedComposite(zone, buildStaticFn, drawDynamicFn){
+  if(!window.SceneRenderCache || typeof SceneRenderCache.ensure !== 'function'){
+    buildStaticFn();
+    if(typeof drawDynamicFn === 'function') drawDynamicFn();
+    return;
+  }
+  const cacheCanvas = SceneRenderCache.ensure(zone, getZoneRenderCacheSignature(zone), buildStaticFn);
+  zrctx().drawImage(cacheCanvas, 0, 0);
+  if(typeof drawDynamicFn === 'function') drawDynamicFn();
+}
+
 // ── Dungeon background ────────────────────────────────────────
-function drawDungeonZone1(){
+function drawDungeonZone1Static(){
   fr(0,0,GW,GH,C.W2);
   for(let y=0;y<GH;y+=4){
     fr(0,y,GW,1,C.W3);
@@ -13,12 +57,12 @@ function drawDungeonZone1(){
   for(let y=PY+5;y<PY+PH;y+=7) fr(PX,y,PW,1,C.FL2);
   for(let x=PX+10;x<PX+PW;x+=14) fr(x,PY,1,PH,C.FL2);
   for(const d of BONE_DECALS){
-    ctx.globalAlpha=0.54;
+    zrctx().globalAlpha=0.54;
     if(d.type==='s') ds(S.mskull,d.x,d.y);
     else if(d.type==='h'){fr(d.x,d.y,2,1,d.col);fr(d.x+1,d.y+1,1,1,d.col);}
     else{fr(d.x,d.y,1,2,d.col);fr(d.x+1,d.y+1,1,1,d.col);}
   }
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
   fr(PX-1,PY-1,PW+2,1,C.WH);
   fr(PX-1,PY-1,1,PH+2,C.WH);
   fr(PX-1,PY+PH,PW+2,1,C.W3);
@@ -61,10 +105,10 @@ function drawZone3BrokenTreeCluster(){
   const shake=zone3TreeShakeT>0 ? (((zone3TreeShakeT%4)<2)?-1:1) : 0;
   const mainX=PX+21+shake, mainY=PY+PH-18;
 
-  ctx.globalAlpha=0.20;
+  zrctx().globalAlpha=0.20;
   fr(PX+9,PY+PH-12,24,3,'#5a4330');
   fr(PX+14,PY+PH-20,16,2,'#4a3526');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
   // chopped stump: upper half removed
   fr(mainX-5, mainY-1, 10, 9, C.TB2);
@@ -104,7 +148,7 @@ function drawZone3BrokenTreeCluster(){
   fr(mainX+5,  mainY+12,1,1, C.TB2);
 }
 
-function drawDungeonZone3(){
+function drawDungeonZone3Static(){
   const wallDark='#201710';
   const wallMid ='#2f2219';
   const wallLight='#5a4734';
@@ -126,30 +170,30 @@ function drawDungeonZone3(){
   }
   for(let y=1;y<GH;y+=4) fr(0,y,GW,1,'#5b4937');
 
-  ctx.globalAlpha=0.05+0.02*Math.sin(frame*0.028);
-  ctx.fillStyle='#5d4734';
-  ctx.fillRect(0, 0, GW*SCALE, Math.floor(GH*0.46)*SCALE);
-  ctx.globalAlpha=0.04+0.03*Math.sin(frame*0.034+1.4);
-  ctx.fillStyle='#31261d';
-  ctx.fillRect(0, Math.floor(GH*0.34)*SCALE, GW*SCALE, Math.floor(GH*0.66)*SCALE);
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=0.05+0.02*Math.sin(frame*0.028);
+  zrctx().fillStyle='#5d4734';
+  zrctx().fillRect(0, 0, GW*SCALE, Math.floor(GH*0.46)*SCALE);
+  zrctx().globalAlpha=0.04+0.03*Math.sin(frame*0.034+1.4);
+  zrctx().fillStyle='#31261d';
+  zrctx().fillRect(0, Math.floor(GH*0.34)*SCALE, GW*SCALE, Math.floor(GH*0.66)*SCALE);
+  zrctx().globalAlpha=1;
 
   fr(PX,PY,PW,PH,floorBase);
   for(let y=PY+5;y<PY+PH;y+=7) fr(PX,y,PW,1,floorLine);
   for(let x=PX+10;x<PX+PW;x+=14) fr(x,PY,1,PH,floorAccent);
 
-  ctx.globalAlpha=0.04+0.02*Math.sin(frame*0.03+0.8);
-  ctx.fillStyle=floorGlow;
-  ctx.fillRect(PX*SCALE, PY*SCALE, PW*SCALE, PH*SCALE);
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=0.04+0.02*Math.sin(frame*0.03+0.8);
+  zrctx().fillStyle=floorGlow;
+  zrctx().fillRect(PX*SCALE, PY*SCALE, PW*SCALE, PH*SCALE);
+  zrctx().globalAlpha=1;
 
-  ctx.globalAlpha=0.28;
+  zrctx().globalAlpha=0.28;
   for(const d of BONE_DECALS){
     if(d.type==='s') ds(S.mskull,d.x,d.y);
     else if(d.type==='h'){fr(d.x,d.y,2,1,C.BN2);fr(d.x+1,d.y+1,1,1,C.BN3);}
     else{fr(d.x,d.y,1,2,C.BN3);fr(d.x+1,d.y+1,1,1,C.BN2);}
   }
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
   drawZone3DoorBlockage();
 
@@ -157,24 +201,6 @@ function drawDungeonZone3(){
   drawTornCarpetPatch(GW/2, PY+22);
 
   drawZoneBreakablesByLayer(3, 'main');
-
-  drawZone3BrokenTreeCluster();
-
-  if(shadowBossDefeated && score>=SECRET2_SCORE_REQ){
-    const rx=ZONE3_SECRET2_PORTAL_RECT.x, ry=ZONE3_SECRET2_PORTAL_RECT.y;
-    const pulse=0.22 + 0.08*Math.sin(frame*0.12);
-    ctx.globalAlpha=pulse;
-    fr(rx-3,ry-3,ZONE3_SECRET2_PORTAL_RECT.w+6,ZONE3_SECRET2_PORTAL_RECT.h+6,C.MG2);
-    ctx.globalAlpha=0.30 + 0.10*Math.sin(frame*0.15+1.1);
-    fr(rx-1,ry-1,ZONE3_SECRET2_PORTAL_RECT.w+2,ZONE3_SECRET2_PORTAL_RECT.h+2,C.SH);
-    ctx.globalAlpha=1;
-    fr(rx+1,ry+1,10,10,'#36414b');
-    fr(rx+2,ry+2,8,8,'#101923');
-    fr(rx+3,ry+3,6,6,'#43295b');
-    fr(rx+4,ry+4,4,4,'#a75dff');
-    fr(rx+5 + Math.round(Math.sin(frame*0.09)),ry+5,1,1,'#f0ddff');
-    fr(rx+6 + Math.round(Math.cos(frame*0.11)),ry+6,1,1,C.MG2);
-  }
 
   // dead roots / dried growth where zone 1 and 2 aesthetics meet
   for(let vy=PY+10;vy<PY+PH-8;vy+=10){
@@ -186,16 +212,6 @@ function drawDungeonZone3(){
     fr(PX+PW-8,vy+2,2,1,'#8a7254');
   }
 
-  // bottom corners lit mostly by torch fire
-  drawTorch(PX+8, PY+PH-19);
-  ctx.globalAlpha=0.10+0.04*Math.sin(frame*0.18);
-  fr(PX+1, PY+PH-28, 18, 16, '#6a4322');
-  ctx.globalAlpha=1;
-  drawTorch(PX+PW-12, PY+PH-19);
-  ctx.globalAlpha=0.10+0.04*Math.sin(frame*0.18+1.3);
-  fr(PX+PW-24, PY+PH-28, 18, 16, '#6a4322');
-  ctx.globalAlpha=1;
-  drawZoneBreakablesByLayer(3, 'lights');
   drawZoneBreakablesByLayer(3, 'bottom');
   drawCrate(PX+PW-18, PY+PH-11, true);
 
@@ -244,26 +260,26 @@ function drawDungeonSecret1(){
   fr(fx-7, fy+15, 14, 3, '#c8ccd3');
 
   // larger fairy pool
-  ctx.globalAlpha=0.18+0.06*Math.sin(frame*0.028);
+  zrctx().globalAlpha=0.18+0.06*Math.sin(frame*0.028);
   fr(fx-29,fy-14,58,28,C.MG2);
-  ctx.globalAlpha=0.38;
+  zrctx().globalAlpha=0.38;
   fr(fx-25,fy-12,50,24,'#4e6fa0');
-  ctx.globalAlpha=0.70;
+  zrctx().globalAlpha=0.70;
   fr(fx-19,fy-9,38,18,'#6ca8cf');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
   fr(fx-13,fy-6,26,12,'#a6e8ff');
 
   // moving water stripes / shimmer (30% slower)
   const rippleA = Math.round(Math.sin(frame*0.056)*3);
   const rippleB = Math.round(Math.sin(frame*0.042 + 1.7)*4);
-  ctx.globalAlpha=0.28;
+  zrctx().globalAlpha=0.28;
   fr(fx-18+rippleA,fy-5,36,1,'#d8f6ff');
   fr(fx-16-rippleB,fy-1,32,1,'#d8f6ff');
   fr(fx-14+rippleB,fy+3,28,1,'#bfefff');
-  ctx.globalAlpha=0.18;
+  zrctx().globalAlpha=0.18;
   fr(fx-10-rippleA,fy-8,20,1,'#ffffff');
   fr(fx-11+rippleB,fy+6,22,1,'#ffffff');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
   // little animated sparkles in the water (also slower)
   const sparkleX = Math.round(Math.sin(frame*0.063)*6);
@@ -278,10 +294,10 @@ function drawDungeonSecret1(){
     const oy=Math.sin(ang*1.4)*12;
     const sx=Math.round(fx+ox);
     const sy=Math.round(fy-13+oy);
-    ctx.globalAlpha=0.5+0.35*Math.sin(frame*0.14+i);
+    zrctx().globalAlpha=0.5+0.35*Math.sin(frame*0.14+i);
     fr(sx,sy,2,2,C.MG2);
     fr(sx+1,sy-1,1,1,C.WH);
-    ctx.globalAlpha=1;
+    zrctx().globalAlpha=1;
   }
 
   // stone pillars around the fountain area
@@ -297,12 +313,12 @@ function drawDungeonSecret1(){
   drawTorch(PX+PW-10, PY+PH-14);
 
   // sun-speckled dust through the opening above the fountain
-  ctx.globalAlpha=0.28;
+  zrctx().globalAlpha=0.28;
   fr(fx-9 + Math.round(Math.sin(frame*0.04)*2), fy-11, 1, 1, '#f9fff2');
   fr(fx+2 + Math.round(Math.cos(frame*0.05)*2), fy-8, 1, 1, '#f9fff2');
   fr(fx+7 + Math.round(Math.sin(frame*0.03+0.8)*2), fy-2, 1, 1, '#f9fff2');
   fr(fx-13 + Math.round(Math.cos(frame*0.06+1.1)*2), fy+1, 1, 1, '#f9fff2');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
   // tiny rat and cheese in the upper-left corner
   const ratX=SECRET1_RAT_RECT.x, ratY=SECRET1_RAT_RECT.y;
@@ -319,9 +335,9 @@ function drawDungeonSecret1(){
   fr(ratX+7,ratY+4,2,1,'#9694a2');
   fr(ratX+3,ratY+2,1,1,C.DK);
   if(secret1RatTalkCount>=2){
-    ctx.globalAlpha=0.18+0.05*Math.sin(frame*0.12);
+    zrctx().globalAlpha=0.18+0.05*Math.sin(frame*0.12);
     fr(ratX-2,ratY-2,12,10,C.MG2);
-    ctx.globalAlpha=1;
+    zrctx().globalAlpha=1;
   }
 
   // larger decorative rocks with varied gray tones
@@ -340,9 +356,9 @@ function drawDungeonSecret1(){
   fr(dx,dy+3,1,5,'#8e6e48');
   fr(dx+9,dy+3,1,5,'#8e6e48');
   if(secret1BlessingT<=0){
-    ctx.globalAlpha=0.16+0.06*Math.sin(frame*0.049);
+    zrctx().globalAlpha=0.16+0.06*Math.sin(frame*0.049);
     fr(dx+2,dy+8,6,3,C.WH);
-    ctx.globalAlpha=1;
+    zrctx().globalAlpha=1;
   }
 
   fr(PX-1,PY-1,PW+2,1,C.WH);
@@ -372,19 +388,19 @@ function drawSecret2SwordOverlay(cx, cy){
   fr(cx-1,cy-14,2,1,C.BN1);
 
   // sword glow, separate from sunlight beam
-  ctx.globalAlpha=0.06 + 0.025*Math.sin(frame*0.08);
+  zrctx().globalAlpha=0.06 + 0.025*Math.sin(frame*0.08);
   fr(cx-3,cy-14,6,14,'#dff7ff');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
   // fairies around the blade
   for(let i=0;i<3;i++){
     const ang=frame*0.045 + i*2.1;
     const fx=Math.round(cx + Math.cos(ang)*6);
     const fy=Math.round(cy-12 + Math.sin(ang*1.2)*4);
-    ctx.globalAlpha=0.45 + 0.30*Math.sin(frame*0.13+i);
+    zrctx().globalAlpha=0.45 + 0.30*Math.sin(frame*0.13+i);
     fr(fx,fy,2,2,C.MG2);
     fr(fx+1,fy-1,1,1,C.WH);
-    ctx.globalAlpha=1;
+    zrctx().globalAlpha=1;
   }
 }
 
@@ -437,27 +453,27 @@ function drawDungeonSecret2(){
   const cx=GW/2, cy=PY+43;
 
   // sunlight opening and beam
-  ctx.save();
-  ctx.globalAlpha=0.13 + 0.04*Math.sin(frame*0.035);
-  ctx.fillStyle='#f8fff0';
-  ctx.beginPath();
-  ctx.moveTo((cx-4)*SCALE, PY*SCALE);
-  ctx.lineTo((cx+6)*SCALE, PY*SCALE);
-  ctx.lineTo((cx+17)*SCALE, (cy+10)*SCALE);
-  ctx.lineTo((cx-13)*SCALE, (cy+10)*SCALE);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
+  zrctx().save();
+  zrctx().globalAlpha=0.13 + 0.04*Math.sin(frame*0.035);
+  zrctx().fillStyle='#f8fff0';
+  zrctx().beginPath();
+  zrctx().moveTo((cx-4)*SCALE, PY*SCALE);
+  zrctx().lineTo((cx+6)*SCALE, PY*SCALE);
+  zrctx().lineTo((cx+17)*SCALE, (cy+10)*SCALE);
+  zrctx().lineTo((cx-13)*SCALE, (cy+10)*SCALE);
+  zrctx().closePath();
+  zrctx().fill();
+  zrctx().restore();
 
-  ctx.globalAlpha=0.10 + 0.03*Math.sin(frame*0.04);
+  zrctx().globalAlpha=0.10 + 0.03*Math.sin(frame*0.04);
   fr(cx-13,cy+5,26,10,'#f3f7e1');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
-  ctx.globalAlpha=0.24;
+  zrctx().globalAlpha=0.24;
   fr(cx-2 + Math.round(Math.sin(frame*0.04)*2), cy-17, 1, 1, C.WH);
   fr(cx+4 + Math.round(Math.cos(frame*0.05)*2), cy-12, 1, 1, C.WH);
   fr(cx-6 + Math.round(Math.sin(frame*0.03+1.3)*2), cy-7, 1, 1, C.WH);
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
   // shrine platform with a more top-down view
   fr(cx-16,cy+4,32,7,'#cfd3cf');
@@ -479,9 +495,9 @@ function drawDungeonSecret2(){
 
   // wounded NPC - immagundam
   const nx=SECRET2_NPC_RECT.x, ny=SECRET2_NPC_RECT.y;
-  ctx.globalAlpha=0.18;
+  zrctx().globalAlpha=0.18;
   fr(nx-1,ny+6,14,3,C.DK);
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
   fr(nx+2,ny+2,7,3,C.TB2);
   fr(nx+8,ny+2,3,2,C.TB);
   fr(nx+10,ny+1,2,1,C.BN3);
@@ -496,11 +512,11 @@ function drawDungeonSecret2(){
   // return portal - exit back to the main menu
   const rx=SECRET2_RETURN_PORTAL_RECT.x, ry=SECRET2_RETURN_PORTAL_RECT.y;
   const pulse=0.20 + 0.08*Math.sin(frame*0.12);
-  ctx.globalAlpha=pulse;
+  zrctx().globalAlpha=pulse;
   fr(rx-2,ry-2,SECRET2_RETURN_PORTAL_RECT.w+4,SECRET2_RETURN_PORTAL_RECT.h+4,C.MG2);
-  ctx.globalAlpha=0.28 + 0.08*Math.sin(frame*0.15+1.1);
+  zrctx().globalAlpha=0.28 + 0.08*Math.sin(frame*0.15+1.1);
   fr(rx-1,ry-1,SECRET2_RETURN_PORTAL_RECT.w+2,SECRET2_RETURN_PORTAL_RECT.h+2,C.SH);
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
   // stone base / frame
   fr(rx+1,ry+1,10,10,'#36414b');
@@ -525,9 +541,53 @@ function drawDungeonSecret2(){
   fr(PX+PW,PY-1,1,PH+2,'#23313d');
 }
 
+function drawDungeonZone1(){
+  drawZoneCachedComposite(1, drawDungeonZone1Static);
+}
+
+function drawDungeonZone2Dynamic(){
+  drawZoneBreakablesByLayer(2, 'lights');
+}
+
+function drawDungeonZone2(){
+  drawZoneCachedComposite(2, drawDungeonZone2Static, drawDungeonZone2Dynamic);
+}
+
+function drawDungeonZone3Dynamic(){
+  drawZone3BrokenTreeCluster();
+  if(shadowBossDefeated && score>=SECRET2_SCORE_REQ && ZONE3_SECRET2_PORTAL_RECT){
+    const rx=ZONE3_SECRET2_PORTAL_RECT.x, ry=ZONE3_SECRET2_PORTAL_RECT.y;
+    const pulse=0.22 + 0.08*Math.sin(frame*0.12);
+    zrctx().globalAlpha=pulse;
+    fr(rx-3,ry-3,ZONE3_SECRET2_PORTAL_RECT.w+6,ZONE3_SECRET2_PORTAL_RECT.h+6,C.MG2);
+    zrctx().globalAlpha=0.30 + 0.10*Math.sin(frame*0.15+1.1);
+    fr(rx-1,ry-1,ZONE3_SECRET2_PORTAL_RECT.w+2,ZONE3_SECRET2_PORTAL_RECT.h+2,C.SH);
+    zrctx().globalAlpha=1;
+    fr(rx+1,ry+1,10,10,'#36414b');
+    fr(rx+2,ry+2,8,8,'#101923');
+    fr(rx+3,ry+3,6,6,'#43295b');
+    fr(rx+4,ry+4,4,4,'#a75dff');
+    fr(rx+5 + Math.round(Math.sin(frame*0.09)),ry+5,1,1,'#f0ddff');
+    fr(rx+6 + Math.round(Math.cos(frame*0.11)),ry+6,1,1,C.MG2);
+  }
+  drawTorch(PX+8, PY+PH-19);
+  zrctx().globalAlpha=0.10+0.04*Math.sin(frame*0.18);
+  fr(PX+1, PY+PH-28, 18, 16, '#6a4322');
+  zrctx().globalAlpha=1;
+  drawTorch(PX+PW-12, PY+PH-19);
+  zrctx().globalAlpha=0.10+0.04*Math.sin(frame*0.18+1.3);
+  fr(PX+PW-24, PY+PH-28, 18, 16, '#6a4322');
+  zrctx().globalAlpha=1;
+  drawZoneBreakablesByLayer(3, 'lights');
+}
+
+function drawDungeonZone3(){
+  drawZoneCachedComposite(3, drawDungeonZone3Static, drawDungeonZone3Dynamic);
+}
+
 function drawDungeon(){
-  if(window.BoneCrawlerZones && typeof BoneCrawlerZones.getActiveZone === 'function'){
-    const zone=BoneCrawlerZones.getActiveZone();
+  if(window.SceneEngine && typeof SceneEngine.getActiveZone === 'function'){
+    const zone=SceneEngine.getActiveZone();
     if(zone && typeof zone.render === 'function'){ zone.render(); return; }
   }
   if(currentZone===2){ drawDungeonZone2(); return; }
@@ -602,7 +662,7 @@ function drawZone2Tree(){
 }
 
 
-function drawDungeonZone2(){
+function drawDungeonZone2Static(){
   const wallA='#24313a';
   const wallB='#1c2730';
   const wallC='#33434d';
@@ -644,7 +704,6 @@ function drawDungeonZone2(){
   }
 
   drawZoneBreakablesByLayer(2, 'back');
-  drawZoneBreakablesByLayer(2, 'lights');
 
   const wallCracks = [
     [[PX+9,PY+10],[PX+10,PY+13],[PX+8,PY+16],[PX+10,PY+20],[PX+9,PY+24]],
@@ -722,12 +781,12 @@ function drawDungeonZone2(){
   drawZone2TriHole(PX+PW-27, PY+PH-25, true);
 
   for(const d of BONE_DECALS){
-    ctx.globalAlpha=0.36;
+    zrctx().globalAlpha=0.36;
     if(d.type==='s') ds(S.mskull,d.x,d.y);
     else if(d.type==='h'){fr(d.x,d.y,2,1,d.col);fr(d.x+1,d.y+1,1,1,d.col);}
     else{fr(d.x,d.y,1,2,d.col);fr(d.x+1,d.y+1,1,1,d.col);}
   }
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
   drawZone2Tree();
 
@@ -740,11 +799,11 @@ function drawDungeonZone2(){
 function drawTorch(lx,ly){
   ds(S.torch,lx,ly);
   const f=Math.floor(frame/4)%2;
-  ctx.globalAlpha=0.20+f*0.08;
+  zrctx().globalAlpha=0.20+f*0.08;
   fr(lx-2,ly-1,8,5,C.FR2);
-  ctx.globalAlpha=0.10+f*0.05;
+  zrctx().globalAlpha=0.10+f*0.05;
   fr(lx-1,ly,6,4,C.FR1);
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 }
 
 function drawChainColumn(x,y,len){
@@ -780,10 +839,10 @@ function drawSpiderWeb(cx,cy){
 
 function drawBarrel(lx,ly,variant=0){
   // soft floor shadow / warm reflected light
-  ctx.globalAlpha=0.22;
+  zrctx().globalAlpha=0.22;
   fr(lx-1,ly+8,8,1,'#7b5330');
   fr(lx,ly+9,6,1,'#5f3d24');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
   // common body
   fr(lx+1,ly,4,1,C.BN3);
@@ -828,10 +887,10 @@ function drawBarrel(lx,ly,variant=0){
 
 function drawBrokenRoundTableSet(lx,ly){
   // table shadow / lived-in grime
-  ctx.globalAlpha=0.16;
+  zrctx().globalAlpha=0.16;
   fr(lx-2,ly+10,15,2,'#6f4a28');
   fr(lx+1,ly+12,9,1,'#4f321c');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
   // broken round table top
   fr(lx+2,ly,7,1,C.BN3);
@@ -965,17 +1024,17 @@ function drawZone1SecretCrack(active=false, opened=false){
 
   // subtle ready-state pulse once the room is cleared
   if(active){
-    ctx.globalAlpha=0.08+0.04*Math.sin(frame*0.10);
+    zrctx().globalAlpha=0.08+0.04*Math.sin(frame*0.10);
     fr(x-1,y-1,10,16,C.MG2);
-    ctx.globalAlpha=1;
+    zrctx().globalAlpha=1;
   }
 }
 
 function drawBrokenBookshelf(lx,ly,variant=0){
   // wall shadow
-  ctx.globalAlpha=0.18;
+  zrctx().globalAlpha=0.18;
   fr(lx-1,ly,8,18,'#3a2617');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
   // frame
   fr(lx,ly,6,17,C.BN3);
@@ -1031,9 +1090,9 @@ function drawBrokenBookshelf(lx,ly,variant=0){
 
 function drawDecorRubble(cx,cy,kind){
   // small static rubble pile after breaking zone 1 props
-  ctx.globalAlpha=0.22;
+  zrctx().globalAlpha=0.22;
   fr(cx-4,cy+3,8,1,'#6a4528');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 
   if(kind===0 || kind===1){
     // shelf planks + books
@@ -1059,9 +1118,9 @@ function drawDecorRubble(cx,cy,kind){
 
 
 function drawCrate(lx,ly,broken=false){
-  ctx.globalAlpha=0.20;
+  zrctx().globalAlpha=0.20;
   fr(lx-1,ly+7,9,1,'#6b4a2c');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
   fr(lx,ly,7,7,C.TB2);
   fr(lx+1,ly+1,5,5,C.TB);
   fr(lx,ly+3,7,1,C.BN3);
@@ -1076,9 +1135,9 @@ function drawCrate(lx,ly,broken=false){
 
 function drawBrokenWeaponRack(lx,ly,small=false){
   const h = small ? 8 : 10;
-  ctx.globalAlpha=0.18;
+  zrctx().globalAlpha=0.18;
   fr(lx-1,ly+h,10,1,'#5b3f29');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
   fr(lx,ly,1,h,C.BN3);
   fr(lx+6,ly+1,1,h-1,C.BN3);
   fr(lx,ly+2,7,1,C.TB2);
@@ -1097,9 +1156,9 @@ function drawBrokenWeaponRack(lx,ly,small=false){
 }
 
 function drawTrainingDummy(lx,ly){
-  ctx.globalAlpha=0.20;
+  zrctx().globalAlpha=0.20;
   fr(lx-2,ly+10,10,2,'#6b4a2c');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
   fr(lx+2,ly+1,2,10,'#8b7350');
   fr(lx,ly+9,6,1,C.BN3);
   fr(lx-1,ly+10,8,1,C.TB2);
@@ -1115,13 +1174,13 @@ function drawTrainingDummy(lx,ly){
 
 function drawFloorLantern(lx,ly){
   const glow=0.17 + 0.05*Math.sin(frame*0.05 + lx*0.08 + ly*0.05);
-  ctx.globalAlpha=0.18+glow;
+  zrctx().globalAlpha=0.18+glow;
   fr(lx-4,ly-3,12,10,C.FR2);
-  ctx.globalAlpha=0.10+glow*0.8;
+  zrctx().globalAlpha=0.10+glow*0.8;
   fr(lx-2,ly-2,8,8,C.FR1);
-  ctx.globalAlpha=0.05+glow*0.4;
+  zrctx().globalAlpha=0.05+glow*0.4;
   fr(lx-6,ly-5,16,14,'#d8f6ff');
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
   fr(lx+1,ly+1,4,4,'#3d4649');
   fr(lx+2,ly+2,2,2,'#f7d889');
   fr(lx+2,ly,2,1,'#6c7377');
@@ -1131,11 +1190,11 @@ function drawFloorLantern(lx,ly){
 
 function drawBrokenFloorLantern(lx,ly){
   const flicker=0.16 + 0.06*Math.sin(frame*0.17 + lx*0.11 + ly*0.07);
-  ctx.globalAlpha=0.10+flicker;
+  zrctx().globalAlpha=0.10+flicker;
   fr(lx-2,ly-1,10,8,C.FR2);
-  ctx.globalAlpha=0.08+flicker*0.6;
+  zrctx().globalAlpha=0.08+flicker*0.6;
   fr(lx,ly,6,6,C.FR1);
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
   fr(lx+1,ly+5,5,1,'#1a1f22');
   fr(lx+1,ly+4,2,1,'#3d4649');
   fr(lx+4,ly+4,2,1,'#2b3133');
@@ -1153,8 +1212,8 @@ function isZoneBreakableBroken(zone, idx){
 
 function getZoneBreakableRenderDefs(zone, layer){
   try{
-    if(window.BoneCrawlerZoneObjects && typeof BoneCrawlerZoneObjects.getBreakablesByLayer === 'function'){
-      return BoneCrawlerZoneObjects.getBreakablesByLayer(zone, layer);
+    if(window.SceneRuntime && typeof SceneRuntime.getBreakablesByLayer === 'function'){
+      return SceneRuntime.getBreakablesByLayer(zone, layer);
     }
   }catch(err){}
   return [];
@@ -1185,8 +1244,8 @@ function drawZoneBreakablesByLayer(zone, layer){
 function drawZoneBreakableOverlays(zone){
   let defs=[];
   try{
-    if(window.BoneCrawlerZoneObjects && typeof BoneCrawlerZoneObjects.getOverlayBreakables === 'function'){
-      defs=BoneCrawlerZoneObjects.getOverlayBreakables(zone);
+    if(window.SceneRuntime && typeof SceneRuntime.getOverlayBreakables === 'function'){
+      defs=SceneRuntime.getOverlayBreakables(zone);
     }
   }catch(err){}
   for(const def of defs){
@@ -1351,11 +1410,11 @@ function drawMenuTorch(lx,ly){
   ds(S.torch,lx,ly);
 
   // broad static wall glow
-  ctx.globalAlpha=0.20;
+  zrctx().globalAlpha=0.20;
   fr(lx-8,ly-8,20,16,C.FR2);
-  ctx.globalAlpha=0.14;
+  zrctx().globalAlpha=0.14;
   fr(lx-6,ly-6,16,12,C.FR1);
-  ctx.globalAlpha=0.10;
+  zrctx().globalAlpha=0.10;
   fr(lx-4,ly-3,12,8,C.BN1);
 
   // fixed flame shape
@@ -1368,19 +1427,19 @@ function drawMenuTorch(lx,ly){
   fr(lx+3,ly,1,1,C.FR2);
 
   // little static ember accents
-  ctx.globalAlpha=0.32;
+  zrctx().globalAlpha=0.32;
   fr(lx-1,ly+1,1,1,C.FR1);
   fr(lx+5,ly,1,1,C.BN1);
-  ctx.globalAlpha=1;
+  zrctx().globalAlpha=1;
 }
 
 function withClipRect(x,y,w,h,fn){
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(x*SCALE,y*SCALE,w*SCALE,h*SCALE);
-  ctx.clip();
+  zrctx().save();
+  zrctx().beginPath();
+  zrctx().rect(x*SCALE,y*SCALE,w*SCALE,h*SCALE);
+  zrctx().clip();
   fn();
-  ctx.restore();
+  zrctx().restore();
 }
 
 function drawZoneFrontOverlays(){

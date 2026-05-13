@@ -1,7 +1,5 @@
-// BoneCrawler safe split module
+// Collision
 // Purpose: Generic rectangle overlap and attack-box calculation helpers.
-// Source: app.js lines 974-985
-// Migration note: loaded as a classic script, not ES module, so existing top-level bindings remain shared.
 
 // ── Collision ─────────────────────────────────────────────────
 function ov(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}

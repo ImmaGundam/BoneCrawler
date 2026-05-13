@@ -184,21 +184,21 @@ function createStandardEnemyGameObject(kind, x, y, zone=currentZone, context){
     return {
       x,y,w:9,h:9,speed:resolveEnemySpeed(enemyKind, base, profile, 1, 0.08),dir:'left',
       atkT:0,atkCD:92+(Math.random()*55|0),walkF:0,
-      hp:resolveEnemyHp(enemyKind, 1, profile),points:resolveEnemyPoints(enemyKind, 1, profile),giant:false,hurtT:0,variant:'old',enemyType:'normalEnemy1',spawnSystem:profile.sourceSystem||null
+      hp:resolveEnemyHp(enemyKind, 1, profile),points:resolveEnemyPoints(enemyKind, 1, profile),giant:false,hurtT:0,variant:'old',enemyType:'normalEnemy1',spawnSystem:profile.sourceSystem||null,zone
     };
   }
   if(enemyKind==='normalEnemy2'){
     return {
       x,y,w:9,h:9,speed:resolveEnemySpeed(enemyKind, base, profile, 0.9, 0.14),dir:'left',
       atkT:0,atkCD:92+(Math.random()*55|0),walkF:0,
-      hp:resolveEnemyHp(enemyKind, 1, profile),points:resolveEnemyPoints(enemyKind, 1, profile),giant:false,hurtT:0,variant:'new',enemyType:'normalEnemy2',spawnSystem:profile.sourceSystem||null
+      hp:resolveEnemyHp(enemyKind, 1, profile),points:resolveEnemyPoints(enemyKind, 1, profile),giant:false,hurtT:0,variant:'new',enemyType:'normalEnemy2',spawnSystem:profile.sourceSystem||null,zone
     };
   }
   if(enemyKind==='normalEnemy3'){
     return {
       x,y,w:9,h:9,speed:resolveEnemySpeed(enemyKind, base, profile, 0.55, 0.08),dir:'left',
       atkT:0,atkCD:92+(Math.random()*55|0),walkF:0,
-      hp:resolveEnemyHp(enemyKind, 1, profile),points:resolveEnemyPoints(enemyKind, 1, profile),giant:false,hurtT:0,variant:'classic',enemyType:'normalEnemy3',spawnSystem:profile.sourceSystem||null
+      hp:resolveEnemyHp(enemyKind, 1, profile),points:resolveEnemyPoints(enemyKind, 1, profile),giant:false,hurtT:0,variant:'classic',enemyType:'normalEnemy3',spawnSystem:profile.sourceSystem||null,zone
     };
   }
   if(enemyKind==='giantEnemy1'){
@@ -206,14 +206,14 @@ function createStandardEnemyGameObject(kind, x, y, zone=currentZone, context){
     return {
       x,y,w:18,h:18,speed:resolveEnemySpeed(enemyKind, base, profile, 0.65*giantStage, 0.18),dir:'left',
       atkT:0,atkCD:95+(Math.random()*50|0),walkF:0,
-      hp:resolveEnemyHp(enemyKind, 3, profile),points:resolveEnemyPoints(enemyKind, 5, profile),giant:true,hurtT:0,variant:'new',enemyType:'giantEnemy1',spawnSystem:profile.sourceSystem||null
+      hp:resolveEnemyHp(enemyKind, 3, profile),points:resolveEnemyPoints(enemyKind, 5, profile),giant:true,hurtT:0,variant:'new',enemyType:'giantEnemy1',spawnSystem:profile.sourceSystem||null,zone
     };
   }
   if(enemyKind==='wizardEnemy1'){
     return {
       x,y,w:8,h:8,speed:resolveEnemySpeed(enemyKind, base, profile, 0.45, 0.14),dir:'left',
       atkT:0,atkCD:160+(Math.random()*60|0),walkF:0,
-      hp:resolveEnemyHp(enemyKind, 1, profile),points:resolveEnemyPoints(enemyKind, 3, profile),giant:false,wizard:true,hurtT:0,shootCD:0,enemyType:'wizardEnemy1',spawnSystem:profile.sourceSystem||null
+      hp:resolveEnemyHp(enemyKind, 1, profile),points:resolveEnemyPoints(enemyKind, 3, profile),giant:false,wizard:true,hurtT:0,shootCD:0,enemyType:'wizardEnemy1',spawnSystem:profile.sourceSystem||null,zone
     };
   }
   return null;

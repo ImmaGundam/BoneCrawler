@@ -40,13 +40,14 @@ function spawnChest(opts={}){
   const x=(PX+14+Math.random()*(PW-36))|0;
   const y=(PY+14+Math.random()*(PH-36))|0;
   while(list.length >= maxActive) list.shift();
-  list.push({x,y,w:8,h:8});
+  list.push({x,y,w:8,h:8,zone:(typeof currentZone !== 'undefined' ? currentZone : 0)});
   syncChestRef();
 }
 
 function spawnHeartDrop(x,y,kind='full'){
   heartDrops.push({
     x:(x|0),y:(y|0),w:7,h:7,
+    zone:(typeof currentZone !== 'undefined' ? currentZone : 0),
     kind,
     ttl:ITEM_TTL_FRAMES,
     maxTtl:ITEM_TTL_FRAMES,
@@ -60,6 +61,7 @@ function spawnHalfHeartDrop(x,y){
 function spawnPotionDrop(x,y){
   potionDrops.push({
     x:(x|0),y:(y|0),w:7,h:7,
+    zone:(typeof currentZone !== 'undefined' ? currentZone : 0),
     ttl:POTION_ITEM_TTL_FRAMES,
     maxTtl:POTION_ITEM_TTL_FRAMES,
     fadeFrames:POTION_ITEM_FADE_FRAMES,
@@ -76,6 +78,6 @@ function getGroundItemAlpha(item){
 }
 function spawnKeyDrop(x,y,kind='zone3'){
   const list=getKeyDropList();
-  list.push({x:(x|0),y:(y|0),w:7,h:7,kind});
+  list.push({x:(x|0),y:(y|0),w:7,h:7,kind,zone:(typeof currentZone !== 'undefined' ? currentZone : 0)});
   keyDrop=list;
 }
