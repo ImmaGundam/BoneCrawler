@@ -3,15 +3,51 @@
 
 // ── Input ─────────────────────────────────────────────────────
 const keys={};
+const CANVAS_TOUCH_CLICK_SUPPRESS_MS=450;
+const CANVAS_TOUCH_TAP_MAX_PX=14;
+const CANVAS_TOUCH_TAP_MAX_MS=260;
+const CANVAS_TOUCH_DODGE_SWIPE_MIN_PX=48;
+const CANVAS_TOUCH_DODGE_SWIPE_MAX_MS=320;
+let lastCanvasDialogTouchTime=0;
+
+function makeInputEvent(code, key, repeat){
+  return {
+    code: code,
+    key: key,
+    repeat: !!repeat,
+    preventDefault(){},
+    stopPropagation(){}
+  };
+}
+
 function isKeyDown(...codes){
   return codes.some(code=>!!keys[code]);
 }
-document.addEventListener('keydown',e=>{
+
+
+function __titleFlow(){
+  return window.BoneCrawlerTitleFlow || null;
+}
+
+function setPlayerDirFromVector(dx,dy){
+  if(!player) return;
+  if(Math.abs(dx)>Math.abs(dy)) player.dir=dx<0 ? 'left' : 'right';
+  else player.dir=dy<0 ? 'up' : 'down';
+}
+
+function performTouchSwipeDodge(dx,dy,dist,elapsed){
+  if(gState!=='playing' || !player || player.dead) return false;
+  if(dist<CANVAS_TOUCH_DODGE_SWIPE_MIN_PX || elapsed>CANVAS_TOUCH_DODGE_SWIPE_MAX_MS) return false;
+  setPlayerDirFromVector(dx,dy);
+  return performDodge();
+}
+
+function handleInputKeyDown(e){
   const code=e.code;
   const key=e.key;
   const keyLower=typeof key==='string' ? key.toLowerCase() : '';
   keys[code]=true;
-  if(['Space','Enter','Escape','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(code)) e.preventDefault();
+  if(['Space','Enter','Escape','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(code) && e && typeof e.preventDefault==='function') e.preventDefault();
 
   if(gState==='dialog'){
     if(code==='Enter' || code==='Space' || code==='KeyE') advanceDialog();
@@ -25,7 +61,7 @@ document.addEventListener('keydown',e=>{
     else if(keyLower==='m' || code==='Backspace'){
       retryTaxPaid=false;
       retryPromptMode='';
-      gState='title';
+      if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function') BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else gState='title';
     }
     return;
   }
@@ -68,7 +104,8 @@ document.addEventListener('keydown',e=>{
   }
 
   if(gState==='intro'){
-    if(code==='Enter' || code==='Space' || code==='Escape') beginRunFromIntro();
+    const titleFlow=__titleFlow();
+    if(code==='Enter' || code==='Space' || code==='Escape'){ if(titleFlow && typeof titleFlow.beginRunFromIntro === 'function') titleFlow.beginRunFromIntro(); else beginRunFromIntro(); }
     return;
   }
 
@@ -81,9 +118,9 @@ document.addEventListener('keydown',e=>{
   }
 
   if(gState==='scoreboard'){
-    if(code==='Escape' || code==='Backspace') gState='title';
-    else if(code==='ArrowLeft' && scoreboardPage>0) scoreboardPage--;
-    else if(code==='ArrowRight' && scoreboardPage<totalScorePages()-1) scoreboardPage++;
+    if(code==='Escape' || code==='Backspace'){ if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function') BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else gState='title'; }
+    else if(code==='ArrowLeft'){ const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.prevScorePage === 'function') titleFlow.prevScorePage(); else if(scoreboardPage>0) scoreboardPage--; }
+    else if(code==='ArrowRight'){ const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.nextScorePage === 'function') titleFlow.nextScorePage(); else if(scoreboardPage<totalScorePages()-1) scoreboardPage++; }
     return;
   }
 
@@ -112,12 +149,30 @@ document.addEventListener('keydown',e=>{
     else if(code==='Escape' || code==='Backspace' || keyLower==='m'){
       retryTaxPaid=false;
       retryPromptMode='';
-      gState='title';
+      if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function') BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else gState='title';
     }
     return;
   }
-});
-document.addEventListener('keyup',e=>{keys[e.code]=false;});
+}
+
+function handleInputKeyUp(e){
+  keys[e.code]=false;
+}
+
+document.addEventListener('keydown', handleInputKeyDown);
+document.addEventListener('keyup', handleInputKeyUp);
+
+window.BoneCrawlerTouchInputBridge = {
+  press(code, key){
+    handleInputKeyDown(makeInputEvent(code, key || code, !!keys[code]));
+  },
+  release(code, key){
+    handleInputKeyUp(makeInputEvent(code, key || code, false));
+  },
+  clear(){
+    if(typeof clearGameplayKeys === 'function') clearGameplayKeys();
+  }
+};
 window.addEventListener('blur', clearGameplayKeys);
 document.addEventListener('visibilitychange', ()=>{
   if(document.hidden) clearGameplayKeys();
@@ -141,6 +196,12 @@ window.addEventListener('mouseup',()=>{
 });
 
 canvas.addEventListener('touchstart',e=>{
+  if(gState==='dialog'){
+    lastCanvasDialogTouchTime=performance.now();
+    advanceDialog();
+    e.preventDefault();
+    return;
+  }
   if(gState!=='playing') return;
   if(!e.touches.length) return;
   const t=e.touches[0];
@@ -191,16 +252,30 @@ canvas.addEventListener('touchend',e=>{
   const rect=canvas.getBoundingClientRect();
   const lx=((touchStartX-rect.left)*(canvas.width/rect.width))/SCALE;
   const ly=((touchStartY-rect.top)*(canvas.height/rect.height))/SCALE;
+  const isTap=dist<CANVAS_TOUCH_TAP_MAX_PX && elapsed<CANVAS_TOUCH_TAP_MAX_MS;
+  const dodgeRect={x:GW-41,y:2,w:8,h:8};
+  const whirlRect={x:GW-31,y:2,w:8,h:8};
   const potionRect={x:0,y:0,w:55,h:22};
 
-  if(potionCount>0 && dist<14 && elapsed<260 && pointInBtn(lx,ly,potionRect)){
+  if(isTap && pointInBtn(lx,ly,dodgeRect)){
+    performDodge();
+    touchAttackChargeActive=false;
+    touchAttackCancelQueued=true;
+  } else if(isTap && whirlwindUnlocked && pointInBtn(lx,ly,whirlRect)){
+    performWhirlwindSlash();
+    touchAttackChargeActive=false;
+    touchAttackCancelQueued=true;
+  } else if(potionCount>0 && isTap && pointInBtn(lx,ly,potionRect)){
     useHealthPotion();
+    touchAttackChargeActive=false;
+    touchAttackCancelQueued=true;
+  } else if(performTouchSwipeDodge(dx,dy,dist,elapsed)){
     touchAttackChargeActive=false;
     touchAttackCancelQueued=true;
   } else if(!touchAttackMoved && whirlwindUnlocked && whirlwindChargeT>0){
     touchAttackReleaseQueued=true;
     touchAttackChargeActive=false;
-  } else if(dist<14 && elapsed<260){
+  } else if(isTap){
     mouseAttackQueued=true;
   } else {
     touchAttackChargeActive=false;
@@ -260,15 +335,19 @@ if(touchDodgeBtn){
 }
 
 // name modal wiring
-if(nameModalOk) nameModalOk.addEventListener('click', commitPlayerName);
+if(nameModalOk) nameModalOk.addEventListener('click', ()=>{ const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.commitPlayerName === 'function') titleFlow.commitPlayerName(); else commitPlayerName(); });
 if(nameModalCancel) nameModalCancel.addEventListener('click', ()=>{ if(nameModalOverlay) nameModalOverlay.classList.add('hidden'); });
 if(nameModalOverlay) nameModalOverlay.addEventListener('click', e=>{ if(e.target===nameModalOverlay) nameModalOverlay.classList.add('hidden'); });
 if(nameModalInput) nameModalInput.addEventListener('keydown', e=>{
-  if(e.key==='Enter'){ e.preventDefault(); commitPlayerName(); }
+  if(e.key==='Enter'){ e.preventDefault(); const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.commitPlayerName === 'function') titleFlow.commitPlayerName(); else commitPlayerName(); }
   else if(e.key==='Escape'){ e.preventDefault(); nameModalOverlay.classList.add('hidden'); }
 });
 
 canvas.addEventListener('click',e=>{
+  if(performance.now()-lastCanvasDialogTouchTime<CANVAS_TOUCH_CLICK_SUPPRESS_MS){
+    e.preventDefault();
+    return;
+  }
   const rect=canvas.getBoundingClientRect();
   const scaleX=canvas.width/rect.width;
   const scaleY=canvas.height/rect.height;
@@ -308,13 +387,14 @@ canvas.addEventListener('click',e=>{
     if(shouldShowDevKitTitleButton() && pointInBtn(lx,ly,DEVKIT_TITLE_BTN)){
       openDevKitPrompt();
     }
-    else if(pointInBtn(lx,ly,MENU_PLAY)) startGame();
-    else if(pointInBtn(lx,ly,MENU_SCORE)) openScoreboard();
-    else if(pointInBtn(lx,ly,NAME_BTN)) promptForPlayerName();
+    else if(pointInBtn(lx,ly,MENU_PLAY)){ const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.startGame === 'function') titleFlow.startGame(); else startGame(); }
+    else if(pointInBtn(lx,ly,MENU_SCORE)){ const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.openScoreboard === 'function') titleFlow.openScoreboard(); else openScoreboard(); }
+    else if(pointInBtn(lx,ly,NAME_BTN)){ const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.promptForPlayerName === 'function') titleFlow.promptForPlayerName(); else promptForPlayerName(); }
     return;
   }
 
   if(gState==='dialog'){
+    advanceDialog();
     return;
   }
 
@@ -345,7 +425,8 @@ canvas.addEventListener('click',e=>{
   }
 
   if(gState==='intro'){
-    beginRunFromIntro();
+    const titleFlow=__titleFlow();
+    if(titleFlow && typeof titleFlow.beginRunFromIntro === 'function') titleFlow.beginRunFromIntro(); else beginRunFromIntro();
     return;
   }
 
@@ -358,9 +439,9 @@ canvas.addEventListener('click',e=>{
   }
 
   if(gState==='scoreboard'){
-    if(pointInBtn(lx,ly,{x:7,y:105,w:24,h:9})) gState='title';
-    else if(pointInBtn(lx,ly,{x:89,y:105,w:10,h:9}) && scoreboardPage>0) scoreboardPage--;
-    else if(pointInBtn(lx,ly,{x:103,y:105,w:10,h:9}) && scoreboardPage<totalScorePages()-1) scoreboardPage++;
+    if(pointInBtn(lx,ly,{x:7,y:105,w:24,h:9})){ if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function') BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else gState='title'; }
+    else if(pointInBtn(lx,ly,{x:89,y:105,w:10,h:9})){ const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.prevScorePage === 'function') titleFlow.prevScorePage(); else if(scoreboardPage>0) scoreboardPage--; }
+    else if(pointInBtn(lx,ly,{x:103,y:105,w:10,h:9})){ const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.nextScorePage === 'function') titleFlow.nextScorePage(); else if(scoreboardPage<totalScorePages()-1) scoreboardPage++; }
     return;
   }
 
@@ -369,7 +450,7 @@ canvas.addEventListener('click',e=>{
     else if(pointInBtn(lx,ly,GAMEOVER_MENU)){
       retryTaxPaid=false;
       retryPromptMode='';
-      gState='title';
+      if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function') BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else gState='title';
     }
     return;
   }
@@ -379,8 +460,7 @@ canvas.addEventListener('click',e=>{
     else if(pointInBtn(lx,ly,GAMEOVER_MENU)){
       retryTaxPaid=false;
       retryPromptMode='';
-      gState='title';
+      if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function') BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else gState='title';
     }
   }
 });
-

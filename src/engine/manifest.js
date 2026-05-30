@@ -1,0 +1,17 @@
+export const engineManifest = [
+  'src/audio/audio-engine.js',
+  'src/core/constants-palette-sprites.js',
+  'src/core/decals.js',
+  'src/engine/content-registry.js',
+  'src/engine/object-factory.js',
+  'src/engine/npc-factory.js',
+  'src/engine/scene-runtime.js',
+  'src/engine/runtime-entity-manager.js',
+  'src/engine/render-helpers.js',
+  'src/engine/collision.js',
+  'src/engine/object-pools.js',
+  'src/engine/performance-runtime.js',
+  'src/runtime/spawn-system-registry.js',
+  'src/engine/object-spawn-engine.js',
+  'src/engine/scene-render-cache.js',
+];

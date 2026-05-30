@@ -56,8 +56,8 @@
   function labelForEnemy(enemy, boss){
     if(boss){
       if(enemy && enemy.bossId) return 'Boss · ' + String(enemy.bossId);
-      if(enemy === window.dragonBoss) return 'Boss · Dragon';
-      if(enemy === window.shadowBoss) return 'Boss · Shadow';
+      if(typeof dragonBoss !== 'undefined' && enemy === dragonBoss) return 'Boss · Dragon';
+      if(typeof shadowBoss !== 'undefined' && enemy === shadowBoss) return 'Boss · Shadow';
       return 'Boss';
     }
     const type = String((enemy && enemy.enemyType) || '').toLowerCase();
@@ -157,6 +157,10 @@
     }
     if(typeof dragonBoss !== 'undefined' && dragonBoss){
       const entry = buildEnemyEntry(dragonBoss, {boss:true});
+      if(entry && (zone == null || Number(entry.zone) === Number(zone))) out.push(entry);
+    }
+    if(typeof whyDragonsBoss !== 'undefined' && whyDragonsBoss){
+      const entry = buildEnemyEntry(whyDragonsBoss, {boss:true});
       if(entry && (zone == null || Number(entry.zone) === Number(zone))) out.push(entry);
     }
     if(typeof shadowBoss !== 'undefined' && shadowBoss){

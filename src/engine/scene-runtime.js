@@ -23,6 +23,7 @@
     ZONE1_EXTRA_BLOCKERS: [],
     ZONE2_TREE_BLOCKERS: [],
     ZONE2_HOLE_BLOCKERS: [],
+    ZONE2_DOOR_RECT: null,
     ZONE2_DECOR_BREAK_RECTS: [],
     ZONE2_DECOR_BLOCKERS: [],
     ZONE3_DOOR_RECT: null,
@@ -93,19 +94,28 @@
     return entity[field || 'rect'] || entity.rect || entity.breakRect || entity.blockRect || entity.interactRect || entity.triggerRect || null;
   }
 
+  function sceneBreakables(sceneId){
+    return breakablesByScene[Number(sceneId)] || [];
+  }
+
   function buildGeometry(){
     buildIndexes();
 
+    const zone1Breakables = sceneBreakables(1);
+    const zone2Breakables = sceneBreakables(2);
+    const zone3Breakables = sceneBreakables(3);
+
     geometry.ZONE1_DOOR_RECT = firstRect('zone1.door', 'rect');
-    clearAndAssign(geometry.ZONE1_DECOR_BREAK_RECTS, breakablesByScene[1].map(item => item.breakRect));
-    clearAndAssign(geometry.ZONE1_DECOR_BLOCKERS, breakablesByScene[1].map(item => item.blockRect || item.breakRect));
+    clearAndAssign(geometry.ZONE1_DECOR_BREAK_RECTS, zone1Breakables.map(item => item.breakRect));
+    clearAndAssign(geometry.ZONE1_DECOR_BLOCKERS, zone1Breakables.map(item => item.blockRect || item.breakRect));
     clearAndAssign(geometry.ZONE1_EXTRA_BLOCKERS, byGroup(1, 'extraBlocker').map(item => item.blockRect || item.rect));
     geometry.SECRET1_ENTRANCE_RECT = firstRect('zone1.secretEntrance', 'triggerRect');
 
     clearAndAssign(geometry.ZONE2_TREE_BLOCKERS, byGroup(2, 'treeBlocker').map(item => item.blockRect || item.rect));
     clearAndAssign(geometry.ZONE2_HOLE_BLOCKERS, byGroup(2, 'holeBlocker').map(item => item.blockRect || item.rect));
-    clearAndAssign(geometry.ZONE2_DECOR_BREAK_RECTS, breakablesByScene[2].map(item => item.breakRect));
-    clearAndAssign(geometry.ZONE2_DECOR_BLOCKERS, breakablesByScene[2].map(item => item.blockRect || item.breakRect));
+    geometry.ZONE2_DOOR_RECT = firstRect('zone2.door', 'rect');
+    clearAndAssign(geometry.ZONE2_DECOR_BREAK_RECTS, zone2Breakables.map(item => item.breakRect));
+    clearAndAssign(geometry.ZONE2_DECOR_BLOCKERS, zone2Breakables.map(item => item.blockRect || item.breakRect));
 
     geometry.ZONE3_DOOR_RECT = firstRect('zone3.door', 'rect');
     geometry.ZONE3_TREE_RECT = firstRect('zone3.tree', 'breakRect');
@@ -113,8 +123,8 @@
     geometry.ZONE3_SECRET2_PORTAL_RECT = firstRect('zone3.secret2Portal', 'triggerRect');
     clearAndAssign(geometry.ZONE3_TREE_BLOCKERS, byGroup(3, 'treeBlocker').map(item => item.blockRect || item.rect));
     clearAndAssign(geometry.ZONE3_EXTRA_BLOCKERS, byGroup(3, 'extraBlocker').map(item => item.blockRect || item.rect));
-    clearAndAssign(geometry.ZONE3_DECOR_BREAK_RECTS, breakablesByScene[3].map(item => item.breakRect));
-    clearAndAssign(geometry.ZONE3_DECOR_OBJECT_BLOCKERS, breakablesByScene[3].map(item => item.blockRect || item.breakRect));
+    clearAndAssign(geometry.ZONE3_DECOR_BREAK_RECTS, zone3Breakables.map(item => item.breakRect));
+    clearAndAssign(geometry.ZONE3_DECOR_OBJECT_BLOCKERS, zone3Breakables.map(item => item.blockRect || item.breakRect));
     clearAndAssign(geometry.ZONE3_DECOR_BLOCKERS, geometry.ZONE3_DECOR_OBJECT_BLOCKERS.concat(geometry.ZONE3_TREE_BLOCKERS, geometry.ZONE3_EXTRA_BLOCKERS));
 
     geometry.SECRET1_EXIT_DOOR_RECT = firstRect('secret1.exitDoor', 'rect');
@@ -131,8 +141,6 @@
 
     return geometry;
   }
-
-  buildGeometry();
 
   window.SceneRuntime = {
     geometry,

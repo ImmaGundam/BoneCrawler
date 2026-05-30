@@ -18,6 +18,10 @@
     const x = readPayloadNumber(def, 'x', payload, 0);
     const y = readPayloadNumber(def, 'y', payload, 0);
     try{
+      if(typeof spawnRuntimeKeyObject === 'function'){
+        spawnRuntimeKeyObject(Math.round(x), Math.round(y), kind);
+        return true;
+      }
       if(typeof spawnKeyDrop === 'function'){
         spawnKeyDrop(Math.round(x), Math.round(y), kind);
         return true;

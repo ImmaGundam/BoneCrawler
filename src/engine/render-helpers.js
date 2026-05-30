@@ -85,3 +85,17 @@ function ptHeavy(text,x,y,size,color,align='left',shadow=C.DK){
   rhctx().fillText(text,x,y);
 }
 
+function ptTitle(text,x,y,size,color,align='left',shadow=C.DK){
+  const drawX=Math.round(x), drawY=Math.round(y);
+  rhctx().textBaseline='top';
+  rhctx().textAlign=align;
+  rhctx().font=size+'px "BoneCrawlerTitle","Press Start 2P",monospace';
+  if(shadow){
+    rhctx().fillStyle=shadow;
+    const offs=[[2,0],[-2,0],[0,2],[0,-2],[1,1],[-1,1],[1,-1],[-1,-1]];
+    for(const [ox,oy] of offs) rhctx().fillText(text,drawX+ox,drawY+oy);
+  }
+  rhctx().fillStyle=color;
+  rhctx().fillText(text,drawX,drawY);
+}
+
