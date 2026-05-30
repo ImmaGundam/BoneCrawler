@@ -327,14 +327,14 @@ function rTitle(){
   // Horizontal rule lines inside title panel
   ctx.fillStyle=C.BN2;
   ctx.globalAlpha=0.38;
-  ctx.fillRect(16*SCALE,42*SCALE,88*SCALE,SCALE); // top outer line
+  ctx.fillRect(16*SCALE,44*SCALE,88*SCALE,SCALE); // top outer line
   ctx.fillRect(16*SCALE,60*SCALE,88*SCALE,SCALE); // bottom outer line
-  ctx.fillRect(19*SCALE,43*SCALE,84*SCALE,SCALE); // top inner line
+  ctx.fillRect(19*SCALE,45*SCALE,84*SCALE,SCALE); // top inner line
   ctx.fillRect(19*SCALE,59*SCALE,84*SCALE,SCALE); // bottom inner line
   ctx.globalAlpha=1;
 
 
-  ptHeavy('BONECRAWLER',GW*SCALE/2,50*SCALE,10,C.SI1,'center',C.DK);
+  ptTitle('BONECRAWLER',GW*SCALE/2,47*SCALE,24,C.BN1,'center',C.DK);
 
   rMenuBtn(MENU_PLAY,'PLAY');
   rMenuBtn(MENU_SCORE,'SCOREBOARD');
@@ -442,7 +442,8 @@ function rScoreboard(){
   ptHeavy('SCOREBOARD',GW*SCALE/2,28*SCALE,9,C.BN1,'center',C.DK);
   ptHeavy('PLAYER: '+(currentPlayerName||'PLAYER').toUpperCase(),GW*SCALE/2,41*SCALE,6,C.SI1,'center',C.DK);
 
-  const rows=scorePageEntries();
+  const titleFlow=__titleFlow();
+  const rows=titleFlow && typeof titleFlow.scorePageEntries === 'function' ? titleFlow.scorePageEntries() : scorePageEntries();
 
   if(!rows.length){
     ptHeavy('NO RUNS SAVED YET',GW*SCALE/2,58*SCALE,7,C.BN1,'center',C.DK);
@@ -459,7 +460,8 @@ function rScoreboard(){
     }
   }
 
-  const totalPages=totalScorePages();
+  const titleFlowPages=__titleFlow();
+  const totalPages=titleFlowPages && typeof titleFlowPages.totalScorePages === 'function' ? titleFlowPages.totalScorePages() : totalScorePages();
   ptHeavy('PAGE '+(scoreboardPage+1)+' / '+totalPages,GW*SCALE/2,89*SCALE,6,C.BN1,'center',C.DK);
 
   ptHeavy('NAME - KILLS - GAMETIME *',GW*SCALE/2,96*SCALE,5,C.BN1,'center',C.DK);

@@ -703,6 +703,8 @@ function drawDungeonZone2Static(){
     if(x%16===0) fr(x+2, PY+17-height, 1, 1, mossB);
   }
 
+  drawZone3DoorBlockage();
+
   drawZoneBreakablesByLayer(2, 'back');
 
   const wallCracks = [
@@ -972,8 +974,9 @@ function drawTornCarpetPatch(cx,ty){
 }
 
 function drawZone1SecretCrack(active=false, opened=false){
-  const x=SECRET1_ENTRANCE_RECT.x-2;
-  const y=SECRET1_ENTRANCE_RECT.y-2;
+  const entranceRect = (typeof getSecret1EntranceRect === 'function') ? getSecret1EntranceRect() : SECRET1_ENTRANCE_RECT;
+  const x=entranceRect.x-2;
+  const y=entranceRect.y-2;
 
   // stone wall recess behind the bookshelf
   fr(x, y, 8, 14, '#4f4339');
@@ -1463,4 +1466,3 @@ function drawZoneFrontOverlays(){
     if(!masterSwordOwned) withClipRect(cx-7, cy-15, 14, 18, ()=>drawSecret2SwordOverlay(cx, cy));
   }
 }
-
