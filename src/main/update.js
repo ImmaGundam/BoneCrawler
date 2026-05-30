@@ -72,213 +72,9 @@ function update(){
     }
   }
 
+  if(updatePlayerRuntimeFrame()) return;
+
   const p=player;
-  if(p.dead) return;
-  if(currentZone===2 && bossDefeated && !dragonBoss && bossClearTimer>0){
-    bossClearTimer--;
-    if(bossClearTimer<=0){
-      openZoneTransition(3);
-      return;
-    }
-  }
-
-
-  if(devGodMode){
-    p.hp=p.maxHp;
-    p.hurtT=0;
-    p.shield=true;
-    p.shieldBreakT=0;
-    p.visibleHearts=Math.max(p.visibleHearts||3, Math.min(5, Math.ceil(p.hp/2)));
-  }
-
-  if(p.shieldBreakT>0) p.shieldBreakT--;
-
-  for(let i=heartDrops.length-1;i>=0;i--){
-    const h=heartDrops[i];
-    if(typeof h.ttl==='number'){
-      h.ttl--;
-      if(h.ttl<=0) heartDrops.splice(i,1);
-    }
-  }
-  for(let i=potionDrops.length-1;i>=0;i--){
-    const d=potionDrops[i];
-    if(typeof d.ttl==='number'){
-      d.ttl--;
-      if(d.ttl<=0) potionDrops.splice(i,1);
-    }
-  }
-  if(zone3TreeShakeT>0) zone3TreeShakeT--;
-
-  // Movement
-  let dx=0,dy=0;
-  const waterBox={x:p.x,y:p.y,w:p.w,h:p.h};
-  const inSecret1Water=currentZone===ZONE_SECRET1 && isSecret1WaterZone(waterBox);
-  const terrainSpeedMult=inSecret1Water ? 0.58 : 1;
-  const moveSpeed=(devGodMode ? p.speed*DEV_GOD_SPEED_MULT : p.speed)*terrainSpeedMult;
-  if(isKeyDown('ArrowLeft','KeyA')){dx-=moveSpeed;p.dir='left';}
-  if(isKeyDown('ArrowRight','KeyD')){dx+=moveSpeed;p.dir='right';}
-  if(isKeyDown('ArrowUp','KeyW')){dy-=moveSpeed;p.dir='up';}
-  if(isKeyDown('ArrowDown','KeyS')){dy+=moveSpeed;p.dir='down';}
-
-  if(touchMoveActive){
-    const tdx=touchX-touchStartX;
-    const tdy=touchY-touchStartY;
-    const dist=Math.hypot(tdx,tdy);
-    if(dist>10){
-      const nx=tdx/dist, ny=tdy/dist;
-      dx += nx*moveSpeed;
-      dy += ny*moveSpeed;
-      if(Math.abs(tdx)>Math.abs(tdy)) p.dir = tdx<0 ? 'left' : 'right';
-      else p.dir = tdy<0 ? 'up' : 'down';
-    }
-  }
-
-  if(dx&&dy){dx*=0.707;dy*=0.707;}
-  let nx=Math.max(PX,Math.min(PX+PW-p.w,p.x+dx));
-  if(collidesZoneObstacles(nx,p.y,p.w,p.h)) nx=p.x;
-  p.x=nx;
-  let ny=Math.max(PY,Math.min(PY+PH-p.h,p.y+dy));
-  if(collidesZoneObstacles(p.x,ny,p.w,p.h)) ny=p.y;
-  p.y=ny;
-  if(dx||dy) p.walkF += inSecret1Water ? 0.45 : 1;
-
-  if(inSecret1Water && (dx||dy) && frame%6===0){
-    const px=p.x+p.w/2;
-    const py=p.y+p.h-1;
-    parts.push({x:px-2+Math.random()*4,y:py,vx:(Math.random()*0.5-0.25),vy:-0.10-Math.random()*0.18,
-      life:10+(Math.random()*5|0),max:16,col:Math.random()<0.5?'#d8f6ff':'#8fd8ff'});
-    parts.push({x:px-2+Math.random()*4,y:py+1,vx:(Math.random()*0.4-0.2),vy:-0.04-Math.random()*0.10,
-      life:8+(Math.random()*4|0),max:14,col:'#6ec3e7'});
-  }
-
-  if(secret1UnlockAlertT>0) secret1UnlockAlertT--;
-  if(currentZone===1 && zone1SecretEntranceReady()){
-    if(!secret1UnlockAlertShown){
-      secret1UnlockAlertShown=true;
-      secret1UnlockAlertT=135;
-      floatTexts.push({x:GW/2,y:PY+60,text:'SECRET ZONE 1',life:72,max:72,col:C.MG2});
-      floatTexts.push({x:GW/2,y:PY+68,text:'UNLOCKED! (INTERACT)',life:72,max:72,col:C.BN1});
-    }
-  }
-
-
-  // Key pickup + door unlock to zone 2
-  if(hasAnyKeyDrop()){
-    const drops=getKeyDropList();
-    for(let i=drops.length-1;i>=0;i--){
-      const drop=drops[i];
-      if(!ov({x:p.x,y:p.y,w:p.w,h:p.h},{x:drop.x,y:drop.y,w:drop.w,h:drop.h})) continue;
-      try{ if(window.AudioEvents) AudioEvents.keyPickup(); }catch(err){}
-      if(drop.kind==='zone1Door') p.zone1DoorKey=true;
-      else if(drop.kind==='secret1'){ p.secret1Key=true; breakZone1Decor(0); }
-      else if(drop.kind==='zone2') p.zone2Key=true;
-      else p.hasKey=true;
-      drops.splice(i,1);
-      floatTexts.push({x:p.x+4,y:p.y-6,text:drop.kind==='secret1'?'SECRET KEY':(drop.kind==='zone1Door'?'ZONE 2 KEY':'KEY'),life:40,max:40,col:drop.kind==='secret1'?C.MG2:C.BN1});
-    }
-    keyDrop=drops;
-  }
-  if(currentZone===ZONE_SECRET1){
-    if(secret1BlessingT>0) secret1BlessingT--;
-    if(secret1BlessingT===80){
-      floatTexts.push({x:GW/2,y:PY+72,text:'THE FAIRIES SEND YOU ONWARD',life:70,max:70,col:C.MG2});
-    }
-  }
-
-  // Chest collision → pause for upgrade
-  const activeChests = typeof getChestList === 'function' ? getChestList() : (chest ? [chest] : []);
-  for(let i=activeChests.length-1;i>=0;i--){
-    const c=activeChests[i];
-    if(!c || !ov({x:p.x,y:p.y,w:p.w,h:p.h},{x:c.x,y:c.y,w:c.w,h:c.h})) continue;
-    if(typeof removeChestAt === 'function') removeChestAt(i);
-    else chest=null;
-    try{ if(window.AudioEvents) AudioEvents.chestOpen(); }catch(err){}
-    rollUpgradeChoices();
-    gState='upgrade';
-    return;
-  }
-
-  // Heart pickups
-  for(let i=heartDrops.length-1;i>=0;i--){
-    const h=heartDrops[i];
-    if(ov({x:p.x,y:p.y,w:p.w,h:p.h},{x:h.x,y:h.y,w:h.w,h:h.h})){
-      if(h.kind==='half') grantHalfHeartReward(h.x+4,h.y);
-      else grantHeartReward(h.x+4,h.y);
-      for(let j=0;j<6;j++){
-        const a=Math.random()*Math.PI*2, s=0.4+Math.random()*1.3;
-        parts.push({x:h.x+3.5,y:h.y+3.5,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
-          life:18+(Math.random()*10|0),max:28,col:Math.random()<0.5?C.HP1:C.HP2});
-      }
-      heartDrops.splice(i,1);
-    }
-  }
-
-  // Potion pickups stay on the field until the player can carry one again
-  if(potionCount < POTION_MAX_COUNT){
-    for(let i=potionDrops.length-1;i>=0;i--){
-      const d=potionDrops[i];
-      if(ov({x:p.x,y:p.y,w:p.w,h:p.h},{x:d.x,y:d.y,w:d.w,h:d.h})){
-        potionCount=Math.min(POTION_MAX_COUNT, potionCount+1);
-        burst(d.x+3.5, d.y+3.5);
-        floatTexts.push({x:d.x+3,y:d.y-5,text:'POTION',life:34,max:34,col:C.HP1});
-        if(!potionDialogSeenThisRun){
-          potionDialogSeenThisRun=true;
-          queuePotionAcquireDialog();
-        }
-        potionDrops.splice(i,1);
-      }
-    }
-  }
-
-  // Attack
-  const keyboardSpcNow=isKeyDown('Space');
-  const touchSpcNow=touchAttackChargeActive && !touchAttackMoved;
-  const mouseSpcNow=mouseAttackHeld && whirlwindUnlocked;
-  const spcNow=keyboardSpcNow || touchSpcNow || mouseSpcNow;
-  const touchChargeCanceled=touchAttackCancelQueued && !spcNow && prevSpc;
-  const spcJust=spcNow&&!prevSpc;
-  const spcRelease=((!spcNow&&prevSpc&&!touchChargeCanceled) || touchAttackReleaseQueued || mouseAttackReleaseQueued);
-  const clickJust=mouseAttackQueued;
-  prevSpc=spcNow;
-  mouseAttackQueued=false;
-  mouseAttackReleaseQueued=false;
-  touchAttackReleaseQueued=false;
-  touchAttackCancelQueued=false;
-
-  if(whirlwindCooldownT>0) whirlwindCooldownT--;
-  if(whirlwindSlashT>0) whirlwindSlashT--;
-  if(dodgeCooldownT>0) dodgeCooldownT--;
-  if(p.dodgeInvulnT>0) p.dodgeInvulnT--;
-
-  if(whirlwindUnlocked){
-    if(spcJust && p.atkCD<=0 && p.atkT<=0){
-      whirlwindChargeT=1;
-    } else if(spcNow && whirlwindChargeT>0){
-      whirlwindChargeT++;
-      if(whirlwindChargeT>=WHIRLWIND_HOLD_FRAMES){
-        p.atkT=Math.max(p.atkT,2);
-      }
-    } else if(spcRelease && whirlwindChargeT>0){
-      if(whirlwindChargeT>=WHIRLWIND_HOLD_FRAMES && whirlwindCooldownT<=0){
-        performWhirlwindSlash();
-      } else if(p.atkCD<=0 && p.atkT<=0){
-        performPlayerAttack(1);
-      }
-      whirlwindChargeT=0;
-    } else if((!spcNow && whirlwindChargeT>0 && !spcRelease) || touchChargeCanceled){
-      whirlwindChargeT=0;
-    }
-  } else if(spcJust && p.atkCD<=0 && p.atkT<=0){
-    performPlayerAttack(1);
-  }
-
-  if(clickJust && p.atkCD<=0 && p.atkT<=0){
-    performPlayerAttack(1);
-  }
-
-  if(p.atkT>0) p.atkT--;
-  if(p.atkCD>0) p.atkCD--;
-  if(p.hurtT>0) p.hurtT--;
 
   updateDragonBoss();
   updateWhyDragonsBoss();
@@ -323,7 +119,7 @@ function update(){
         try{ if(window.AudioEvents) AudioEvents.wizardAttack(); }catch(err){}
         const spd=rollFireballSpeed(0.9);
         const fbDx=ddx/dist*spd, fbDy=ddy/dist*spd;
-        fireballs.push({x:e.x+e.w/2-1,y:e.y+e.h/2-1,vx:fbDx,vy:fbDy,life:160});
+        spawnFireball({x:e.x+e.w/2-1,y:e.y+e.h/2-1,vx:fbDx,vy:fbDy,life:160});
       }
     } else {
     const near=ov({x:e.x,y:e.y,w:e.w,h:e.h},{x:p.x,y:p.y,w:p.w,h:p.h});
@@ -348,11 +144,11 @@ function update(){
     fb.life--;
     // Out of arena bounds - disappear
     if(fb.x<PX||fb.x>PX+PW||fb.y<PY||fb.y>PY+PH||fb.life<=0){
-      fireballs.splice(i,1); continue;
+      releaseFireballAt(fireballs,i); continue;
     }
     // Hit player
     if(p.hurtT<=0 && ov({x:fb.x,y:fb.y,w:3,h:3},{x:p.x,y:p.y,w:p.w,h:p.h})){
-      fireballs.splice(i,1);
+      releaseFireballAt(fireballs,i);
       hurtPlayer(1);
       continue;
     }
@@ -362,19 +158,19 @@ function update(){
   for(let i=parts.length-1;i>=0;i--){
     const pt=parts[i];
     pt.x+=pt.vx; pt.y+=pt.vy; pt.vx*=0.82; pt.vy*=0.82;
-    if(--pt.life<=0) parts.splice(i,1);
+    if(--pt.life<=0) releasePartAt(parts,i);
   }
 
   // Floating score texts
   for(let i=floatTexts.length-1;i>=0;i--){
     floatTexts[i].y-=0.25;
-    if(--floatTexts[i].life<=0) floatTexts.splice(i,1);
+    if(--floatTexts[i].life<=0) releaseFloatTextAt(floatTexts,i);
   }
 
   for(let i=shockwaves.length-1;i>=0;i--){
     const sw=shockwaves[i];
     sw.r += (sw.maxR - sw.r) * 0.35;
-    if(--sw.life<=0) shockwaves.splice(i,1);
+    if(--sw.life<=0) releaseShockwaveAt(shockwaves,i);
   }
 }
 
