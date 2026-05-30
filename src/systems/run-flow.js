@@ -1,8 +1,117 @@
 // run-flow
 // Purpose: Reset/start/retry flow, checkpoints, queued reward dialogs, New Game Plus startup flow.
 
+function stopRunFlowAudio(options = {}){
+  if(options.stopAudio === false) return;
+  try { if(window.AudioEvents && typeof AudioEvents.stopAll === 'function') AudioEvents.stopAll(); } catch(err) {}
+}
+
+function clearGameplayKeys(){
+  const reset=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyS','KeyD','KeyW','Space','ShiftLeft','ShiftRight','KeyP','KeyE','Enter','Escape'];
+  for(const k of reset) keys[k]=false;
+  prevSpc=false;
+  mouseAttackQueued=false;
+  mouseAttackHeld=false;
+  mouseAttackReleaseQueued=false;
+  touchMoveActive=false;
+  touchIdentifier=null;
+  touchAttackChargeActive=false;
+  touchAttackReleaseQueued=false;
+  touchAttackCancelQueued=false;
+  touchAttackMoved=false;
+}
+
+function pauseGame(){
+  if(gState!=='playing') return false;
+  pauseStartedMs=performance.now();
+  clearGameplayKeys();
+  gState='paused';
+  return true;
+}
+
+function resumeGame(){
+  if(gState!=='paused') return false;
+  if(pauseStartedMs) runStartMs += performance.now()-pauseStartedMs;
+  pauseStartedMs=0;
+  clearGameplayKeys();
+  gState='playing';
+  return true;
+}
+
+function clearRunFlowArrays(names){
+  names.forEach(name => {
+    try {
+      if(typeof globalThis[name] !== 'undefined' && Array.isArray(globalThis[name])) globalThis[name] = [];
+    } catch(err) {}
+  });
+}
+
+function clearRunFlowRuntimePools(){
+  try { if(window.RuntimeEntityManager && typeof RuntimeEntityManager.clear === 'function') RuntimeEntityManager.clear(); } catch(err) {}
+  try { if(typeof clearGroundItemPools === 'function') clearGroundItemPools(); } catch(err) {}
+  try { if(typeof clearTransientEffectPools === 'function') clearTransientEffectPools(); } catch(err) {}
+  try { if(typeof clearFloatTexts === 'function') clearFloatTexts(); } catch(err) {}
+  clearRunFlowArrays(['enemies','parts','pSpawns','fireballs','dragonFlames','shadowWaves','shadowWizardRespawns','shockwaves']);
+  dragonBoss = null;
+  whyDragonsBoss = null;
+  dragonSwipe = null;
+  shadowBoss = null;
+  bossClearTimer = 0;
+}
+
+function clearRunFlowSceneCaches(options = {}){
+  if(options.clearAllSceneCaches === false) return;
+  try { if(window.BoneCrawlerSceneRenderCache && typeof BoneCrawlerSceneRenderCache.clear === 'function') BoneCrawlerSceneRenderCache.clear(); } catch(err) {}
+}
+
+function prepareZoneChange(nextZone, options = {}){
+  pendingZoneTransition = nextZone;
+  clearRunFlowRuntimePools();
+  clearRunFlowSceneCaches(options);
+  stopRunFlowAudio(options);
+  return nextZone;
+}
+
+function destroyZoneRuntime(options = {}){
+  clearRunFlowRuntimePools();
+  clearRunFlowSceneCaches(options);
+  stopRunFlowAudio(options);
+  if(options.resetDialogs){
+    dialogPages = [];
+    dialogPageIndex = 0;
+  }
+  return true;
+}
+
+function resetForNewRun(options = {}){
+  destroyZoneRuntime(options);
+  pendingZoneTransition = 0;
+  zoneTransitionInfo = null;
+  leaveZonePromptData = null;
+  return true;
+}
+
+function goToTitleState(options = {}){
+  destroyZoneRuntime(options);
+  pendingZoneTransition = 0;
+  gState = 'title';
+  return 'title';
+}
+
+window.BoneCrawlerRunFlow = {
+  clearGameplayKeys,
+  pauseGame,
+  resumeGame,
+  prepareZoneChange,
+  destroyZoneRuntime,
+  resetForNewRun,
+  goToTitleState,
+};
+
+window.BoneCrawlerZoneRuntimeLifecycle = window.BoneCrawlerRunFlow;
+
 function resetGame(){
-  try{ if(window.AudioEvents) AudioEvents.stopAll(); }catch(err){}
+  try{ resetForNewRun({clearAllSceneCaches:true, stopAudio:true}); }catch(err){ if(window.AudioEvents) AudioEvents.stopAll(); }
   player={
     x:GW/2-4, y:GH/2, w:8, h:8, speed:PLAYER_BASE_SPEED,
     dir:'down', hp:6, maxHp:10, visibleHearts:3,
@@ -24,6 +133,8 @@ function resetGame(){
     player.hp=player.maxHp;
     player.visibleHearts=Math.max(player.visibleHearts||3, MASTER_SWORD_START_HEART_SLOTS);
   }
+  clearTransientEffectPools();
+  clearFloatTexts();
   enemies=[]; parts=[]; pSpawns=[]; frame=0; score=0; prevSpc=false;
   killCount=0; nextChestAt=10; nextGiantAt=GIANT_KILL_INTERVAL_START; chests=[]; chest=null; floatTexts=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; keyDrop=[]; fireballs=[]; nextWizardAt=WIZARD_KILL_INTERVAL_START; giantKillInterval=GIANT_KILL_INTERVAL_START; wizardKillInterval=WIZARD_KILL_INTERVAL_START; currentZone=1; if(window.RuntimeEntityManager && typeof RuntimeEntityManager.clear === 'function') RuntimeEntityManager.clear();
   zone1KillStart=0; zone2KillStart=0; zone3KillStart=0;
@@ -201,9 +312,15 @@ function startNgPlusDialog(){
   gState='dialog';
 }
 
+
+function __titleFlow(){
+  return window.BoneCrawlerTitleFlow || null;
+}
+
 function openRetryPrompt(){
   if(!retryCheckpoint || retryCheckpoint.zone<2){
-    startGame();
+    const titleFlow=__titleFlow();
+    if(titleFlow && typeof titleFlow.startGame === 'function') titleFlow.startGame(); else startGame();
     return;
   }
   retryPromptMode = retryTaxPaid ? 'free' : 'cost';
@@ -214,7 +331,8 @@ function openRetryPrompt(){
 function restoreRetryCheckpoint(){
   const cp=retryCheckpoint;
   if(!cp){
-    startGame();
+    const titleFlow=__titleFlow();
+    if(titleFlow && typeof titleFlow.startGame === 'function') titleFlow.startGame(); else startGame();
     return;
   }
 
@@ -235,11 +353,7 @@ function restoreRetryCheckpoint(){
   nextWizardAt=Math.max(WIZARD_KILL_INTERVAL_START, cp.nextWizardAt|0);
   wizardKillInterval=Math.max(WIZARD_KILL_INTERVAL_MIN, cp.wizardKillInterval|0);
   if(!cp.nextGiantAt || !cp.nextWizardAt) syncKillSpawnSchedulesFromCount();
-  clearChests(); clearKeyDrops();
-  enemies=[]; pSpawns=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; fireballs=[]; parts=[]; if(window.RuntimeEntityManager && typeof RuntimeEntityManager.clear === 'function') RuntimeEntityManager.clear();
-  dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
-  shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
-  bossClearTimer=0;
+  try{ destroyZoneRuntime({zone: currentZone, clearAllSceneCaches: true, stopAudio: true, resetDialogs: true}); }catch(err){}
   zone1Broken=Array(ZONE1_DECOR_BREAK_RECTS.length).fill(false);
   zone1Rubble=[];
   zone2Broken=Array(ZONE2_DECOR_BREAK_RECTS.length).fill(false);

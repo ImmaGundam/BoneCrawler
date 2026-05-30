@@ -51,7 +51,9 @@ function claimSecret2MasterSword(){
   dialogMode='reward';
   dialogPages = getMasterSwordRewardPages();
   dialogPageIndex = 0;
-  saveRunIfNeeded();
+  const titleFlow = window.BoneCrawlerTitleFlow || null;
+  if(titleFlow && typeof titleFlow.saveRunIfNeeded === 'function') titleFlow.saveRunIfNeeded();
+  else saveRunIfNeeded();
   clearGameplayKeys();
   gState='dialog';
 }
@@ -159,7 +161,9 @@ function hurtPlayer(amount=1){
     p.dead=true;
     try{ if(window.AudioEvents) AudioEvents.playerDeath(); }catch(err){}
     runTimeMs=performance.now()-runStartMs;
-    saveRunIfNeeded();
+    const titleFlow = window.BoneCrawlerTitleFlow || null;
+    if(titleFlow && typeof titleFlow.saveRunIfNeeded === 'function') titleFlow.saveRunIfNeeded();
+    else saveRunIfNeeded();
     setTimeout(()=>{gState='gameover';},1200);
   }
   return true;
