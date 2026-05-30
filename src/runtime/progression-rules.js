@@ -85,8 +85,9 @@
     try{
       switch(String(name || '')){
         case 'ZONE1_DOOR_RECT': return ZONE1_DOOR_RECT;
-        case 'SECRET1_ENTRANCE_RECT': return SECRET1_ENTRANCE_RECT;
+        case 'SECRET1_ENTRANCE_RECT': return (typeof getSecret1EntranceRect === 'function') ? getSecret1EntranceRect() : SECRET1_ENTRANCE_RECT;
         case 'SECRET1_EXIT_DOOR_RECT': return SECRET1_EXIT_DOOR_RECT;
+        case 'ZONE2_DOOR_RECT': return ZONE2_DOOR_RECT;
         case 'ZONE3_DOOR_RECT': return ZONE3_DOOR_RECT;
         case 'ZONE3_SECRET2_PORTAL_RECT': return ZONE3_SECRET2_PORTAL_RECT;
         case 'SECRET2_RETURN_PORTAL_RECT': return SECRET2_RETURN_PORTAL_RECT;

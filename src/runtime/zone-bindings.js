@@ -16,47 +16,47 @@
     1: {
       zoneId: 1,
       label: 'Zone 1',
-      map: {id:'zone_1', resource:'src/maps/zones-and-interactions.js#zone1'},
+      map: {id:'zone_1', resource:'src/maps/zones/zone1.js#scene'},
       spawn: {system:'waves', resource:'src/enemies/zone-spawn-config-baseline.js#zones.1'},
       progression: {system:'rules', resource:'src/runtime/progression-rules.js#zone1'},
-      objects: {resource:'src/objects/object-factory.js#zone1'},
-      dialog: {resource:'src/runtime/progression-rules.js#dialog.zone1'}
+      objects: {resource:'src/maps/zones/zone1.js#objects'},
+      dialog: {resource:'src/game/dialog/dialog-data.js#zone1'}
     },
     2: {
       zoneId: 2,
       label: 'Zone 2',
-      map: {id:'zone_2', resource:'src/maps/zones-and-interactions.js#zone2'},
+      map: {id:'zone_2', resource:'src/maps/zones/zone2.js#scene'},
       spawn: {system:'waves', resource:'src/enemies/zone-spawn-config-baseline.js#zones.2'},
       progression: {system:'rules', resource:'src/runtime/progression-rules.js#zone2'},
-      objects: {resource:'src/objects/object-factory.js#zone2'},
-      dialog: {resource:'src/runtime/progression-rules.js#dialog.zone2'}
+      objects: {resource:'src/maps/zones/zone2.js#objects'},
+      dialog: {resource:'src/game/dialog/dialog-data.js#zone2'}
     },
     3: {
       zoneId: 3,
       label: 'Zone 3',
-      map: {id:'zone_3', resource:'src/maps/zones-and-interactions.js#zone3'},
+      map: {id:'zone_3', resource:'src/maps/zones/zone3.js#scene'},
       spawn: {system:'waves', resource:'src/enemies/zone-spawn-config-baseline.js#zones.3'},
       progression: {system:'rules', resource:'src/runtime/progression-rules.js#zone3'},
-      objects: {resource:'src/objects/object-factory.js#zone3'},
-      dialog: {resource:'src/runtime/progression-rules.js#dialog.zone3'}
+      objects: {resource:'src/maps/zones/zone3.js#objects'},
+      dialog: {resource:'src/game/dialog/dialog-data.js#zone3'}
     },
     101: {
       zoneId: 101,
       label: 'Secret Zone 1',
-      map: {id:'secret_zone_1', resource:'src/maps/zones-and-interactions.js#secret1'},
+      map: {id:'secret_zone_1', resource:'src/maps/zones/secret-zone1.js#scene'},
       spawn: {system:'none', resource:'src/enemies/zone-spawn-config-baseline.js#zones.101'},
       progression: {system:'rules', resource:'src/runtime/progression-rules.js#secret1'},
-      objects: {resource:'src/objects/object-factory.js#secret1'},
-      dialog: {resource:'src/runtime/progression-rules.js#dialog.secret1'}
+      objects: {resource:'src/maps/zones/secret-zone1.js#environment'},
+      dialog: {resource:'src/game/dialog/dialog-data.js#secret1'}
     },
     102: {
       zoneId: 102,
       label: 'Secret Zone 2',
-      map: {id:'secret_zone_2', resource:'src/maps/zones-and-interactions.js#secret2'},
+      map: {id:'secret_zone_2', resource:'src/maps/zones/secret-zone2.js#scene'},
       spawn: {system:'none', resource:'src/enemies/zone-spawn-config-baseline.js#zones.102'},
       progression: {system:'rules', resource:'src/runtime/progression-rules.js#secret2'},
-      objects: {resource:'src/objects/object-factory.js#secret2'},
-      dialog: {resource:'src/runtime/progression-rules.js#dialog.secret2'}
+      objects: {resource:'src/maps/zones/secret-zone2.js#environment'},
+      dialog: {resource:'src/game/dialog/dialog-data.js#secret2'}
     }
   };
 
