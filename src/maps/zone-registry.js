@@ -59,9 +59,39 @@
     return zone ? zone.label : 'ZONE';
   }
 
+  function getType(zoneId){
+    const zone = get(zoneId);
+    return zone ? String(zone.type || 'map') : 'map';
+  }
+
   function isSecret(zoneId){
     const zone = get(zoneId);
     return !!(zone && zone.type === 'secret');
+  }
+
+  function render(zoneId){
+    const zone = zoneId == null ? getActiveZone() : get(zoneId);
+    if(zone && typeof zone.render === 'function'){
+      zone.render();
+      return true;
+    }
+    return false;
+  }
+
+  function collides(zoneId, box){
+    const zone = zoneId == null ? getActiveZone() : get(zoneId);
+    if(zone && typeof zone.collides === 'function'){
+      return !!zone.collides(boxFromArgs(box));
+    }
+    return false;
+  }
+
+  function collidesTree(zoneId, box){
+    const zone = zoneId == null ? getActiveZone() : get(zoneId);
+    if(zone && typeof zone.collidesTree === 'function'){
+      return !!zone.collidesTree(boxFromArgs(box));
+    }
+    return false;
   }
 
   window.SceneEngine = {
@@ -71,8 +101,12 @@
     getCurrentZoneId,
     getActiveZone,
     getLabel,
+    getType,
     isSecret,
     isTitleState,
+    render,
+    collides,
+    collidesTree,
     boxFromArgs
   };
 })();
