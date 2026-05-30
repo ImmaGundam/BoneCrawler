@@ -30,7 +30,7 @@
       GameObjectFactory.create('bookshelf',{id:'zone2.bookshelf7',label:'Zone 2 Side Bookshelf 4',breakRect:r(PX+PW-12,PY+7,6,17),blockRect:r(PX+PW-12,PY+18,6,6),render:{sprite:'bookshelf',x:PX+PW-12,y:PY+7,variant:1,layer:'late',overlayRect:r(PX+PW-12,PY+12,6,12)},broken:{sprite:'rubble',x:PX+PW-9,y:PY+23,variant:0}})
     ],
     environment:[
-      GameObjectFactory.create('door',{id:'zone2.door',label:'Zone 2 Door',rect:r(GW/2-5,PY-2,10,10)}),
+      GameObjectFactory.create('door',{id:'zone2.door',label:'Zone 2 Door',rect:r(GW/2-10,0,20,17),triggerRect:r(GW/2-8,PY-2,16,12)}),
       GameObjectFactory.create('rootBarrier',{id:'zone2.treeTrunk',label:'Zone 2 Tree Trunk',rect:r(GW/2-5,PY+46,10,15),group:'treeBlocker'}),
       GameObjectFactory.create('rootBarrier',{id:'zone2.root0',label:'Zone 2 Root 1',rect:r(GW/2-13,PY+53,26,8),group:'treeBlocker'}),
       GameObjectFactory.create('rootBarrier',{id:'zone2.root1',label:'Zone 2 Root 2',rect:r(GW/2-7,PY+59,14,5),group:'treeBlocker'}),
