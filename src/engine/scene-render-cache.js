@@ -2,7 +2,10 @@
 // Purpose: cache expensive static scene rendering to offscreen canvases and redraw only when scene visuals change.
 (function(){
   'use strict';
-  if(window.SceneRenderCache) return;
+  if(window.SceneRenderCache){
+    window.BoneCrawlerSceneRenderCache = window.SceneRenderCache;
+    return;
+  }
 
   const entries = Object.create(null);
 
@@ -47,7 +50,7 @@
     delete entries[String(zone)];
   }
 
-  window.SceneRenderCache = {
+  const api = {
     ensure,
     invalidate,
     clear: function(){ invalidate(null); },
@@ -58,4 +61,6 @@
       }, {});
     }
   };
+  window.SceneRenderCache = api;
+  window.BoneCrawlerSceneRenderCache = api;
 })();
