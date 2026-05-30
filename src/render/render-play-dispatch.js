@@ -50,7 +50,9 @@ function rPlay(){
   drawTorch(PX+PW-9,PY-8);
 
   // Zone doors / room markers on the HUD bar
-  if(currentZone===1 || currentZone===3){
+  if(currentZone===2 && typeof drawZone2BrokenDoor === 'function'){
+    drawZone2BrokenDoor();
+  } else if(currentZone===1 || currentZone===3){
     dsScale(S.hudDoor, GW/2-6, 2, 1.3);
 
     const eyePulse=0.22+0.14*Math.sin(frame*0.16);
@@ -504,4 +506,3 @@ function rPlay(){
 
   drawZoneFrontOverlays();
 }
-

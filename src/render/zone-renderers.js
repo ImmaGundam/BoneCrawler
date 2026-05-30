@@ -2,6 +2,8 @@
 // Purpose: Dungeon/zone renderers for Zone 1, Zone 2, Zone 3, Secret Zone 1, Secret Zone 2, decor, backgrounds.
 function zrctx(){ return window.__renderCtxOverride || ctx; }
 
+const ZONE_RENDER_ART_REV = 'zone-art-2.9.4-z2-door-v10';
+
 function getScenePlacementSignature(sceneId){
   try{
     if(!window.SceneRuntime || typeof SceneRuntime.getSceneEntities !== 'function') return '';
@@ -19,18 +21,18 @@ function getZoneRenderCacheSignature(zone){
   if(zone===1){
     const broken = Array.isArray(zone1Broken) ? zone1Broken.map(function(v){ return v ? 1 : 0; }).join('') : '';
     const crackOpen = (typeof zone1SecretEntranceReady === 'function' && zone1SecretEntranceReady()) ? 1 : 0;
-    return ['z1', broken, crackOpen, getScenePlacementSignature(1)].join('|');
+    return [ZONE_RENDER_ART_REV, 'z1', broken, crackOpen, getScenePlacementSignature(1)].join('|');
   }
   if(zone===2){
     const broken = Array.isArray(zone2Broken) ? zone2Broken.map(function(v){ return v ? 1 : 0; }).join('') : '';
-    return ['z2', broken, getScenePlacementSignature(2)].join('|');
+    return [ZONE_RENDER_ART_REV, 'z2', broken, getScenePlacementSignature(2)].join('|');
   }
   if(zone===3){
     const broken = Array.isArray(zone3Broken) ? zone3Broken.map(function(v){ return v ? 1 : 0; }).join('') : '';
     const portalOpen = (!!shadowBossDefeated && score>=SECRET2_SCORE_REQ) ? 1 : 0;
-    return ['z3', broken, portalOpen, getScenePlacementSignature(3)].join('|');
+    return [ZONE_RENDER_ART_REV, 'z3', broken, portalOpen, getScenePlacementSignature(3)].join('|');
   }
-  return ['z', zone, getScenePlacementSignature(zone)].join('|');
+  return [ZONE_RENDER_ART_REV, 'z', zone, getScenePlacementSignature(zone)].join('|');
 }
 
 function drawZoneCachedComposite(zone, buildStaticFn, drawDynamicFn){
@@ -98,6 +100,63 @@ function drawZone3DoorBlockage(){
     fr(rx+1,ry+rh-1,Math.max(1,rw-2),1,'#3b3026');
   }
   fr(doorX-8,PY+15,24,2,'#332920');
+}
+
+function drawZone2TopFloorDetail(){
+  const seam='#1e3242';
+  const edge='#3d5365';
+  const chipped='#7c8b78';
+  for(let y=PY+4;y<PY+16;y+=6){
+    fr(PX+2,y,PW-4,1,seam);
+    for(let x=PX+6;x<PX+PW-8;x+=18){
+      if(((x+y)>>1)%3!==0) fr(x,y-1,1,2,edge);
+    }
+  }
+  for(let x=PX+9;x<PX+PW-8;x+=14){
+    const h=(x%3)+3;
+    fr(x,PY+2,1,h,seam);
+    if(x%4===0) fr(x+1,PY+2+h,1,1,edge);
+  }
+  const chips=[
+    [PX+6,PY+5,2,1],[PX+12,PY+11,1,2],[GW/2-25,PY+9,3,1],
+    [GW/2+22,PY+6,2,1],[PX+PW-20,PY+13,1,2],[PX+PW-11,PY+8,2,1]
+  ];
+  for(const [x,y,w,h] of chips) fr(x,y,w,h,chipped);
+}
+
+function drawZone2BrokenDoor(){
+  const x=GW/2-8;
+  const y=1;
+
+  // North-wall doorway marker. It stays in the wall/HUD band so it faces the player,
+  // instead of spilling into the floor like a flat hatch.
+  fr(x-2,y+3,20,12,'#111d17');
+  fr(x-1,y+2,18,2,'#5f7c68');
+  fr(x,y+3,16,1,'#91a181');
+  fr(x-2,y+4,3,11,'#5b7462');
+  fr(x+15,y+4,3,11,'#40584b');
+  fr(x+1,y+4,14,11,'#170c07');
+
+  // Equal-width double-door panels with a clear center split.
+  fr(x+2,y+4,2,11,'#6c3b1e');
+  fr(x+4,y+5,2,10,'#8a4a26');
+  fr(x+6,y+4,2,11,'#6c3b1e');
+  fr(x+8,y+4,1,11,'#070302');
+  fr(x+9,y+4,2,11,'#5f321b');
+  fr(x+11,y+5,3,10,'#7a4121');
+  fr(x+3,y+5,1,8,'#b06b3d');
+  fr(x+5,y+6,1,6,'#c07a45');
+  fr(x+10,y+5,1,8,'#a46137');
+  fr(x+13,y+6,1,6,'#c07a45');
+
+  // Missing chunks and cracks read as damage without adding a floor-facing sill.
+  fr(x+5,y+4,1,4,'#111d17');
+  fr(x+12,y+10,2,5,'#120b07');
+  fr(x+14,y+5,1,3,'#111d17');
+  fr(x+5,y+7,1,2,'#d8cf9c');
+  fr(x+10,y+7,1,2,'#d8cf9c');
+  fr(x+2,y+14,13,1,'#130904');
+  fr(x-1,y+15,18,1,'#2c4036');
 }
 
 
@@ -693,6 +752,7 @@ function drawDungeonZone2Static(){
   for(let x=PX+10;x<PX+PW;x+=14) fr(x,PY,1,PH,floorB);
 
   fr(PX, PY, PW, 16, '#2c4156');
+  drawZone2TopFloorDetail();
   for(let x=PX+1; x<PX+PW-1; x+=4){
     if(((x-PX)/4)%3===1) continue;
     const height = 2 + ((x*5)%4);
@@ -702,8 +762,6 @@ function drawDungeonZone2Static(){
     if(x%12===0) fr(x-1, PY+15-height, 1, 1, '#88a2b8');
     if(x%16===0) fr(x+2, PY+17-height, 1, 1, mossB);
   }
-
-  drawZone3DoorBlockage();
 
   drawZoneBreakablesByLayer(2, 'back');
 
