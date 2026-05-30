@@ -17,11 +17,21 @@
     score: document.getElementById('screenExtScore'),
     kills: document.getElementById('screenExtKills'),
     zoneKey: document.getElementById('screenExtZoneKey'),
-    secretKey: document.getElementById('screenExtRankLegacyKey'),
+    secretKey: document.getElementById('screenExtSecretKey'),
+    rank: document.getElementById('screenExtRank'),
     miniMapGrid: document.getElementById('screenMiniMapGrid'),
     miniMapCaption: document.getElementById('screenMiniMapCaption'),
     upgradeStack: null
   };
+
+  var isMobileBrowser = root.classList.contains('mobile-browser');
+  var uiTickMs = isMobileBrowser ? 120 : 66;
+  var lastUiTick = 0;
+  var statusPanelStructured = false;
+  var miniMapNodeEls = {};
+  var miniMapLinkEls = [];
+  var lastUpgradeSignature = '';
+
 
   function hasGlobal(name) {
     try { return typeof window[name] !== 'undefined'; }
@@ -248,6 +258,12 @@
       });
     });
 
+    miniMapNodeEls = {};
+    miniMapLinkEls = Array.prototype.slice.call(els.miniMapGrid.querySelectorAll('.mini-map-link'));
+    Array.prototype.slice.call(els.miniMapGrid.querySelectorAll('[data-node-id]')).forEach(function (el) {
+      miniMapNodeEls[el.getAttribute('data-node-id')] = el;
+    });
+
     miniMapBuilt = true;
   }
 
@@ -364,6 +380,12 @@
     if (!els.upgradeStack) return;
 
     var items = getUpgradeProgressionItems();
+    var signature = items.map(function (item) {
+      return [item.id, item.value, item.spriteName, item.iconClass].join(':');
+    }).join('|') || 'empty';
+
+    if (signature === lastUpgradeSignature) return;
+    lastUpgradeSignature = signature;
 
     if (!items.length) {
       els.upgradeStack.innerHTML = '<span class="upgrade-empty">NO UPGRADES</span>';
@@ -426,7 +448,7 @@
   }
 
   function restructureStatusPanelForMiniMap() {
-    if (!root) return;
+    if (!root || statusPanelStructured) return;
 
     var zoneValue = document.getElementById('screenExtZone');
     var playerName = document.getElementById('screenExtPlayerName');
@@ -529,6 +551,8 @@
     } else if (!els.upgradeStack) {
       els.upgradeStack = root.querySelector('[data-screen-extension-upgrades]');
     }
+
+    statusPanelStructured = true;
   }
 
 
@@ -547,7 +571,7 @@
     nodes.forEach(function (node) {
       var revealed = isMiniMapRevealed(node);
       revealedById[node.id] = revealed;
-      var el = els.miniMapGrid.querySelector('[data-node-id="' + node.id + '"]');
+      var el = miniMapNodeEls[node.id] || els.miniMapGrid.querySelector('[data-node-id="' + node.id + '"]');
       if (!el) return;
 
       var stateName = 'locked';
@@ -559,7 +583,7 @@
       el.setAttribute('aria-current', stateName === 'current' ? 'location' : 'false');
     });
 
-    Array.prototype.slice.call(els.miniMapGrid.querySelectorAll('.mini-map-link')).forEach(function (link) {
+    (miniMapLinkEls.length ? miniMapLinkEls : Array.prototype.slice.call(els.miniMapGrid.querySelectorAll('.mini-map-link'))).forEach(function (link) {
       var from = link.getAttribute('data-link-from');
       var to = link.getAttribute('data-link-to');
       var active = currentNode && (currentNode.id === from || currentNode.id === to);
@@ -574,7 +598,14 @@
     }
   }
 
-  function update() {
+  function update(now) {
+    var ts = typeof now === 'number' ? now : performance.now();
+    if (lastUiTick && (ts - lastUiTick) < uiTickMs) {
+      requestAnimationFrame(update);
+      return;
+    }
+    lastUiTick = ts;
+
     restructureStatusPanelForMiniMap();
     var dbg = getSpawnDebugState();
     var zoneId = Number(readGlobal('currentZone', dbg && (dbg.zoneId || dbg.currentZone) || 1)) || 1;
@@ -584,7 +615,7 @@
     panel.setAttribute('data-phase', titleLike ? 'title' : 'run');
     root.classList.toggle('screen-extension-title-phase', !!titleLike);
     
-    var rankEl = root.querySelector('[data-screen-extension-rank]') || document.getElementById('screenExtRank');
+    var rankEl = root.querySelector('[data-screen-extension-rank]') || els.rank || document.getElementById('screenExtRank');
     if (rankEl) setText(rankEl, getPlayerRank());
 
     renderUpgradeProgression();
@@ -597,7 +628,6 @@
     setText(els.score, formatNumber(readGlobal('score', 0)));
     setText(els.kills, formatNumber(readGlobal('killCount', 0)));
     setText(els.zoneKey, keyFlag('zone1DoorKey') || keyFlag('zone2Key') ? 'YES' : 'NO');
-    setText(els.secretKey, keyFlag('secret1Key') || keyFlag('secret2Key') ? 'YES' : 'NO');
 
     requestAnimationFrame(update);
   }

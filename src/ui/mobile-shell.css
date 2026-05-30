@@ -1,0 +1,474 @@
+/* BoneCrawler mobile shell v2.9.4
+   New mobile layout owner for portrait, landscape, touch controls, and menu. */
+html.mobile-browser{
+  --bc-mobile-vh:100dvh;
+  --bc-mobile-safe-top:env(safe-area-inset-top, 0px);
+  --bc-mobile-safe-right:env(safe-area-inset-right, 0px);
+  --bc-mobile-safe-bottom:env(safe-area-inset-bottom, 0px);
+  --bc-mobile-safe-left:env(safe-area-inset-left, 0px);
+  --bc-mobile-face:
+    radial-gradient(circle at 50% 36%, rgba(31,54,36,.26), rgba(31,54,36,0) 58%),
+    linear-gradient(180deg, #09100d 0%, #050706 100%);
+  width:100%!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  background:#050706!important;
+}
+@supports (height:100svh){
+  html.mobile-browser{--bc-mobile-vh:100svh;}
+}
+html.mobile-browser body{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  height:var(--bc-mobile-vh)!important;
+  min-height:var(--bc-mobile-vh)!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+  background:#050706!important;
+}
+html.mobile-browser #desktopTitlebar,
+html.mobile-browser .player-menu,
+html.mobile-browser .player-page-footer,
+html.mobile-browser .zoom-strip,
+html.mobile-browser .screen-extension-nav,
+html.mobile-browser .screen-guide-popdown,
+html.mobile-browser .screen-about-popdown,
+html.mobile-browser #touchPauseBtn,
+html.mobile-browser #touchInteractBtn,
+html.mobile-browser #touchDodgeBtn{
+  display:none!important;
+}
+html.mobile-browser .player-shell,
+html.mobile-browser .player-stage{
+  display:block!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  height:var(--bc-mobile-vh)!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background:var(--bc-mobile-face)!important;
+}
+html.mobile-browser .gamepad-shell{
+  position:relative!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+html.mobile-browser .gp-screen-slot{
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+  display:grid!important;
+  place-items:center!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+html.mobile-browser .bc-play-shell{
+  width:var(--bc-game-size)!important;
+  height:var(--bc-game-size)!important;
+  max-width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  display:block!important;
+  box-sizing:border-box!important;
+}
+html.mobile-browser .bc-play-shell > .screen-extension-shell{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+}
+html.mobile-browser .bc-play-shell .screen-wrap-holder{
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  display:block!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+html.mobile-browser .bc-play-shell .screen-wrap{
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  margin:0!important;
+  padding:clamp(9px, 2vmin, 14px)!important;
+  transform:none!important;
+  transform-origin:center!important;
+  box-sizing:border-box!important;
+}
+html.mobile-browser .bc-play-shell #gameCanvas{
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  display:block!important;
+  image-rendering:pixelated!important;
+}
+
+html.mobile-browser .gp-dpad,
+html.mobile-browser .gpa-btn,
+html.mobile-browser .gp-sys-btn,
+html.mobile-browser .menu-toggle-btn,
+html.mobile-browser .menu-toggle-btn-landscape{
+  touch-action:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
+
+@media (orientation:portrait){
+  html.mobile-browser .player-stage{
+    display:grid!important;
+    grid-template-rows:auto auto auto minmax(0, 1fr)!important;
+    grid-template-columns:minmax(0, 1fr)!important;
+    align-content:start!important;
+    justify-items:center!important;
+  }
+  html.mobile-browser .gamepad-shell{
+    grid-row:1!important;
+    display:grid!important;
+    grid-template-columns:minmax(0, 1fr)!important;
+    grid-template-rows:auto!important;
+    height:auto!important;
+    padding:max(8px, var(--bc-mobile-safe-top)) 0 0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+  html.mobile-browser .gp-half,
+  html.mobile-browser .menu-toggle-btn-landscape{
+    display:none!important;
+  }
+  html.mobile-browser .gp-screen-slot{
+    width:100%!important;
+    padding:clamp(8px, 2.3vw, 14px) clamp(10px, 3.8vw, 18px) 0!important;
+  }
+  html.mobile-browser .bc-play-shell{
+    --bc-game-size:min(clamp(280px, calc(100vw - 56px), 480px), calc(var(--bc-mobile-vh) - 226px))!important;
+  }
+  html.mobile-browser .gp-portrait-bar{
+    grid-row:2!important;
+    display:grid!important;
+    grid-template-columns:minmax(88px, 1fr) minmax(52px, .72fr) minmax(88px, 1fr)!important;
+    align-items:center!important;
+    justify-items:center!important;
+    width:100%!important;
+    max-width:min(100vw, 560px)!important;
+    min-height:clamp(132px, 22svh, 176px)!important;
+    margin:0 auto!important;
+    padding:clamp(12px, 2.4svh, 18px) clamp(12px, 4vw, 24px) clamp(18px, 3svh, 28px)!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+    border-top:1px solid rgba(146,122,76,.34)!important;
+    border-bottom:1px solid rgba(0,0,0,.84)!important;
+    border-left:0!important;
+    border-right:0!important;
+    border-radius:0 0 32px 32px!important;
+    background:
+      radial-gradient(circle at 24% 44%, rgba(20,30,22,.72), rgba(20,30,22,0) 45%),
+      radial-gradient(circle at 76% 44%, rgba(20,30,22,.72), rgba(20,30,22,0) 45%),
+      linear-gradient(180deg, rgba(9,14,11,.99), rgba(4,6,5,.99))!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04), inset 0 0 34px rgba(0,0,0,.58), 0 14px 30px rgba(0,0,0,.52)!important;
+  }
+  html.mobile-browser .gpb-zone{
+    min-width:0!important;
+    padding:0!important;
+  }
+  html.mobile-browser .gpb-zone-left{
+    justify-self:center!important;
+  }
+  html.mobile-browser .gpb-zone-center{
+    justify-self:center!important;
+    gap:8px!important;
+  }
+  html.mobile-browser .gpb-zone-right{
+    justify-self:center!important;
+  }
+  html.mobile-browser .gpb-zone-left .gp-dpad{
+    --dpd-sz:clamp(34px, 9.8vw, 42px)!important;
+  }
+  html.mobile-browser .gpb-pause,
+  html.mobile-browser .gpb-interact{
+    min-width:52px!important;
+    padding:6px 8px!important;
+  }
+  html.mobile-browser .gpb-diamond{
+    width:clamp(84px, 23vw, 100px)!important;
+    height:clamp(84px, 23vw, 100px)!important;
+  }
+  html.mobile-browser .gpb-a,
+  html.mobile-browser .gpb-b{
+    width:clamp(48px, 12.8vw, 56px)!important;
+    height:clamp(48px, 12.8vw, 56px)!important;
+  }
+  html.mobile-browser .player-stage > .menu-toggle-btn{
+    grid-row:3!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:min(68vw, 280px)!important;
+    max-width:calc(100vw - 48px)!important;
+    margin:14px auto 0!important;
+    padding:11px 14px!important;
+    box-sizing:border-box!important;
+  }
+}
+
+@media (orientation:landscape){
+  html.mobile-browser .player-stage{
+    display:block!important;
+  }
+  html.mobile-browser .gamepad-shell{
+    --gp-side:clamp(112px, 17.5vw, 180px);
+    display:grid!important;
+    grid-template-columns:var(--gp-side) minmax(0, 1fr) var(--gp-side)!important;
+    grid-template-rows:minmax(0, 1fr)!important;
+    align-items:stretch!important;
+    justify-items:stretch!important;
+    width:100%!important;
+    height:var(--bc-mobile-vh)!important;
+    padding:max(8px, var(--bc-mobile-safe-top)) max(8px, var(--bc-mobile-safe-right)) max(8px, var(--bc-mobile-safe-bottom)) max(8px, var(--bc-mobile-safe-left))!important;
+    background:
+      radial-gradient(circle at 18% 50%, rgba(31,46,33,.55), rgba(31,46,33,0) 56%),
+      radial-gradient(circle at 82% 50%, rgba(31,46,33,.55), rgba(31,46,33,0) 56%),
+      linear-gradient(90deg, rgba(0,0,0,.74), rgba(5,8,7,.98) 15%, rgba(7,9,7,.99) 50%, rgba(5,8,7,.98) 85%, rgba(0,0,0,.74))!important;
+    box-shadow:inset 0 0 0 1px rgba(146,122,76,.16), inset 0 0 60px rgba(0,0,0,.72)!important;
+  }
+  html.mobile-browser .gp-portrait-bar,
+  html.mobile-browser .player-stage > .menu-toggle-btn{
+    display:none!important;
+  }
+  html.mobile-browser .gp-half{
+    display:grid!important;
+    grid-template-rows:auto minmax(0, 1fr) auto!important;
+    width:auto!important;
+    min-width:0!important;
+    height:100%!important;
+    min-height:0!important;
+    padding:44px 8px 12px!important;
+    background:transparent!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    box-sizing:border-box!important;
+  }
+  html.mobile-browser .gp-half::before,
+  html.mobile-browser .gp-half::after{
+    display:none!important;
+  }
+  html.mobile-browser .gp-left{
+    grid-column:1!important;
+  }
+  html.mobile-browser .gp-right{
+    grid-column:3!important;
+  }
+  html.mobile-browser .gp-screen-slot{
+    grid-column:2!important;
+    width:100%!important;
+    height:100%!important;
+    padding:clamp(6px, 1.4svh, 14px) 0!important;
+    align-self:center!important;
+    justify-self:center!important;
+  }
+  html.mobile-browser .bc-play-shell{
+    --bc-game-size:min(calc(var(--bc-mobile-vh) - 22px), calc(100vw - (var(--gp-side) * 2) - 28px), 720px)!important;
+  }
+  html.mobile-browser .gp-dpad-wrap,
+  html.mobile-browser .gp-action-wrap{
+    display:grid!important;
+    min-height:0!important;
+    align-items:center!important;
+  }
+  html.mobile-browser .gp-dpad-wrap{
+    justify-items:start!important;
+  }
+  html.mobile-browser .gp-action-wrap{
+    justify-items:end!important;
+  }
+  html.mobile-browser .gp-left .gp-dpad{
+    --dpd-sz:clamp(38px, 5.3vw, 54px)!important;
+  }
+  html.mobile-browser .gp-actions.gp-actions-diamond{
+    width:clamp(100px, 13vw, 128px)!important;
+    height:clamp(100px, 13vw, 128px)!important;
+  }
+  html.mobile-browser .gp-actions-diamond .gpa-a,
+  html.mobile-browser .gp-actions-diamond .gpa-b{
+    width:clamp(54px, 7vw, 68px)!important;
+    height:clamp(54px, 7vw, 68px)!important;
+  }
+  html.mobile-browser .gp-sys-row{
+    margin:0!important;
+  }
+  html.mobile-browser .menu-toggle-btn-landscape{
+    display:flex!important;
+    position:fixed!important;
+    top:max(8px, var(--bc-mobile-safe-top))!important;
+    left:max(8px, var(--bc-mobile-safe-left))!important;
+    z-index:120!important;
+    margin:0!important;
+  }
+}
+
+/* New mobile menu with live status tab. */
+html.mobile-browser body.menu-open{
+  overflow:hidden!important;
+}
+html.mobile-browser .side-menu-overlay{
+  position:fixed!important;
+  inset:0!important;
+  z-index:1000!important;
+  display:grid!important;
+  place-items:center!important;
+  width:100%!important;
+  height:var(--bc-mobile-vh)!important;
+  min-height:0!important;
+  padding:max(12px, var(--bc-mobile-safe-top)) max(12px, var(--bc-mobile-safe-right)) max(12px, var(--bc-mobile-safe-bottom)) max(12px, var(--bc-mobile-safe-left))!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  background:rgba(0,0,0,.80)!important;
+  -webkit-backdrop-filter:blur(2px);
+  backdrop-filter:blur(2px);
+}
+html.mobile-browser .side-menu-overlay.hidden{
+  display:none!important;
+}
+html.mobile-browser .side-menu-inner{
+  position:relative!important;
+  width:min(94vw, 480px)!important;
+  max-width:100%!important;
+  height:auto!important;
+  max-height:calc(var(--bc-mobile-vh) - 24px - var(--bc-mobile-safe-top) - var(--bc-mobile-safe-bottom))!important;
+  min-height:0!important;
+  display:grid!important;
+  grid-template-rows:auto minmax(0, 1fr)!important;
+  overflow:hidden!important;
+  border:1px solid rgba(146,122,76,.52)!important;
+  border-radius:5px!important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(240,176,32,.08), rgba(240,176,32,0) 44%),
+    linear-gradient(180deg, rgba(15,16,16,.99), rgba(7,8,8,.99))!important;
+  box-shadow:0 0 0 1px rgba(36,38,37,.96) inset, 0 0 0 2px rgba(10,11,11,.98), 0 20px 56px rgba(0,0,0,.72)!important;
+}
+html.mobile-browser .side-menu-close{
+  top:8px!important;
+  right:8px!important;
+  width:28px!important;
+  height:28px!important;
+  z-index:12!important;
+  border:1px solid rgba(146,122,76,.46)!important;
+  border-radius:2px!important;
+  background:linear-gradient(180deg, rgba(31,29,20,.96), rgba(11,10,8,.98))!important;
+  color:#e4d9b6!important;
+  opacity:1!important;
+}
+html.mobile-browser .player-tab-bar{
+  display:grid!important;
+  grid-template-columns:repeat(3, minmax(0, 1fr))!important;
+  width:100%!important;
+  min-height:42px!important;
+  padding-right:38px!important;
+  box-sizing:border-box!important;
+  z-index:2!important;
+}
+html.mobile-browser .player-tab-btn{
+  min-width:0!important;
+  min-height:42px!important;
+  padding:0 5px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:clamp(6px, 1.9vw, 8px)!important;
+  line-height:1.2!important;
+  letter-spacing:.06em!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+html.mobile-browser .side-menu-pane{
+  min-height:0!important;
+  overflow:hidden!important;
+}
+html.mobile-browser .side-menu-pane.active{
+  display:grid!important;
+  grid-template-rows:minmax(0, 1fr)!important;
+}
+html.mobile-browser .side-menu-pane-inner{
+  min-height:0!important;
+  height:100%!important;
+  display:grid!important;
+  align-content:start!important;
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+  padding:16px 14px 18px!important;
+  box-sizing:border-box!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-y!important;
+}
+html.mobile-browser .side-menu-status-mount{
+  min-width:0!important;
+  min-height:0!important;
+}
+html.mobile-browser .side-menu-status-mount .screen-extension-panel{
+  display:grid!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  padding:12px!important;
+  gap:8px!important;
+  overflow:visible!important;
+  box-sizing:border-box!important;
+}
+html.mobile-browser .side-menu-status-mount .screen-extension-panel::before{
+  inset:5px!important;
+}
+
+@media (orientation:landscape){
+  html.mobile-browser .side-menu-inner{
+    width:min(78vw, 820px)!important;
+    max-height:calc(var(--bc-mobile-vh) - 16px - var(--bc-mobile-safe-top) - var(--bc-mobile-safe-bottom))!important;
+  }
+  html.mobile-browser .side-menu-pane-inner{
+    grid-template-columns:minmax(0, 1fr) minmax(0, 1fr)!important;
+    gap:12px 22px!important;
+    padding:14px 18px 16px!important;
+  }
+  html.mobile-browser .side-menu-pane-inner .panel-rule{
+    grid-column:1 / -1!important;
+  }
+  html.mobile-browser .side-menu-status-pane{
+    grid-template-columns:1fr!important;
+  }
+  html.mobile-browser .side-menu-status-mount .screen-extension-panel{
+    display:grid!important;
+    grid-template-columns:minmax(0, 1fr) minmax(0, 1fr)!important;
+    align-items:start!important;
+  }
+  html.mobile-browser .side-menu-status-mount .screen-extension-header,
+  html.mobile-browser .side-menu-status-mount .screen-extension-key-grid,
+  html.mobile-browser .side-menu-status-mount .screen-extension-minimap-section{
+    grid-column:1 / -1!important;
+  }
+}

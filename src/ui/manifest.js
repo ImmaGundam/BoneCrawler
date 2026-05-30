@@ -1,0 +1,17 @@
+export const uiManifest = [
+  'src/ui/dom-layout.js',
+  'src/ui/menu-runtime.js',
+  'src/title/title-menu-runtime.js',
+  'src/engine/input.js',
+  'src/systems/menu-storage-touch.js',
+  'src/ui/touch-ui-runtime.js',
+  'src/main/update.js',
+  'src/render/zone-renderers.js',
+  'src/render/render-play-dispatch.js',
+  'src/render/render-menus.js',
+  'src/title/title-screen.js',
+  'src/ui/screen-extension.js',
+  'src/ui/screen-extension-about.js',
+  'src/ui/screen-extension-layout-sync.js',
+  'src/main/loop.js',
+];
