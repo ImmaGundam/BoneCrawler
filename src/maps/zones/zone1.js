@@ -14,8 +14,8 @@
       return 'Secret zone unlocked. Break the bookshelf.';
     },
     objects: [
-      GameObjectFactory.create('breakableProp', {id:'zone1.break0', label:'Zone 1 Bookshelf 1', kind:'bookshelf', breakRect:r(PX+2,PY+22,6,17), blockRect:r(PX+2,PY+33,6,6), breakEffect:'wood'}),
-      GameObjectFactory.create('breakableProp', {id:'zone1.break1', label:'Zone 1 Bookshelf 2', kind:'bookshelf', breakRect:r(PX+PW-8,PY+20,6,17), blockRect:r(PX+PW-8,PY+31,6,6), breakEffect:'wood'}),
+      GameObjectFactory.create('bookshelf', {id:'zone1.break0', label:'Zone 1 Bookshelf 1', breakRect:r(PX+2,PY+22,6,17), blockRect:r(PX+2,PY+22,6,17), render:{sprite:'bookshelf',x:PX+2,y:PY+22,variant:0,layer:'main',overlayRect:r(PX+2,PY+22,6,11)}, broken:{sprite:'rubble',x:PX+5,y:PY+39,variant:0}, breakEffect:'wood'}),
+      GameObjectFactory.create('bookshelf', {id:'zone1.break1', label:'Zone 1 Bookshelf 2', breakRect:r(PX+PW-8,PY+20,6,17), blockRect:r(PX+PW-8,PY+20,6,17), render:{sprite:'bookshelf',x:PX+PW-8,y:PY+20,variant:1,layer:'main',overlayRect:r(PX+PW-8,PY+20,6,11)}, broken:{sprite:'rubble',x:PX+PW-5,y:PY+37,variant:1}, breakEffect:'wood'}),
       GameObjectFactory.create('breakableProp', {id:'zone1.break2', label:'Zone 1 Broken Table Corner', kind:'table', breakRect:r(PX+7,PY+11,19,15), blockRect:r(PX+7,PY+11,19,15), breakEffect:'wood'}),
       GameObjectFactory.create('breakableProp', {id:'zone1.break3', label:'Zone 1 Broken Barrel', kind:'barrel', breakRect:r(PX+PW-14,PY+8,6,8), blockRect:r(PX+PW-14,PY+8,6,8), breakEffect:'wood'}),
       GameObjectFactory.create('breakableProp', {id:'zone1.break4', label:'Zone 1 Barrel 1', kind:'barrel', breakRect:r(PX+PW-24,PY+PH-22,6,8), blockRect:r(PX+PW-24,PY+PH-22,6,8), breakEffect:'wood'}),
