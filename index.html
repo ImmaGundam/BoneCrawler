@@ -1,4 +1,4 @@
-<!-- BoneCrawler.com - jamesdeitz.dev - version 2.9 -->
+<!-- BoneCrawler.com - jamesdeitz.dev - version 2.9.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,25 +6,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>BoneCrawler - NES-Style Dark Fantasy Arcade Action Game</title>
 <link rel="icon" type="image/jpeg" href="assets/icon.jpg">
-  <script>
-/* BoneCrawler browser mode detection */
+<script>
+/* Browser layout detection.
+   Phones get the mobile controller. Tablets keep a tablet/desktop layout.
+   Optional override: ?layout=desktop, ?layout=tablet, or ?layout=mobile. */
 (function () {
   var ua = navigator.userAgent || '';
+  var params = new URLSearchParams(window.location.search || '');
+  var forced = (params.get('layout') || localStorage.getItem('bonecrawler-layout-mode') || 'auto').toLowerCase();
   var mobileUA = /Android|iPhone|iPad|iPod|IEMobile|BlackBerry|Opera Mini|Mobile|Tablet/i.test(ua);
+  var tabletUA = /iPad|Tablet/i.test(ua);
   var iPadOS = /Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1;
   var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
   var noHover = !!(window.matchMedia && window.matchMedia('(hover: none)').matches);
   var touch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-  var mobileBrowser = (mobileUA || iPadOS) && (touch || coarse || noHover);
-  document.documentElement.classList.add(mobileBrowser ? 'mobile-browser' : 'desktop-browser');
+  var screenW = screen.width || 0;
+  var screenH = screen.height || 0;
+  var shortSide = Math.min(screenW, screenH);
+  var longSide = Math.max(screenW, screenH);
+
+  var mode = 'desktop';
+
+  if (forced === 'mobile' || forced === 'phone') {
+    mode = 'mobile';
+  } else if (forced === 'tablet') {
+    mode = 'tablet';
+  } else if (forced === 'desktop') {
+    mode = 'desktop';
+  } else {
+    var phoneLike = mobileUA && !tabletUA && !iPadOS && shortSide < 700;
+    var tabletLike = iPadOS || tabletUA || ((touch || coarse || noHover) && shortSide >= 700 && longSide >= 900);
+    mode = phoneLike ? 'mobile' : (tabletLike ? 'tablet' : 'desktop');
+  }
+
+  document.documentElement.dataset.deviceLayout = mode;
+  document.documentElement.classList.add(mode + '-browser');
+  document.documentElement.classList.add('screen-extension-enabled');
+
+  if (mode === 'tablet') {
+    document.documentElement.classList.add('desktop-browser');
+  }
 })();
 </script>
-<link rel="stylesheet" href="./styles-old.css">
+<link rel="stylesheet" href="./src/ui/index-shell.css">
+<link rel="stylesheet" href="./src/ui/game-ui.css">
+<link rel="stylesheet" href="./src/ui/mobile-ui.css">
+<link rel="stylesheet" href="./src/ui/mobile-shell.css">
 </head>
 <body>
 <script>
 (function () {
-  document.body.classList.add(document.documentElement.classList.contains('mobile-browser') ? 'is-mobile-browser' : 'is-desktop-browser');
+  var root = document.documentElement;
+  var mode = root.dataset.deviceLayout || (root.classList.contains('mobile-browser') ? 'mobile' : 'desktop');
+  document.body.classList.add('is-' + mode + '-browser');
+  if (mode !== 'mobile') document.body.classList.add('is-desktop-browser');
 })();
 </script>
 
@@ -37,21 +72,8 @@
   </div>
 </div>
 
-<!-- Electron custom titlebar (hidden in browser, shown in Electron via JS) -->
-<div id="electron-titlebar" role="toolbar" aria-label="Window controls">
-  <button class="etb-btn etb-min" id="etbMin" title="Minimize" aria-label="Minimize">
-    <svg viewBox="0 0 10 10"><line x1="1" y1="5" x2="9" y2="5"/></svg>
-  </button>
-  <button class="etb-btn etb-max" id="etbMax" title="Maximize" aria-label="Maximize / Restore">
-    <svg viewBox="0 0 10 10" id="etbMaxIcon"><rect x="1.5" y="1.5" width="7" height="7" rx="0.5"/></svg>
-  </button>
-  <button class="etb-btn etb-close" id="etbClose" title="Close" aria-label="Close">
-    <svg viewBox="0 0 10 10"><line x1="1.5" y1="1.5" x2="8.5" y2="8.5"/><line x1="8.5" y1="1.5" x2="1.5" y2="8.5"/></svg>
-  </button>
-</div>
-
 <div class="player-shell" id="playerShell">
-  <aside class="player-menu player-menu-left" id="playerMenuLeft" aria-label="BoneCrawler about and controls menu">
+  <aside class="player-menu player-menu-left" id="playerMenuLeft" hidden aria-hidden="true" aria-label="BoneCrawler about and controls menu">
     <div class="player-card player-about-card" id="aboutPanel">
       <div class="player-panel-tools" aria-label="Controls panel size controls">
         <button type="button" class="player-tool-btn player-tool-icon" id="aboutExpandBtn" aria-label="Maximize Controls" title="Maximize Controls">□</button>
@@ -85,7 +107,7 @@
           <div class="panel-line">- <strong>whydragons</strong> (Secret Dragon 1)</div>
           <div class="panel-line">- <strong>itsasecret</strong> (Start in Secret Zone 1)</div>
           <div class="panel-line">- <strong>devsecret</strong> (Start in Secret Zone 2)</div>
-          <div class="panel-line">- <strong>zone2</strong> &amp; <strong>zone3</strong> (Start in Zone)</div>
+          <div class="panel-line">- <strong>zone2</strong> &amp; <strong>zone 3</strong> (Start in Zone)</div>
           <div class="panel-line note"><i>Scoreboard is stored locally as a cookie. Clear cache to reset.</i></div>
         </div>
       </div>
@@ -121,13 +143,162 @@
       </div>
 
       <div class="gp-screen-slot" id="gpScreenSlot">
-        <div class="screen-wrap-holder" id="screenWrapHolder">
-          <div class="screen-wrap" id="screenWrap">
-            <canvas id="gameCanvas" width="240" height="240"></canvas>
-            <button type="button" class="touch-pause-btn hidden" id="touchPauseBtn" aria-label="Pause game">❚❚</button>
-            <button type="button" class="touch-action-btn hidden" id="touchInteractBtn" aria-label="Interact">E</button>
-            <button type="button" class="touch-action-btn hidden" id="touchDodgeBtn" aria-label="Dodge">DODGE</button>
+        <div class="bc-play-shell bc-ui-frame" id="bcPlayShell">
+          <nav class="screen-extension-nav" aria-label="BoneCrawler quick guide navigation">
+            <div class="screen-extension-nav-title">BONECRAWLER</div>
+            <div class="screen-extension-nav-actions">
+              <button type="button" class="screen-extension-nav-btn" id="screenGuideControlsBtn" data-guide-target="controls" aria-expanded="false" aria-controls="screenGuidePopdown">CONTROLS</button>
+              <button type="button" class="screen-extension-nav-btn" id="screenGuideHowToBtn" data-guide-target="howto" aria-expanded="false" aria-controls="screenGuidePopdown">HOW TO PLAY</button>
+              <button type="button" class="screen-extension-nav-btn" id="screenAboutBtn" aria-expanded="false" aria-controls="screenAboutPopdown">ABOUT</button>
+              <button type="button" class="screen-extension-nav-btn screen-extension-status-toggle" id="screenStatusToggle" aria-pressed="true" aria-controls="screenExtensionPanel">STATUS</button>
+            </div>
+          </nav>
+
+          <div class="screen-extension-shell bc-game-status-frame" id="screenExtensionShell" data-panel="open" data-guide="closed">
+            <div class="screen-wrap-holder" id="screenWrapHolder">
+              <div class="screen-wrap" id="screenWrap">
+                <canvas id="gameCanvas" width="240" height="240"></canvas>
+                <button type="button" class="touch-pause-btn hidden" id="touchPauseBtn" aria-label="Pause game">❚❚</button>
+                <button type="button" class="touch-action-btn hidden" id="touchInteractBtn" aria-label="Interact">E</button>
+                <button type="button" class="touch-action-btn hidden" id="touchDodgeBtn" aria-label="Dodge">DODGE</button>
+              </div>
+            </div>
+
+            <aside class="screen-extension-panel" id="screenExtensionPanel" aria-label="BoneCrawler screen extension">
+              <div class="screen-extension-header">
+                <span class="screen-extension-title">GAME STATUS</span>
+                <span class="screen-extension-chip" id="screenExtState">TITLE</span>
+              </div>
+
+              <div class="screen-extension-section screen-extension-zone-card" data-screen-extension-zone-card>
+                <div class="screen-extension-label">ZONE</div>
+                <div class="screen-extension-main" id="screenExtZone">ZONE 1</div>
+                <div class="screen-extension-sub" id="screenExtWave">WAVE —</div>
+              </div>
+
+              <div class="screen-extension-section screen-extension-objective-card" aria-label="Objective">
+                <div class="screen-extension-label">OBJECTIVE</div>
+                <div class="screen-extension-text" id="screenExtObjective">Press PLAY to enter the dungeon.</div>
+              </div>
+
+              <div class="screen-extension-section screen-extension-run-data screen-extension-player-card" data-screen-extension-player-card aria-label="Player run data">
+                <div class="screen-extension-label">PLAYER</div>
+                <div class="screen-extension-player-name" id="screenExtPlayerName">PLAYER</div>
+                <div class="screen-extension-meter-grid" aria-label="Score and kill count">
+                  <div class="screen-extension-stat screen-extension-stat-small">
+                    <span>SCORE</span>
+                    <strong id="screenExtScore">0</strong>
+                  </div>
+                  <div class="screen-extension-stat screen-extension-stat-small">
+                    <span>KILLS</span>
+                    <strong id="screenExtKills">0</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="screen-extension-grid screen-extension-key-grid" aria-label="Key status">
+                <div class="screen-extension-stat">
+                  <span>ZONE KEY</span>
+                  <strong id="screenExtZoneKey">—</strong>
+                </div>
+                <div class="screen-extension-stat">
+                  <span>RANK</span>
+                  <strong id="screenExtRank">—</strong>
+                </div>
+              </div>
+
+              <div class="screen-extension-section screen-extension-minimap-section" aria-label="Dungeon route map">
+                <div class="screen-extension-label">DUNGEON MAP</div>
+                <div class="screen-mini-map" id="screenMiniMap" aria-live="polite">
+                  <div class="screen-mini-map-grid" id="screenMiniMapGrid"></div>
+                </div>
+                <div class="screen-extension-text screen-mini-map-caption" id="screenMiniMapCaption">Awaiting route data.</div>
+              </div>
+            </aside>
           </div>
+
+          <section class="screen-guide-popdown" id="screenGuidePopdown" hidden aria-label="BoneCrawler guide panel">
+            <div class="screen-guide-head">
+              <div class="screen-guide-title" id="screenGuideTitle">CONTROLS</div>
+              <button type="button" class="screen-guide-close" id="screenGuideClose" aria-label="Close guide">×</button>
+            </div>
+
+            <div class="screen-guide-pane active" id="screenGuideControls" data-guide-pane="controls">
+              <div class="panel-group">
+                <div class="panel-head hd-warm"><u><b>DESKTOP:</b></u></div>
+                <div class="panel-line"><strong>ARROWS / WASD</strong> = MOVE</div>
+                <div class="panel-line"><strong>SPACE / LEFT CLICK</strong> = ATTACK</div>
+                <div class="panel-line"><strong>ENTER / E</strong> = INTERACT</div>
+                <div class="panel-line"><strong>ESC</strong> = PAUSE GAME (SKIPS DIALOG)</div>
+                <div class="panel-line"><strong>DODGE</strong> — SHIFT</div>
+              </div>
+              <div class="panel-rule"></div>
+              <div class="panel-group">
+                <div class="panel-head hd-blue"><u><b>MOBILE:</b></u></div>
+                <div class="panel-line"><strong>D-PAD</strong> = MOVE</div>
+                <div class="panel-line"><strong>B BUTTON</strong> = ATTACK</div>
+                <div class="panel-line"><strong>E / USE BUTTON</strong> — INTERACT</div>
+                <div class="panel-line"><strong>A BUTTON</strong> — DODGE</div>
+                <div class="panel-line"><strong>TAP HUD</strong> — USE POTION</div>
+              </div>
+              <div class="panel-rule"></div>
+              <div class="panel-group">
+                <div class="panel-line note"><strong>The player name holds Cheat-codes!</strong></div>
+                <div class="panel-line">- <strong>immagundam</strong> (Godmode + Boost)</div>
+                <div class="panel-line">- <strong>Link</strong> (Start Buffed)</div>
+                <div class="panel-line">- <strong>whydragons</strong> (Secret Dragon 1)</div>
+                <div class="panel-line">- <strong>itsasecret</strong> (Start in Secret Zone 1)</div>
+                <div class="panel-line">- <strong>devsecret</strong> (Start in Secret Zone 2)</div>
+                <div class="panel-line">- <strong>zone2</strong> &amp; <strong>zone 3</strong> (Start in Zone)</div>
+              </div>
+            </div>
+
+            <div class="screen-guide-pane" id="screenGuideHowTo" data-guide-pane="howto">
+              <div class="panel-group">
+                <div class="panel-head hd-yellow"><u><b>CHEST ROLLS</b></u></div>
+                <div class="panel-line">Each chest contains <strong>3</strong> random choices.</div>
+                <div class="panel-line">An <strong>upgrade</strong>, a full <strong>heart</strong>, or <strong>points</strong>.</div>
+                <div class="panel-line heart"><strong>HEART</strong> — HEAL 1 HEART [MAX 5]</div>
+                <div class="panel-line sword"><strong>SWORD</strong> — BIGGER BLADE</div>
+                <div class="panel-line speed"><strong>SPEED</strong> — INCREASE SPEED</div>
+                <div class="panel-line step"><strong>STEP</strong> — IMPROVE DODGE</div>
+                <div class="panel-line shield"><strong>MAGIC SHIELD</strong> — ABSORB HIT &amp; BURSTS IN SHOCKWAVE</div>
+                <div class="panel-line note">Upgrades stack by increasing stats. Pick wisely.</div>
+              </div>
+              <div class="panel-rule"></div>
+              <div class="panel-group">
+                <div class="panel-head">The world has secrets. Find them. <i>(Try looking for breakable objects)</i></div>
+                <div class="panel-head hd-warm"><u><b>ITEMS:</b></u></div>
+                <div class="panel-line heart"><strong>HALF HEART</strong> — HEALS 1/2 HEART</div>
+                <div class="panel-line heart"><strong>FULL HEART</strong> — HEALS 1 HEART</div>
+                <div class="panel-line heart"><strong>HEALTH POTION</strong> — HEALS 1 HEART</div>
+                <div class="panel-line sword"><strong>MASTER SWORD</strong> — +5 BLADE &amp; WHIRLWIND SLASH</div>
+              </div>
+              <div class="panel-rule"></div>
+              <div class="panel-group">
+                <div class="panel-head hd-blue"><u><b>SKILLS:</b></u></div>
+                <div class="panel-line step"><strong>SHADOW STEP</strong> — Dodge farther with brief invincibility</div>
+                <div class="panel-line sword"><strong>WHIRLWIND SLASH</strong> — Charge and release attack for a 360 radius</div>
+                <div class="panel-line shield"><s><strong>MIRROR</strong> — REFLECT ALL ATTACKS</s> <em>Coming Soon!</em></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen-about-popdown" id="screenAboutPopdown" hidden aria-label="BoneCrawler about links">
+            <div class="screen-about-head">
+              <div class="screen-about-title">ABOUT</div>
+              <button type="button" class="screen-about-close" id="screenAboutClose" aria-label="Close about">×</button>
+            </div>
+            <div class="screen-about-body">
+              <div class="screen-about-actions">
+                <a class="screen-about-link" href="docs/1bit.html">1-BIT</a>
+                <a class="screen-about-link" href="docs/license.html" target="_blank" rel="noopener noreferrer">LICENSE</a>
+                <a class="screen-about-link" href="https://github.com/ImmaGundam/BoneCrawler" target="_blank" rel="noopener noreferrer">REPO</a>
+              </div>
+              <div class="screen-about-version">Version: 2.9.4 (5/29/26)</div>
+              <div class="screen-about-copy"><span class="footer-copy-symbol">&copy;</span> BoneCrawler.com</div>
+            </div>
+          </section>
         </div>
       </div>
 
@@ -193,7 +364,7 @@
       </div>
     </div>
 
-    <div class="player-card zoom-strip" id="zoomStrip" aria-label="Display zoom controls">
+    <div class="player-card zoom-strip" id="zoomStrip" hidden aria-hidden="true" aria-label="Display zoom controls">
       <button type="button" class="panel-minimize box-dismiss" id="zoomCollapse" aria-label="Minimize Display Zoom" aria-expanded="true" title="Minimize Display Zoom">−</button><button type="button" class="panel-dismiss box-dismiss" id="zoomDismiss" aria-label="Dismiss Display Zoom">×</button>
       <span class="zoom-label">DISPLAY ZOOM</span>
       <div class="zoom-controls" id="zoomControls">
@@ -213,7 +384,7 @@
       <span class="menu-toggle-icon">☰</span> MENU
     </button>
   </div>
-  <aside class="player-menu player-menu-right" id="playerMenuRight" aria-label="BoneCrawler how to play menu">
+  <aside class="player-menu player-menu-right" id="playerMenuRight" hidden aria-hidden="true" aria-label="BoneCrawler how to play menu">
     <details class="info-panel player-card" id="howToPlayPanel" open>
       <summary class="howto-summary"><span class="howto-title">HOW TO PLAY</span></summary>
       <div class="player-panel-tools" aria-label="How to Play panel size controls">
@@ -263,14 +434,23 @@
 
     <!-- Tab bar -->
     <div class="player-tab-bar" role="tablist" aria-label="Menu tabs">
-      <button type="button" class="player-tab-btn active" id="tabBtnControls"
-              role="tab" aria-selected="true" aria-controls="smControls">CONTROLS</button>
+      <button type="button" class="player-tab-btn active" id="tabBtnStatus"
+              role="tab" aria-selected="true" aria-controls="smStatus">STATUS</button>
+      <button type="button" class="player-tab-btn" id="tabBtnControls"
+              role="tab" aria-selected="false" aria-controls="smControls">CONTROLS</button>
       <button type="button" class="player-tab-btn" id="tabBtnHowTo"
               role="tab" aria-selected="false" aria-controls="smHowTo">HOW TO PLAY</button>
     </div>
 
+    <!-- Status pane: on mobile, the live game-status panel is moved here so it keeps its runtime hooks. -->
+    <div class="side-menu-pane active" id="smStatus" role="tabpanel" aria-labelledby="tabBtnStatus">
+      <div class="side-menu-pane-inner side-menu-status-pane">
+        <div class="side-menu-status-mount" id="mobileStatusMount"></div>
+      </div>
+    </div>
+
     <!-- Controls pane -->
-    <div class="side-menu-pane active" id="smControls" role="tabpanel" aria-labelledby="tabBtnControls">
+    <div class="side-menu-pane" id="smControls" role="tabpanel" aria-labelledby="tabBtnControls">
       <div class="side-menu-pane-inner">
         <div class="panel-group">
           <div class="panel-head hd-warm"><u><b>DESKTOP:</b></u></div>
@@ -338,12 +518,12 @@
   </div><!-- /.side-menu-inner -->
 </div><!-- /#sideMenuOverlay -->
 
-<div class="player-page-footer" id="playerPageFooter" aria-label="BoneCrawler footer links">
+<div class="player-page-footer" id="playerPageFooter" hidden aria-hidden="true" aria-label="BoneCrawler footer links">
   <div class="player-page-footer-inner player-page-footer-card">
     <button type="button" class="player-page-footer-dismiss" id="playerFooterDismiss" aria-label="Dismiss footer">×</button>
-    <div class="player-page-footer-site"><span class="footer-copy-symbol">©</span> BoneCrawler.com</div>
+    <div class="player-page-footer-site"><span class="footer-copy-symbol">&copy;</span> BoneCrawler.com - Version: 2.9.4 (5/29/26)</div>
     <div class="player-page-footer-actions">
-      <a class="about-link-button" href="docs/v1.html">v1</a>
+      <a class="about-link-button" href="docs/1bit.html">1-BIT</a>
       <a class="about-license" href="docs/license.html" target="_blank" rel="noopener noreferrer">LICENSE</a>
     </div>
   </div>
@@ -371,6 +551,14 @@
   var closeBtn  = document.getElementById('sideMenuClose');
   var tabBtns   = overlay.querySelectorAll('.player-tab-btn');
   var panes     = overlay.querySelectorAll('.side-menu-pane');
+  var mobileStatusMount = document.getElementById('mobileStatusMount');
+  var statusPanel = document.getElementById('screenExtensionPanel');
+  var isMobile = document.documentElement.classList.contains('mobile-browser');
+
+  if (isMobile && mobileStatusMount && statusPanel && !mobileStatusMount.contains(statusPanel)) {
+    mobileStatusMount.appendChild(statusPanel);
+    statusPanel.removeAttribute('aria-hidden');
+  }
 
   function setToggleState(open) {
     toggles.forEach(function (btn) {
@@ -575,96 +763,7 @@
   setTimeout(suppressLegacyBtns, 800);
 })();
 </script>
-<script src="dev/dev_bootstrap.js"></script>
-
-<script src="src/audio/audio-engine.js"></script>
-
-<script src="src/enemies/zone-spawn-config-baseline.js"></script>
-<script src="src/enemies/zone-spawn-system.js"></script>
-
-<script src="src/core/constants-palette-sprites.js"></script>
-<script src="src/core/decals.js"></script>
-
-<script src="src/engine/content-registry.js"></script>
-<script src="src/engine/object-factory.js"></script>
-<script src="src/engine/npc-factory.js"></script>
-<script src="src/maps/zone-registry.js"></script>
-
-<script src="src/game/objects/bookshelf.js"></script>
-<script src="src/game/objects/barrel.js"></script>
-<script src="src/game/objects/crate.js"></script>
-<script src="src/game/objects/lantern.js"></script>
-<script src="src/game/objects/table.js"></script>
-<script src="src/game/objects/breakable-prop.js"></script>
-<script src="src/game/environment/blocker.js"></script>
-<script src="src/game/environment/root-barrier.js"></script>
-<script src="src/game/environment/rock-obstacle.js"></script>
-<script src="src/game/environment/door.js"></script>
-<script src="src/game/environment/portal.js"></script>
-<script src="src/game/environment/trigger-zone.js"></script>
-<script src="src/game/environment/water.js"></script>
-<script src="src/game/environment/tree.js"></script>
-<script src="src/game/environment/interactable-prop.js"></script>
-<script src="src/game/npcs/node.js"></script>
-<script src="src/game/npcs/rat.js"></script>
-<script src="src/game/npcs/wounded-stranger.js"></script>
-<script src="src/game/dialog/dialog-data.js"></script>
-<script src="src/game/events/scene-event-data.js"></script>
-
-<script src="src/maps/zones/zone1.js"></script>
-<script src="src/maps/zones/zone2.js"></script>
-<script src="src/maps/zones/zone3.js"></script>
-<script src="src/maps/zones/secret-zone1.js"></script>
-<script src="src/maps/zones/secret-zone2.js"></script>
-<script src="src/engine/scene-runtime.js"></script>
-<script src="src/engine/runtime-entity-manager.js"></script>
-
-<script src="src/ui/dom-layout.js"></script>
-
-<script src="src/engine/render-helpers.js"></script>
-<script src="src/engine/collision.js"></script>
-
-<script src="src/systems/upgrades.js"></script>
-<script src="src/systems/menu-storage-touch.js"></script>
-
-<script src="src/state/game-state.js"></script>
-
-<script src="src/runtime/game-events.js"></script>
-<script src="src/runtime/spawn-system-registry.js"></script>
-<script src="src/runtime/zone-bindings.js"></script>
-
-<script src="src/engine/object-spawn-engine.js"></script>
-<script src="src/runtime/progression-rules.js"></script>
-
-<script src="src/systems/cheat-codes.js"></script>
-<script src="src/dev/dev-tools.js"></script>
-
-<script src="src/systems/run-flow.js"></script>
-
-<script src="src/player/player-combat.js"></script>
-<script src="src/enemies/spawning.js"></script>
-<script src="src/systems/items.js"></script>
-
-<script src="src/maps/zones-and-interactions.js"></script>
-<script src="src/systems/dialog-interactions.js"></script>
-
-<script src="src/enemies/bosses.js"></script>
-<script src="src/player/player-survival-upgrades.js"></script>
-
-<script src="src/engine/input.js"></script>
-<script src="src/main/update.js"></script>
-
-<script src="src/render/zone-renderers.js"></script>
-<script src="src/render/render-play-dispatch.js"></script>
-<script src="src/render/render-menus.js"></script>
-
-<script src="src/title/title-screen.js"></script>
-
-<script src="src/maps/zone-overrides.js"></script>
-
-<script src="src/maps/mini-map-graph.js"></script>
-<script src="src/ui/screen-extension.js"></script>
-
-<script src="src/main/loop.js"></script>
+<script type="module" src="src/main.js" data-entry-mode="module"></script>
+</div>
 </body>
 </html>
