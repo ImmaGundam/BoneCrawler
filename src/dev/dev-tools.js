@@ -86,7 +86,7 @@ function devSpawnChestAtPlayer(){
   if(!player || gState!=='playing') return;
   const x=Math.max(PX+2, Math.min(PX+PW-10, Math.floor(player.x+player.w/2-4)));
   const y=Math.max(PY+2, Math.min(PY+PH-10, Math.floor(player.y+player.h/2-4)));
-  chest={x,y,w:8,h:8};
+  spawnChest({x,y,maxActive:1});
   pushDevFloat('CHEST SPAWNED', C.BN1);
 }
 
@@ -103,6 +103,7 @@ function devAdvanceProgress(){
     killCount=Math.max(killCount, zone2KillStart + DRAGON_BOSS_TRIGGER_KILLS);
     syncKillSpawnSchedulesFromCount();
     clearChests(); clearKeyDrops();
+    clearTransientEffectPools();
     enemies=[]; pSpawns=[]; fireballs=[];
     dragonFlames=[]; dragonSwipe=null;
     spawnDragonBoss();
@@ -117,6 +118,7 @@ function devAdvanceProgress(){
   if(currentZone===3){
     killCount=Math.max(killCount, zone3KillStart + ZONE3_BOSS_TRIGGER_KILLS);
     clearChests(); clearKeyDrops();
+    clearTransientEffectPools();
     enemies=[]; pSpawns=[]; fireballs=[];
     shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
     spawnShadowBoss();
@@ -171,6 +173,7 @@ function devGotoZone(zone){
   clearGameplayKeys();
 
   clearChests(); clearKeyDrops();
+  clearTransientEffectPools();
   enemies=[]; pSpawns=[]; fireballs=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; parts=[];
   dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
   shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
@@ -235,18 +238,6 @@ function rebalanceDevKillBreakdown(){
 function syncDevKillThresholds(){
   killCount=Math.max(0, killCount|0);
   rebalanceDevKillBreakdown();
-  if(currentZone===1 && killCount>=ZONE1_ZONE2_KEY_KILLS && !player.zone1DoorKey && !hasKeyDropKind('zone1Door')){
-    spawnKeyDrop(Math.floor(player.x+player.w/2)-3, Math.floor(player.y+player.h/2)-3,'zone1Door');
-    floatTexts.push({x:player.x+player.w/2,y:player.y-8,text:'ZONE 2 KEY!',life:52,max:52,col:C.FR1});
-  }
-  if(currentZone===1 && killCount>=ZONE1_SECRET_KEY_KILLS && !player.secret1Key && !hasKeyDropKind('secret1')){
-    spawnKeyDrop(Math.floor(player.x+player.w/2)-3, Math.floor(player.y+player.h/2)-3,'secret1');
-    floatTexts.push({x:player.x+player.w/2,y:player.y-8,text:'SECRET KEY!',life:52,max:52,col:C.MG2});
-  }
-  if(currentZone===2 && getZoneProgressKills(2)>=ZONE2_KEY_KILLS && !player.zone2Key && !hasKeyDropKind('zone2')){
-    spawnKeyDrop(Math.floor(player.x+player.w/2)-3, Math.floor(player.y+player.h/2)-3,'zone2');
-    floatTexts.push({x:player.x+player.w/2,y:player.y-8,text:'KEY!',life:46,max:46,col:C.BN1});
-  }
   syncKillSpawnSchedulesFromCount();
   for(const spawn of pSpawns){
     spawn.t=Math.min(spawn.t, spawn.giant ? giantSpawnDelay() : regularSpawnDelay());
