@@ -1587,6 +1587,53 @@
     }
   }
 
+  /* Keep the workspace pane toggles authoritative after layout-mode overrides. */
+  body[data-layout-mode="desktop"] .workspace.hide-left{
+    grid-template-columns:minmax(0,1fr) clamp(280px,25vw,380px)!important;
+    grid-template-areas:"main right"!important;
+  }
+
+  body[data-layout-mode="desktop"] .workspace.hide-right{
+    grid-template-columns:clamp(280px,24vw,360px) minmax(0,1fr)!important;
+    grid-template-areas:"left main"!important;
+  }
+
+  body[data-layout-mode="desktop"] .workspace.hide-left.hide-right{
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-areas:"main"!important;
+  }
+
+  body[data-layout-mode="tablet"] .workspace.hide-left,
+  body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-left{
+    grid-template-columns:1fr!important;
+    grid-template-areas:
+      "main"
+      "right"!important;
+  }
+
+  body[data-layout-mode="tablet"] .workspace.hide-right,
+  body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-right{
+    grid-template-columns:1fr!important;
+    grid-template-areas:
+      "main"
+      "left"!important;
+  }
+
+  body[data-layout-mode="tablet"] .workspace.hide-left.hide-right,
+  body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-left.hide-right{
+    grid-template-columns:1fr!important;
+    grid-template-areas:"main"!important;
+  }
+
+  body[data-layout-mode="desktop"] .workspace.hide-left .leftPane,
+  body[data-layout-mode="desktop"] .workspace.hide-right .rightPane,
+  body[data-layout-mode="tablet"] .workspace.hide-left .leftPane,
+  body[data-layout-mode="tablet"] .workspace.hide-right .rightPane,
+  body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-left .leftPane,
+  body:not([data-layout-mode="desktop"]):not([data-layout-mode="focus"]) .workspace.hide-right .rightPane{
+    display:none!important;
+  }
+
 </style>
 </head>
 <body class="lite">
