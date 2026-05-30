@@ -73,7 +73,7 @@
       mode:'npc',
       pages:[
         {speaker:'NODE',lines:['Shh.. do you hear that?','I smell a dragon!']},
-        {speaker:'PLAYER',lines:[window.secret1NodeSpoken ? 'Rats can smell dragons?' : 'Wait, what? Are you here?']},
+        {speaker:'PLAYER',lines:[(typeof secret1NodeSpoken !== 'undefined' && secret1NodeSpoken) ? 'Rats can smell dragons?' : 'Wait, what? Are you here?']},
         {speaker:'NODE',lines:['....']},
         {speaker:'PLAYER',lines:['Here we go again..']}
       ]
