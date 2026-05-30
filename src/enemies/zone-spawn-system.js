@@ -22,6 +22,7 @@
     waveStartKills: 0,
     lastIntroTickFrame: null,
     waveSpawnCooldownT: 0,
+    waveChestRespawnT: 0,
     placementCursor: Object.create(null),
     standardInitialized: false,
     standardComplete: false,
@@ -414,6 +415,26 @@
     }catch(err){}
     return false;
   }
+
+  function getWaveChestIntervalTicks(zone){
+    const cfg = getZoneConfig(zone);
+    return readTicks(cfg, 'waveChestInterval', 'waveChestIntervalSec', ticksPerSecond() * 5);
+  }
+  function resetWaveChestTimer(zone){
+    state.waveChestRespawnT = getWaveChestIntervalTicks(zone || state.zone);
+  }
+  function isWaveSpawnExecutionRunning(){
+    const wave = getCurrentWave();
+    return !!(state.waveActive && wave && !state.waveComplete);
+  }
+  function updateWaveChestTimer(){
+    if(isSecretZoneId(state.zone)) return;
+    if(!isWaveSpawnExecutionRunning()) return;
+    if(state.waveChestRespawnT > 0) state.waveChestRespawnT--;
+    if(state.waveChestRespawnT > 0) return;
+    spawnWaveChest();
+    resetWaveChestTimer(state.zone);
+  }
   function awardEntryBonus(zone){
     const cfg = getZoneConfig(zone);
     const points = Math.max(0, Number(cfg.entryBonusPoints) || 0);
@@ -442,6 +463,7 @@
     state.waveStartKills = getZoneKills(zone);
     state.lastIntroTickFrame = null;
     state.waveSpawnCooldownT = 0;
+    state.waveChestRespawnT = 0;
     state.placementCursor = Object.create(null);
     state.standardInitialized = false;
     state.standardComplete = false;
@@ -475,6 +497,7 @@
       state.waveStartKills = getZoneKills(zone);
       state.lastIntroTickFrame = null;
       state.waveSpawnCooldownT = 0;
+    state.waveChestRespawnT = 0;
       state.placementCursor = Object.create(null);
       state.standardInitialized = false;
       state.standardComplete = false;
@@ -499,6 +522,7 @@
     state.waveStartKills = getZoneKills(state.zone);
     state.lastIntroTickFrame = null;
     state.waveSpawnCooldownT = 0;
+    state.waveChestRespawnT = 0;
     state.placementCursor = Object.create(null);
     state.standardInitialized = false;
     state.standardComplete = false;
@@ -810,6 +834,28 @@
     }
     return handled;
   }
+
+  function checkManagedKeyRewards(enemy){
+    const zone = typeof currentZone !== 'undefined' ? Number(currentZone) : state.zone;
+    const cfg = getStandardConfig(zone);
+    const rewards = Array.isArray(cfg.killRewards) ? cfg.killRewards : [];
+    let handled = false;
+    for(let i = 0; i < rewards.length; i++){
+      const reward = rewards[i] || {};
+      if(reward.action !== 'spawnKeyDrop') continue;
+      const id = reward.id || ('spawnKeyDrop:' + (reward.kind || i));
+      const key = zone + ':' + id;
+      if(reward.once !== false && state.standardRewardsClaimed[key]) continue;
+      const at = Number(reward.at ?? reward.atKills ?? reward.killCount);
+      if(Number.isFinite(at) && readMetric(reward.metric, zone) < at) continue;
+      const ok = runStandardReward(reward, enemy);
+      if(ok){
+        handled = true;
+        if(reward.once !== false) state.standardRewardsClaimed[key] = true;
+      }
+    }
+    return handled;
+  }
   function scheduleStandardSpecials(){
     const zone = typeof currentZone !== 'undefined' ? Number(currentZone) : state.zone;
     if(isSecretZoneId(zone) || isStandardComplete(zone)) return;
@@ -832,8 +878,9 @@
   }
   function onEnemyDefeated(payload){
     const zone = typeof currentZone !== 'undefined' ? Number(currentZone) : state.zone;
-    if(!isStandardMode(zone)) return false;
     const enemy = payload && payload.enemy ? payload.enemy : payload;
+    checkManagedKeyRewards(enemy);
+    if(!isStandardMode(zone)) return false;
     if(isStandardBossBlocked()) return true;
     try{
       if(typeof pSpawns !== 'undefined' && Array.isArray(pSpawns)){
@@ -847,9 +894,12 @@
     try{
       const chestCfg = cfg.chest || {};
       if(chestCfg.enabled !== false && typeof killCount !== 'undefined' && killCount >= nextChestAt && !isSecretZoneId(zone)){
-        const hasChest = (typeof chest !== 'undefined' && chest) || (typeof chests !== 'undefined' && Array.isArray(chests) && chests.length >= Math.max(1, Number(cfg.maxActiveChests) || 1));
-        if(!hasChest && typeof spawnChest === 'function'){
-          spawnChest({maxActive:Math.max(1, Number(cfg.maxActiveChests) || 1)});
+        const maxActiveChests = Math.max(1, Number(cfg.maxActiveChests) || 1);
+        const activeChestCount = typeof getChestList === 'function'
+          ? getChestList().length
+          : ((typeof chests !== 'undefined' && Array.isArray(chests)) ? chests.filter(Boolean).length : ((typeof chest !== 'undefined' && chest) ? 1 : 0));
+        if(activeChestCount < maxActiveChests && typeof spawnChest === 'function'){
+          spawnChest({maxActive:maxActiveChests});
           nextChestAt += typeof getChestKillStepForZone === 'function' ? getChestKillStepForZone(zone) : 10;
         }
       }
@@ -964,8 +1014,9 @@
     if(!wave){ completeWaves(); return; }
     state.waveActive = true;
     state.waveSpawnCooldownT = 0;
+    state.waveChestRespawnT = 0;
     state.waveStartKills = getZoneKills(state.zone);
-    if(wave.dropChest !== false) spawnWaveChest();
+    resetWaveChestTimer(state.zone);
     state.pressureT = readTicks((wave.pressure || {}), 'interval', 'intervalSec', 0);
     state.pressureBursts = 0;
     const spawns = Array.isArray(wave.spawns) ? wave.spawns : [];
@@ -1072,7 +1123,6 @@
     state.pressureBursts++;
     state.pressureT = getPressureBurstInterval(pressure, stage);
     queueSpawnGroups(getPressureBurstSpawns(wave, burstIndex), wave);
-    if(pressure.dropChest !== false && (!stage || Array.isArray(stage) || stage.dropChest !== false) && wave.dropPressureChest !== false) spawnWaveChest();
 
     const cfg = getZoneConfig(state.zone);
     const label = getPressureBurstLabel(pressure, stage);
@@ -1133,6 +1183,7 @@
     state.waveActive = false;
     state.waveIntro = null;
     state.waveSpawnCooldownT = 0;
+    state.waveChestRespawnT = 0;
     state.breakT = readTicks(next, 'startDelay', 'startDelaySec', readTicks(cfg, 'betweenWaveDelay', 'betweenWaveDelaySec', readTicks(cfg, 'startDelay', 'startDelaySec', 0)));
     state.pressureT = 0;
     state.pressureBursts = 0;
@@ -1191,6 +1242,7 @@
     if(state.waveIntro){ updateWaveIntro(); return; }
     updateQueue();
     if(state.waveActive) updatePressureSpawns();
+    if(state.waveActive) updateWaveChestTimer();
     if(state.waveActive && maybeCompleteFinalWave()) return;
     if(state.breakT > 0){ state.breakT--; return; }
     if(!state.waveActive){ startWave(); return; }

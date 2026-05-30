@@ -112,7 +112,7 @@
           targetKills: 300,
           killRewards: [
             { id: 'zone1_door_key', at: 80, metric: 'runKills', action: 'spawnKeyDrop', kind: 'zone1Door', text: 'ZONE 1 KEY!', color: 'FR1' },
-            { id: 'zone1_secret_key', at: 80, metric: 'runKills', action: 'spawnKeyDrop', kind: 'secret1', text: 'SECRET KEY!', color: 'MG2' },
+            { id: 'zone1_secret_key', at: 90, metric: 'runKills', action: 'spawnKeyDrop', kind: 'secret1', text: 'SECRET KEY!', color: 'MG2' },
             { id: 'zone1_dragon', at: 300, metric: 'runKills', action: 'spawnBoss', bossId: 'zone1Dragon' }
           ]
         },
@@ -135,6 +135,7 @@
         },
         defaultSpawnAnimation: 'rise',
         maxActiveChests: 2,
+        waveChestIntervalSec: 5,
         waveSystem: {
           statScaling: { ...waveStatScalingDefaults, baseSpeed: 0.13, maxSpeed: 0.32, factor: 0.018 },
           placement: {
@@ -290,6 +291,12 @@
       },
       2: {
         label: 'Zone 2', zoneType: 'normal', spawnSystem: 'waves', waitForDialogClear: true, activationDelaySec: 2, entryTextDelaySec: 0.25, entryText: 'ZONE 2', entryTextLife: 60, showWaveText: true, showPressureText: false,
+        standard: {
+          ...standardSpawnDefaults,
+          killRewards: [
+            { id: 'zone2_key', at: 50, metric: 'zoneKills', action: 'spawnKeyDrop', kind: 'zone2', text: 'ZONE 2 KEY!', color: 'BN1' }
+          ]
+        },
         waveIntro: {
           enabled: true,
           waveTextLifeSec: 2.0,
@@ -299,7 +306,7 @@
           goTextLifeSec: 0.65,
           yOffset: 14
         },
-        defaultSpawnAnimation: 'rise', maxActiveChests: 2,
+        defaultSpawnAnimation: 'rise', maxActiveChests: 2, waveChestIntervalSec: 5,
         waveSystem: {
           statScaling: { ...waveStatScalingDefaults, baseSpeed: 0.14, maxSpeed: 0.34, factor: 0.018 },
           placement: {
@@ -417,7 +424,7 @@
           goTextLifeSec: 0.65,
           yOffset: 14
         },
-        defaultSpawnAnimation: 'rise', maxActiveChests: 2,
+        defaultSpawnAnimation: 'rise', maxActiveChests: 2, waveChestIntervalSec: 5,
         waveSystem: {
           statScaling: { ...waveStatScalingDefaults, baseSpeed: 0.15, maxSpeed: 0.36, factor: 0.018 },
           placement: {

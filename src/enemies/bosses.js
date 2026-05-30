@@ -141,7 +141,7 @@ function spawnWhyDragonsBoss(){
     zone1Mini:false,
     bonus:true,
     bossId:'whyDragonsBoss',
-    zone:2,
+    zone:currentZone,
     points:300,
   };
   floatTexts.push({x:GW/2,y:PY+22,text:'BONUS: SKELETON DRAGON',life:90,max:90,col:C.MG2});
@@ -260,16 +260,6 @@ function defeatDragonBoss(){
     }
   }catch(err){}
   if(b.zone1Mini){
-    // Progression rules own Zone 1 rewards. The normal Zone 1 door key
-    // is awarded by kill-count progression; the dragon fallback only protects
-    // the secret key if the progression runtime is unavailable.
-    if(!progressionHandled){
-      const keyY=Math.round(cy)-3;
-      if(player && !player.secret1Key && !hasKeyDropKind('secret1')){
-        spawnKeyDrop(Math.round(cx)+3,keyY,'secret1');
-        floatTexts.push({x:GW/2,y:PY+28,text:'SECRET KEY!',life:70,max:70,col:C.BN1});
-      }
-    }
     zone1MiniBossDefeated=true;
     // Do NOT set bossDefeated or bossClearTimer — zone 1 resumes normal spawning
   } else {
