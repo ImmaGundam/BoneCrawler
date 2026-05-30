@@ -4,6 +4,7 @@
 
   const originalTitleRenderer = window.rTitle;
   let activeLastFrame = false;
+  let titleLoadErrorShown = false;
 
   function isTitleState(){
     try{
@@ -34,10 +35,10 @@
       originalTitleRenderer();
       return;
     }
-    // Fallback only if the original renderer is unavailable.
-    ctx.fillStyle = '#050505';
-    ctx.fillRect(0,0,GW*SCALE,GH*SCALE);
-    ptHeavy('BONECRAWLER', GW*SCALE/2, 50*SCALE, 10, C.SI1, 'center', C.DK);
+    if(!titleLoadErrorShown){
+      titleLoadErrorShown = true;
+      console.error('Title image load error');
+    }
   }
 
   window.BoneCrawlerTitleScreen = {
