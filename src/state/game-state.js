@@ -12,6 +12,67 @@ const RETRY_POINT_SACRIFICE=0.30;
 const WHIRLWIND_HOLD_FRAMES=24;
 const WHIRLWIND_COOLDOWN_FRAMES=5*60;
 
+const BC_TIMING = {
+  simulationFps: 60,
+  renderFps: 60,
+  maxDeltaMs: 250,
+  maxCatchUpSteps: 8
+};
+
+function clampTimingFps(value, fallback){
+  const n = Number(value);
+  if(!Number.isFinite(n) || n <= 0) return fallback;
+  return Math.max(1, Math.min(240, Math.round(n)));
+}
+
+function syncGameTickRateGlobals(){
+  window.BoneCrawlerTicksPerSecond = BC_TIMING.simulationFps;
+  window.BONECRAWLER_TICKS_PER_SECOND = BC_TIMING.simulationFps;
+}
+
+function configureGameTiming(options={}){
+  if(!options || typeof options !== 'object') return getGameTiming();
+  if(Object.prototype.hasOwnProperty.call(options, 'simulationFps')){
+    BC_TIMING.simulationFps = clampTimingFps(options.simulationFps, BC_TIMING.simulationFps);
+  }
+  if(Object.prototype.hasOwnProperty.call(options, 'renderFps')){
+    BC_TIMING.renderFps = clampTimingFps(options.renderFps, BC_TIMING.renderFps);
+  }
+  if(Object.prototype.hasOwnProperty.call(options, 'maxDeltaMs')){
+    const maxDelta = Number(options.maxDeltaMs);
+    if(Number.isFinite(maxDelta) && maxDelta > 0) BC_TIMING.maxDeltaMs = Math.max(16, Math.min(1000, maxDelta));
+  }
+  if(Object.prototype.hasOwnProperty.call(options, 'maxCatchUpSteps')){
+    const maxSteps = Number(options.maxCatchUpSteps);
+    if(Number.isFinite(maxSteps) && maxSteps > 0) BC_TIMING.maxCatchUpSteps = Math.max(1, Math.min(32, Math.round(maxSteps)));
+  }
+  syncGameTickRateGlobals();
+  return getGameTiming();
+}
+
+function getGameTiming(){
+  return {
+    simulationFps: BC_TIMING.simulationFps,
+    renderFps: BC_TIMING.renderFps,
+    maxDeltaMs: BC_TIMING.maxDeltaMs,
+    maxCatchUpSteps: BC_TIMING.maxCatchUpSteps,
+    simulationStepMs: 1000 / BC_TIMING.simulationFps,
+    renderStepMs: 1000 / BC_TIMING.renderFps
+  };
+}
+
+function getSimulationStepMs(){ return 1000 / BC_TIMING.simulationFps; }
+function getRenderStepMs(){ return 1000 / BC_TIMING.renderFps; }
+function getGameMaxDeltaMs(){ return BC_TIMING.maxDeltaMs; }
+function getGameMaxCatchUpSteps(){ return BC_TIMING.maxCatchUpSteps; }
+
+syncGameTickRateGlobals();
+
+window.BoneCrawlerTiming = {
+  configure: configureGameTiming,
+  get: getGameTiming
+};
+
 let gState='title';
 let player, enemies, parts, pSpawns, frame=0, score, prevSpc;
 let sceneFrame=0, sceneTime=0, sceneClockLastMs=0;
@@ -112,7 +173,7 @@ const ZONE1_CHEST_KILL_STEP=10;
 const ZONE2_CHEST_KILL_STEP=15;
 const ZONE2_FIRST_CHEST_DELAY=18;
 const ZONE1_ZONE2_KEY_KILLS=50;
-const ZONE1_SECRET_KEY_KILLS=80;
+const ZONE1_SECRET_KEY_KILLS=90;
 const ZONE1_DRAGON_MINIBOSS_KILLS=300;
 const ZONE1_DRAGON_PHASE_HITS=10;
 const ZONE2_KEY_KILLS=50;
@@ -134,9 +195,23 @@ const ZONE_SECRET1=101;
 const ZONE_SECRET2=102;
 const SECRET2_SCORE_REQ=999;
 const SECRET1_BLESSING_FRAMES=170;
+try{
+  if(window.SceneRuntime && typeof SceneRuntime.rebuild === 'function') SceneRuntime.rebuild();
+}catch(err){
+  console.warn('[BoneCrawler] SceneRuntime rebuild failed before game-state geometry sync', err);
+}
 const __gameStateSceneGeometry = (window.SceneRuntime && typeof SceneRuntime.getGeometry === 'function')
   ? SceneRuntime.getGeometry()
   : {};
+const ZONE1_DOOR_RECT=__gameStateSceneGeometry.ZONE1_DOOR_RECT || {x:0,y:0,w:0,h:0};
+const ZONE1_DECOR_BREAK_RECTS=__gameStateSceneGeometry.ZONE1_DECOR_BREAK_RECTS || [];
+const ZONE1_DECOR_BLOCKERS=__gameStateSceneGeometry.ZONE1_DECOR_BLOCKERS || [];
+const ZONE1_EXTRA_BLOCKERS=__gameStateSceneGeometry.ZONE1_EXTRA_BLOCKERS || [];
+const ZONE2_TREE_BLOCKERS=__gameStateSceneGeometry.ZONE2_TREE_BLOCKERS || [];
+const ZONE2_HOLE_BLOCKERS=__gameStateSceneGeometry.ZONE2_HOLE_BLOCKERS || [];
+const ZONE2_DOOR_RECT=__gameStateSceneGeometry.ZONE2_DOOR_RECT || {x:0,y:0,w:0,h:0};
+const ZONE2_DECOR_BREAK_RECTS=__gameStateSceneGeometry.ZONE2_DECOR_BREAK_RECTS || [];
+const ZONE2_DECOR_BLOCKERS=__gameStateSceneGeometry.ZONE2_DECOR_BLOCKERS || [];
 const ZONE3_DOOR_RECT=__gameStateSceneGeometry.ZONE3_DOOR_RECT || {x:0,y:0,w:0,h:0};
 const SECRET1_ENTRANCE_RECT=__gameStateSceneGeometry.SECRET1_ENTRANCE_RECT || {x:0,y:0,w:0,h:0};
 const SECRET1_EXIT_DOOR_RECT=__gameStateSceneGeometry.SECRET1_EXIT_DOOR_RECT || {x:0,y:0,w:0,h:0};
@@ -203,4 +278,3 @@ function syncNameGodMode(){
   const shouldEnable=isGodName(currentPlayerName);
   if(shouldEnable!==!!devGodMode) setDevGodMode(shouldEnable);
 }
-
