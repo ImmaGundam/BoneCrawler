@@ -44,10 +44,11 @@ Copyright (c) 2026
 James Deitz
 BoneCrawler.com
 WebGeeks Labs
+*(webgeeks.dev)*
 *(webgeeks.org)*
 
-
 *// Change Log:*
+*v1.1 - 5/12/26 - Added both WebGeeks.dev/.org links*
 *v1.1 - 5/12/26 - Updated "You may NOT" context on sharing the game.*
 *v1.0 - 4/01/26 - BoneCrawler Published to GitHub and License created.*
 
