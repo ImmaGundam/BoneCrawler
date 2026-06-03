@@ -60,7 +60,7 @@ Gameplay is made for short runs (20-30 minutes). Die a few times in a few minute
 
 | Platform | Release | Build Type | Notes |
 |---|---|---|---|
-| Web Browser | [v2.9.1](https://bonecrawler.com) | HTML5 Canvas + JavaScript | Main playable version of BoneCrawler. |
+| Web Browser | [v2.9.4](https://bonecrawler.com) | HTML5 Canvas + JavaScript | Main playable version of BoneCrawler. |
 | Windows 10 / 11 | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | Portable EXE, Electron + Node.js | Desktop build packaged from the browser version. |
 | Android 4+ | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | Signed APK, WebView + Android Studio | First signed Android APK release. |
 
