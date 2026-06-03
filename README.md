@@ -30,10 +30,14 @@ Born in a tomb.. This voice calls me a Bonecrawler. For now.. maybe I should lis
 ### Screenshots    
 <details>
     <summary>Click to expand</summary>
-    <img width="900" height="auto" alt="bonecrawler" src="https://github.com/user-attachments/assets/c08fc144-9509-4c30-85da-b449aa44e9eb" />
+   <img width="900" height="auto" alt="BoneCrawler" src="https://github.com/user-attachments/assets/f27ee320-b2e0-4f6c-9b09-ed93bdf2b7ff" />
+   <img width="900" height="auto" alt="BoneCrawler" src="https://github.com/user-attachments/assets/f8634009-c61b-4498-98ff-15e66503cfff" />
+
+
 <br>
- Game in Editor:<br><br>
-    <img width="380" height="auto" alt="dragone" src="https://github.com/user-attachments/assets/73f42363-62c0-4f97-858f-d06e162c0046" />
+ <h3 align="center">Game in Editor:</h4><br><br>
+    <img align="center" width="380" height="auto" alt="dragons" src="https://github.com/user-attachments/assets/73f42363-62c0-4f97-858f-d06e162c0046" />
+ <img width="900" height="auto" alt="BoneCrawler" src="https://github.com/user-attachments/assets/617f1c6e-2fd8-46dc-b794-a1bb54e4f48f" />
 
     
 </details>
@@ -60,9 +64,9 @@ Gameplay is made for short runs (20-30 minutes). Die a few times in a few minute
 
 | Platform | Release | Build Type | Notes |
 |---|---|---|---|
-| Web Browser | [v2.9.4](https://bonecrawler.com) | HTML5 Canvas + JavaScript | Main playable version of BoneCrawler. |
-| Windows 10 / 11 | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | Portable EXE, Electron + Node.js | Desktop build packaged from the browser version. |
-| Android 4+ | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | Signed APK, WebView + Android Studio | First signed Android APK release. |
+| Web Browser | [v2.9.4](https://bonecrawler.com) | HTML5 Canvas + JavaScript | Main playable version of BoneCrawler |
+| Windows 10 / 11 | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | Portable EXE, Electron + Node.js | Desktop build packaged from the browser version |
+| Android 4+ | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | Signed APK, WebView + Android Studio | Android APK |
 
 <p align="center">
   <img width="288" height="282" alt="BoneCrawler multi-platform preview" src="https://github.com/user-attachments/assets/df94b914-2f80-4002-b364-7fa389678ed1" />
@@ -72,7 +76,7 @@ Gameplay is made for short runs (20-30 minutes). Die a few times in a few minute
 
 | Platform | Release | Build Type | Notes |
 |---|---|---|---|
-| Web Browser | [v1](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v1) | HTML5 Canvas + JavaScript | First public prototype version of BoneCrawler. This version established the original gameplay concept, visual style, and browser-based foundation for the project. |
+| Web Browser | [v1](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v1) | HTML5 Canvas + JavaScript | First prototype version of BoneCrawler. |
 | Flipper Zero | [v1-c](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v1-c) | C port, `.fap` app | BoneCrawler v1 ported to C and compiled for Flipper Zero. |
 
 <p align="center">
