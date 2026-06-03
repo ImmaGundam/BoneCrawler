@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <strong>NES-Style Dark Fantasy Arcade-Action</strong>
+  <strong>8-Bit Dark Fantasy Arcade-Action</strong>
 </p>
 
 <p align="center">
