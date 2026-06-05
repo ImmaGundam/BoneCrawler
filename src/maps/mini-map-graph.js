@@ -1,8 +1,9 @@
 /* BoneCrawler pseudo mini-map graph */
 (function(){
   'use strict';
+  const runtimeApi = window.GameRuntimeApi || null;
 
-  window.BoneCrawlerMiniMapGraph = {
+  const api = {
     version: 1,
     columns: 2,
     rows: 4,
@@ -77,4 +78,6 @@
       }
     }
   };
+  if(runtimeApi && typeof runtimeApi.register === 'function') runtimeApi.register('miniMapGraph', api, { legacy: ['BoneCrawlerMiniMapGraph'] });
+  else window.BoneCrawlerMiniMapGraph = api;
 })();

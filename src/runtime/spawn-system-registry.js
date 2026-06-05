@@ -1,7 +1,8 @@
 // spawn-system-registry
 // Purpose: editor/runtime list of selectable spawn subsystems.
 (function(){
-  if(window.BoneCrawlerSpawnSystems) return;
+  const runtimeApi = window.GameRuntimeApi || null;
+  if((runtimeApi && runtimeApi.lookup('spawnSystems', ['BoneCrawlerSpawnSystems'])) || window.BoneCrawlerSpawnSystems) return;
 
   const systems = Object.create(null);
 
@@ -57,5 +58,7 @@
     configShape:'none'
   });
 
-  window.BoneCrawlerSpawnSystems = {register, get, list, isManaged, systems};
+  const api = {register, get, list, isManaged, systems};
+  if(runtimeApi && typeof runtimeApi.register === 'function') runtimeApi.register('spawnSystems', api, { legacy: ['BoneCrawlerSpawnSystems'] });
+  else window.BoneCrawlerSpawnSystems = api;
 })();

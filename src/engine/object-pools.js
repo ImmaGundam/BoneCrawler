@@ -2,7 +2,8 @@
 // Purpose: Reusable recycle()/reuse() pools for high-churn transient runtime objects.
 (function(){
   'use strict';
-  if(window.BoneCrawlerPools) return;
+  const runtimeApi = window.GameRuntimeApi || null;
+  if((runtimeApi && runtimeApi.lookup('pools', ['BoneCrawlerPools'])) || window.BoneCrawlerPools) return;
 
   function buildPool(name, create, reuse, recycle, prewarm){
     const free = [];
@@ -68,19 +69,21 @@
     ),
     fireball: buildPool(
       'fireball',
-      function(){ return {__bcPoolName:'fireball', __bcActive:false, x:0, y:0, vx:0, vy:0, life:0, dragon:false, owner:null}; },
+      function(){ return {__bcPoolName:'fireball', __bcActive:false, x:0, y:0, vx:0, vy:0, life:0, maxLife:0, dragon:false, owner:null, friendly:false}; },
       function(item, props){
         item.x = Number(props.x) || 0;
         item.y = Number(props.y) || 0;
         item.vx = Number(props.vx) || 0;
         item.vy = Number(props.vy) || 0;
         item.life = Number(props.life) || 0;
+        item.maxLife = Number(props.maxLife) || item.life || 0;
         item.dragon = !!props.dragon;
         item.owner = props.owner != null ? props.owner : null;
+        item.friendly = !!props.friendly;
       },
       function(item){
         item.x = 0; item.y = 0; item.vx = 0; item.vy = 0;
-        item.life = 0; item.dragon = false; item.owner = null;
+        item.life = 0; item.maxLife = 0; item.dragon = false; item.owner = null; item.friendly = false;
       },
       20
     ),
@@ -213,26 +216,31 @@
     }
   };
 
-  window.BoneCrawlerPools = api;
+  if(runtimeApi && typeof runtimeApi.register === 'function') runtimeApi.register('pools', api, { legacy: ['BoneCrawlerPools'] });
+  else window.BoneCrawlerPools = api;
 })();
 
-function spawnPart(props){ return window.BoneCrawlerPools.spawnPart(props); }
-function spawnFloatText(props){ return window.BoneCrawlerPools.spawnFloatText(props); }
-function spawnFireball(props){ return window.BoneCrawlerPools.spawnFireball(props); }
-function spawnShockwave(props){ return window.BoneCrawlerPools.spawnShockwave(props); }
-function spawnDragonFlame(props){ return window.BoneCrawlerPools.spawnDragonFlame(props); }
-function spawnShadowWave(props){ return window.BoneCrawlerPools.spawnShadowWave(props); }
+function __poolRuntime(){
+  return (window.GameRuntimeApi && window.GameRuntimeApi.lookup('pools', ['BoneCrawlerPools'])) || window.BoneCrawlerPools;
+}
 
-function releasePartAt(list,index){ return window.BoneCrawlerPools.releasePartAt(list,index); }
-function releaseFloatTextAt(list,index){ return window.BoneCrawlerPools.releaseFloatTextAt(list,index); }
-function releaseFireballAt(list,index){ return window.BoneCrawlerPools.releaseFireballAt(list,index); }
-function releaseShockwaveAt(list,index){ return window.BoneCrawlerPools.releaseShockwaveAt(list,index); }
-function releaseDragonFlameAt(list,index){ return window.BoneCrawlerPools.releaseDragonFlameAt(list,index); }
-function releaseShadowWaveAt(list,index){ return window.BoneCrawlerPools.releaseShadowWaveAt(list,index); }
+function spawnPart(props){ return __poolRuntime().spawnPart(props); }
+function spawnFloatText(props){ return __poolRuntime().spawnFloatText(props); }
+function spawnFireball(props){ return __poolRuntime().spawnFireball(props); }
+function spawnShockwave(props){ return __poolRuntime().spawnShockwave(props); }
+function spawnDragonFlame(props){ return __poolRuntime().spawnDragonFlame(props); }
+function spawnShadowWave(props){ return __poolRuntime().spawnShadowWave(props); }
 
-function clearFloatTexts(){ return window.BoneCrawlerPools.clearFloatTexts(); }
-function clearTransientEffectPools(){ return window.BoneCrawlerPools.clearTransientEffectPools(); }
-function clearFireballsMatching(predicate){ return window.BoneCrawlerPools.clearFireballsMatching(predicate); }
-function clearDragonFlames(){ return window.BoneCrawlerPools.clearDragonFlames(); }
-function clearDragonFlamesMatching(predicate){ return window.BoneCrawlerPools.clearDragonFlamesMatching(predicate); }
-function clearShadowWaves(){ return window.BoneCrawlerPools.clearShadowWaves(); }
+function releasePartAt(list,index){ return __poolRuntime().releasePartAt(list,index); }
+function releaseFloatTextAt(list,index){ return __poolRuntime().releaseFloatTextAt(list,index); }
+function releaseFireballAt(list,index){ return __poolRuntime().releaseFireballAt(list,index); }
+function releaseShockwaveAt(list,index){ return __poolRuntime().releaseShockwaveAt(list,index); }
+function releaseDragonFlameAt(list,index){ return __poolRuntime().releaseDragonFlameAt(list,index); }
+function releaseShadowWaveAt(list,index){ return __poolRuntime().releaseShadowWaveAt(list,index); }
+
+function clearFloatTexts(){ return __poolRuntime().clearFloatTexts(); }
+function clearTransientEffectPools(){ return __poolRuntime().clearTransientEffectPools(); }
+function clearFireballsMatching(predicate){ return __poolRuntime().clearFireballsMatching(predicate); }
+function clearDragonFlames(){ return __poolRuntime().clearDragonFlames(); }
+function clearDragonFlamesMatching(predicate){ return __poolRuntime().clearDragonFlamesMatching(predicate); }
+function clearShadowWaves(){ return __poolRuntime().clearShadowWaves(); }

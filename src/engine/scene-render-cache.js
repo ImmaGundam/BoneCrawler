@@ -2,8 +2,11 @@
 // Purpose: cache expensive static scene rendering to offscreen canvases and redraw only when scene visuals change.
 (function(){
   'use strict';
-  if(window.SceneRenderCache){
-    window.BoneCrawlerSceneRenderCache = window.SceneRenderCache;
+  const runtimeApi = window.GameRuntimeApi || null;
+  if((runtimeApi && runtimeApi.lookup('sceneRenderCache', ['BoneCrawlerSceneRenderCache'])) || window.SceneRenderCache){
+    const existing = (runtimeApi && runtimeApi.lookup('sceneRenderCache', ['BoneCrawlerSceneRenderCache'])) || window.SceneRenderCache;
+    window.SceneRenderCache = existing;
+    window.BoneCrawlerSceneRenderCache = existing;
     return;
   }
 
@@ -61,6 +64,7 @@
       }, {});
     }
   };
+  if(runtimeApi && typeof runtimeApi.register === 'function') runtimeApi.register('sceneRenderCache', api, { legacy: ['BoneCrawlerSceneRenderCache'] });
+  else window.BoneCrawlerSceneRenderCache = api;
   window.SceneRenderCache = api;
-  window.BoneCrawlerSceneRenderCache = api;
 })();

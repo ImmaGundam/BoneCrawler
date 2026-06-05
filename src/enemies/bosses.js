@@ -381,12 +381,12 @@ function updateDragonHazards(){
     const f=dragonFlames[i];
     f.ttl--;
     if(f.ttl<=0){ dragonFlames.splice(i,1); continue; }
-    if(ov({x:player.x,y:player.y,w:player.w,h:player.h},f)) hurtPlayer(1);
+    if(ov({x:player.x,y:player.y,w:player.w,h:player.h},f)) hurtPlayer(1,{sourceType:'magic',sourceBox:f});
   }
   if(dragonSwipe){
     dragonSwipe.ttl--;
     if(dragonSwipe.ttl<=0) dragonSwipe=null;
-    else if(ov({x:player.x,y:player.y,w:player.w,h:player.h},dragonSwipe)) hurtPlayer(1);
+    else if(ov({x:player.x,y:player.y,w:player.w,h:player.h},dragonSwipe)) hurtPlayer(1,{sourceType:'physical',sourceBox:dragonSwipe});
   }
 }
 
@@ -558,7 +558,7 @@ function updateShadowBoss(){
     sw.r += (sw.maxR - sw.r) * 0.35;
     const pcx=player.x+player.w/2, pcy=player.y+player.h/2;
     const dist=Math.hypot(pcx-sw.x,pcy-sw.y);
-    if(Math.abs(dist-sw.r) <= 3) hurtPlayer(1);
+    if(Math.abs(dist-sw.r) <= 3) hurtPlayer(1,{sourceType:'magic',sourceBox:{x:sw.x-1,y:sw.y-1,w:2,h:2}});
     if(--sw.life<=0) shadowWaves.splice(i,1);
   }
 
@@ -626,12 +626,12 @@ function updateShadowBoss(){
   if(b.atkName==='lunge' && b.atkT>0){
     b.x=Math.max(PX,Math.min(PX+PW-b.w,b.x+b.lungeVX));
     b.y=Math.max(PY+2,Math.min(PY+PH-b.h-2,b.y+b.lungeVY));
-    if(ov(box, slashBox)) hurtPlayer(1);
+    if(ov(box, slashBox)) hurtPlayer(1,{sourceType:'physical',sourceBox:slashBox,sourceEntity:b});
     if(b.atkT<=0) b.atkName='';
     return;
   }
   if(b.atkName==='slash' && b.atkT>0){
-    if(ov(box, slashBox)) hurtPlayer(1);
+    if(ov(box, slashBox)) hurtPlayer(1,{sourceType:'physical',sourceBox:slashBox,sourceEntity:b});
     if(b.atkT<=0) b.atkName='';
   }
 

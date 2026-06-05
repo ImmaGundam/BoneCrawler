@@ -23,19 +23,32 @@ function rUpgrade(){
 function _upBtn(btn){
   drawPanelFrame(btn.x,btn.y,btn.w,btn.h,{edge:btn.border,fill:'rgba(3,3,4,0.94)',inner:'rgba(28,20,10,0.26)',glow:btn.border,ornate:false});
 
-  if(btn.icon==='shieldIcon') ds(S.shieldIcon,btn.x+4,btn.y+4);
-  else if(btn.icon==='upSword') ds(S.upSword,btn.x+2,btn.y+3);
-  else if(btn.icon==='upSpeed') ds(S.upSpeed,btn.x+2,btn.y+3);
-  else if(btn.icon==='shadowStepIcon') ds(S.shadowStepIcon,btn.x+3,btn.y+4);
-  else if(btn.icon==='pointsIcon'){
-    pt('+', (btn.x+6)*SCALE, (btn.y+1)*SCALE, 10, C.FR1, 'center', C.DK);
-    pt('PTS', (btn.x+6)*SCALE, (btn.y+10)*SCALE, 6, C.BN1, 'center', C.DK);
+  const iconSlot={x:btn.x+2,y:btn.y+2,w:12,h:12};
+  const iconCx=(iconSlot.x + iconSlot.w/2)*SCALE;
+  const titleCx=(btn.x+btn.w/2+6)*SCALE;
+  const copyCx=(btn.x+btn.w/2+5)*SCALE;
+  const choiceX=(btn.x-6)*SCALE;
+  const upgradeTitleSize=6;
+  function drawUpgradeIconSprite(sprite){
+    if(!sprite || !sprite.length || !sprite[0]) return;
+    const cols=sprite[0].length;
+    const rows=sprite.length;
+    const drawX=iconSlot.x + Math.floor((iconSlot.w-cols)/2);
+    const drawY=iconSlot.y + Math.floor((iconSlot.h-rows)/2);
+    ds(sprite,drawX,drawY);
   }
-  else ds(S[btn.icon],btn.x+4,btn.y+4);
 
-  const textCx=(btn.x+btn.w/2+5)*SCALE;
-  pt(btn.num+'  '+btn.label,textCx,(btn.y+3)*SCALE,(btn.labelFs||7),btn.text,'center',C.DK);
-  pt(btn.sub,textCx,(btn.y+10)*SCALE,(btn.subFs||5),C.BN1,'center',C.DK);
+  if(btn.icon==='pointsIcon'){
+    pt('+', iconCx, (btn.y+3)*SCALE, 9, C.FR1, 'center', C.DK);
+    pt('PTS', iconCx, (btn.y+10)*SCALE, 5, C.BN1, 'center', C.DK);
+  } else {
+    drawUpgradeIconSprite(S[btn.icon]);
+  }
+
+  const subSize=Math.max(5, (btn.subFs||5) + 1);
+  pt(btn.num,choiceX,(btn.y+4)*SCALE,7,btn.text,'center',C.DK);
+  pt(btn.label,titleCx,(btn.y+3)*SCALE,upgradeTitleSize,btn.text,'center',C.DK);
+  pt(btn.sub,copyCx,(btn.y+9)*SCALE,subSize,C.BN1,'center',C.DK);
   if(btn.type==='heart' && isHealthFull()){
     pt('MAX', (btn.x+btn.w-8)*SCALE, (btn.y+2)*SCALE, 4, C.FR1, 'center', C.DK);
   }
@@ -175,7 +188,7 @@ function drawMenuBg(){
   ctx.restore();
 }
 
-function rMenuBtn(btn,label){
+function rMenuBtn(btn,label,opt={}){
   drawPanelFrame(btn.x,btn.y,btn.w,btn.h,{edge:C.BN2,fill:'rgba(6,6,7,0.92)',inner:'rgba(28,44,52,0.18)',glow:C.WH});
 
   // Cool inner glow strip
@@ -199,10 +212,12 @@ function rMenuBtn(btn,label){
   ctx.fillRect((btn.x+3)*SCALE,(btn.y+btn.h-3)*SCALE,(btn.w-6)*SCALE,SCALE);
   ctx.globalAlpha=1;
 
-  let fs=10;
-  if(label==='SCOREBOARD') fs=7;
-  else if(label.startsWith('NAME:')) fs=8;
-  else if(label.length>=10) fs=8;
+  let fs=opt.fs || 10;
+  if(!opt.fixedFs){
+    if(label==='SCOREBOARD') fs=7;
+    else if(label.startsWith('NAME:')) fs=8;
+    else if(label.length>=10) fs=Math.min(fs,8);
+  }
 
   const cx=(btn.x+btn.w/2)*SCALE;
   const cy=(btn.y+btn.h/2)*SCALE;
@@ -336,9 +351,10 @@ function rTitle(){
 
   ptTitle('BONECRAWLER',GW*SCALE/2,47*SCALE,24,C.BN1,'center',C.DK);
 
-  rMenuBtn(MENU_PLAY,'PLAY');
-  rMenuBtn(MENU_SCORE,'SCOREBOARD');
-  rMenuBtn(NAME_BTN,'NAME: '+(currentPlayerName||'PLAYER').toUpperCase().slice(0,12));
+  const titleButtonText={fs:8,fixedFs:true};
+  rMenuBtn(MENU_PLAY,'PLAY',titleButtonText);
+  rMenuBtn(MENU_SCORE,'SCOREBOARD',titleButtonText);
+  rMenuBtn(NAME_BTN,'NAME: '+(currentPlayerName||'PLAYER').toUpperCase().slice(0,12),titleButtonText);
 
   // Bottom panel chain decorations (pixel chain links)
   ctx.globalAlpha=0.28;
@@ -670,26 +686,53 @@ function rPaused(){
   if(masterSwordOwned) items.push({spr:S.upSword,val:'x1',col:C.SH});
   if(potionCount>0) items.push({spr:S.potionIcon,val:'x'+potionCount,col:C.HP1});
   if(playerHasAnyKey(p)) items.push({spr:S.key,val:'x1',col:C.BN1});
-  if(p.shield) items.push({spr:S.shieldIcon,val:'x'+Math.max(1,p.shieldLevel||1),col:C.SH});
+  if(p.shield || (p.shieldLevel||0)>0) items.push({spr:S.shieldIcon,val:'x'+Math.max(1,p.shieldLevel||1),col:C.SH});
   if(!items.length) items.push({spr:S.mskull,val:'x0',col:C.BN1});
 
+  const blockTier=p.mirrorBlock ? 2 + Math.max(1,p.mirrorLevel||1) : (p.reflectBlock ? 2 : 1);
+  const blockCol=p.mirrorBlock ? C.MG2 : (p.reflectBlock ? C.SH : C.BN1);
+  const blockSpr=p.mirrorBlock ? S.mirrorIcon : (p.reflectBlock ? S.reflectIcon : S.shieldIcon);
   const skills=[
+    {spr:blockSpr,val:'x'+blockTier,col:blockCol},
     {spr:S.upSword,val:'x'+Math.max(1,(p.swordLevel||0)+1),col:C.BN1},
     {spr:p.shadowStep?S.shadowStepIcon:S.stepIcon,val:'x'+Math.max(1,p.shadowStep?(p.stepLevel||1):1),col:p.shadowStep?C.MG2:C.SI1},
     {spr:S.upSpeed,val:'x'+Math.max(1,(p.speedLevel||0)+1),col:C.FR1},
   ];
   if(whirlwindUnlocked) skills.push({spr:S.whirlwindIcon,val:'x1',col:C.SH});
 
-  const drawInlineStatRow=(entries,startY,textSize)=>{
-    const slotW=22;
-    const iconOffsetY=1;
-    const textOffsetX=10;
+  const drawInlineStatRow=(entries,startY,textSize,opts={})=>{
+    const boundsX=opts.x ?? 18;
+    const boundsW=opts.w ?? 84;
+    const maxPerRow=opts.maxPerRow || entries.length || 1;
+    const rowGap=opts.rowGap ?? 11;
+    const minSlotW=opts.minSlotW ?? 15;
+    const preferredSlotW=opts.slotW ?? 22;
+    const iconScale=opts.iconScale ?? 1;
+    const iconFit=opts.iconFit ?? 0;
+    const iconCellW=opts.iconCellW ?? 0;
+    const iconCellH=opts.iconCellH ?? 0;
+    const iconOffsetY=opts.iconOffsetY ?? 1;
+    const textOffsetX=opts.textOffsetX ?? 10;
     const textOffsetY=2;
-    const startX=Math.round((GW - entries.length*slotW)/2);
-    entries.forEach((entry,idx)=>{
-      const x=startX + idx*slotW;
-      ds(entry.spr,x,startY+iconOffsetY);
-      ptHeavy(entry.val,(x+textOffsetX)*SCALE,(startY+textOffsetY)*SCALE,textSize,entry.col,'left',C.DK);
+    const rows=[];
+    for(let i=0;i<entries.length;i+=maxPerRow) rows.push(entries.slice(i,i+maxPerRow));
+
+    rows.forEach((row,rowIdx)=>{
+      const slotW=Math.max(minSlotW, Math.min(preferredSlotW, Math.floor(boundsW/Math.max(1,row.length))));
+      const rowW=row.length*slotW;
+      const startX=boundsX + Math.max(0, Math.floor((boundsW-rowW)/2));
+      const y=startY + rowIdx*rowGap;
+      row.forEach((entry,idx)=>{
+        const x=startX + idx*slotW;
+        const fitScale=iconFit>0 ? iconFit/Math.max(entry.spr.length,entry.spr[0].length) : iconScale;
+        const iconW=Math.max(1,Math.round(entry.spr[0].length*fitScale));
+        const iconH=Math.max(1,Math.round(entry.spr.length*fitScale));
+        const iconX=x+(iconCellW ? Math.floor((iconCellW-iconW)/2) : 0);
+        const iconY=y+iconOffsetY+(iconCellH ? Math.floor((iconCellH-iconH)/2) : 0);
+        if(fitScale!==1 && typeof dsScale==='function') dsScale(entry.spr,iconX,iconY,fitScale);
+        else ds(entry.spr,iconX,iconY);
+        ptHeavy(entry.val,(x+textOffsetX)*SCALE,(y+textOffsetY)*SCALE,textSize,entry.col,'left',C.DK);
+      });
     });
   };
 
@@ -702,24 +745,24 @@ function rPaused(){
 
   ptHeavy('PAUSED',GW*SCALE/2,24*SCALE,12,C.FR1,'center',C.DK);
   if(devGodMode) pt('DEV GOD ON',GW*SCALE/2,35*SCALE,6,C.MG2,'center',C.W3);
-  ptHeavy('ENTER / ESC = RESUME',GW*SCALE/2,43*SCALE,6,C.BN1,'center',C.DK);
 
   ctx.fillStyle=C.BN2; ctx.globalAlpha=0.45;
-  ctx.fillRect(18*SCALE,46*SCALE,84*SCALE,SCALE);
-  ctx.fillRect(18*SCALE,69*SCALE,84*SCALE,SCALE);
+  ctx.fillRect(18*SCALE,40*SCALE,84*SCALE,SCALE);
+  ctx.fillRect(18*SCALE,66*SCALE,84*SCALE,SCALE);
+  ctx.fillRect(18*SCALE,96*SCALE,84*SCALE,SCALE);
   ctx.globalAlpha=1;
-  fr(12,46,3,1,C.BN2); fr(105,46,3,1,C.BN2);
-  fr(12,69,3,1,C.BN2); fr(105,69,3,1,C.BN2);
+  fr(12,40,3,1,C.BN2); fr(105,40,3,1,C.BN2);
+  fr(12,66,3,1,C.BN2); fr(105,66,3,1,C.BN2);
+  fr(12,96,3,1,C.BN2); fr(105,96,3,1,C.BN2);
 
-  ptHeavy('ITEMS',GW*SCALE/2,51*SCALE,6,C.BN1,'center',C.DK);
-  drawInlineStatRow(items,57,5);
+  ptHeavy('ITEMS',GW*SCALE/2,48*SCALE,7,C.BN1,'center',C.DK);
+  drawInlineStatRow(items,54,6,{x:18,w:84,slotW:22,maxPerRow:4,textOffsetX:11,iconScale:1.15});
 
-  ptHeavy('SKILLS',GW*SCALE/2,73*SCALE,6,C.BN1,'center',C.DK);
-  drawInlineStatRow(skills,79,5);
+  ptHeavy('SKILLS',GW*SCALE/2,69*SCALE,7,C.BN1,'center',C.DK);
+  drawInlineStatRow(skills,74,6,{x:21,w:78,slotW:26,minSlotW:20,maxPerRow:3,rowGap:10,textOffsetX:11,iconFit:8.5,iconCellW:10,iconCellH:9,iconOffsetY:0});
 
-  rMenuBtn(GAMEOVER_RETRY,'RETRY');
-  rMenuBtn(GAMEOVER_MENU,'MENU');
-  pt('R = RETRY   M = MENU',GW*SCALE/2,107*SCALE,5,C.BN1,'center',C.DK);
+  rMenuBtn(PAUSE_RETRY,'RETRY',{fs:8});
+  rMenuBtn(PAUSE_MENU,'MENU',{fs:8});
   ctx.textAlign='left';
 }
 
@@ -837,4 +880,3 @@ function rRetryConfirm(){
   pt('ENTER / Y = YES',GW*SCALE/2,108*SCALE,4,C.BN1,'center',C.DK);
   ctx.textAlign='left';
 }
-

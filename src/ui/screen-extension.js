@@ -83,8 +83,9 @@
 
   function getSpawnDebugState() {
     try {
-      if (window.BoneCrawlerZoneSpawn && typeof BoneCrawlerZoneSpawn.getDebugState === 'function') {
-        return BoneCrawlerZoneSpawn.getDebugState() || null;
+      var zoneSpawn = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('zoneSpawn', ['BoneCrawlerZoneSpawn'])) || window.BoneCrawlerZoneSpawn;
+      if (zoneSpawn && typeof zoneSpawn.getDebugState === 'function') {
+        return zoneSpawn.getDebugState() || null;
       }
     } catch (err) {}
     return null;
@@ -107,8 +108,9 @@
   }
 
   function isTitleLikeState(state) {
-    if (window.BoneCrawlerTitleScreen && typeof BoneCrawlerTitleScreen.isActive === 'function') {
-      try { return BoneCrawlerTitleScreen.isActive(); } catch (err) {}
+    var titleScreen = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('titleScreen', ['BoneCrawlerTitleScreen'])) || window.BoneCrawlerTitleScreen || null;
+    if (titleScreen && typeof titleScreen.isActive === 'function') {
+      try { return titleScreen.isActive(); } catch (err) {}
     }
     return state === 'title' || state === 'intro' || state === 'intro_fade' || state === 'scoreboard';
   }
@@ -155,7 +157,7 @@
   var miniMapVisited = {};
 
   function getMiniMapGraph() {
-    return window.BoneCrawlerMiniMapGraph || null;
+    return (window.GameRuntimeApi && window.GameRuntimeApi.lookup('miniMapGraph', ['BoneCrawlerMiniMapGraph'])) || window.BoneCrawlerMiniMapGraph || null;
   }
 
   function getMiniMapNodeList(graph) {
@@ -291,6 +293,10 @@
     var speedLevel = Number(p.speedLevel || 0);
     var stepLevel = Number(p.stepLevel || 0);
     var shieldLevel = Number(p.shieldLevel || 0);
+    var blockTier = p.mirrorBlock ? 2 + Math.max(1, Number(p.mirrorLevel || 1)) : (p.reflectBlock ? 2 : 1);
+    var blockLabel = p.mirrorBlock ? 'Mirror' : (p.reflectBlock ? 'Reflect' : 'Block');
+    var blockSprite = p.mirrorBlock ? 'mirrorIcon' : (p.reflectBlock ? 'reflectIcon' : 'shieldIcon');
+    var blockFallback = p.mirrorBlock ? 'MR' : (p.reflectBlock ? 'RF' : 'BL');
 
     var hasShadowStep = !!p.shadowStep;
     var hasShield = !!p.shield || shieldLevel > 0;
@@ -305,6 +311,7 @@
       - Whirlwind appears when unlocked.
       - Shield appears when the player has shield progress.
     */
+    add('block', blockLabel, blockTier, blockSprite, 'upgrade-icon-block', blockFallback, true);
     add('sword', hasMasterSword ? 'Master' : 'Sword', swordLevel + 1, 'upSword', 'upgrade-icon-sword', 'SW', true);
     add('step', hasShadowStep ? 'Shadow' : 'Step', Math.max(1, hasShadowStep ? (stepLevel || 1) : 1), hasShadowStep ? 'shadowStepIcon' : 'stepIcon', 'upgrade-icon-step', 'ST', true);
     add('speed', 'Speed', speedLevel + 1, 'upSpeed', 'upgrade-icon-speed', 'SP', true);

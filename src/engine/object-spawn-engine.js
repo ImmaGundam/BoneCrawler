@@ -60,8 +60,9 @@
   function spawnEnemy(def){
     const enemy = (def && (def.enemy || def.enemyType || def.objectId || def.id)) || 'normalEnemy1';
     try{
-      if(window.BoneCrawlerZoneSpawn && typeof BoneCrawlerZoneSpawn.spawnAtPoint === 'function'){
-        return BoneCrawlerZoneSpawn.spawnAtPoint(Object.assign({}, def || {}, {enemy}));
+      const zoneSpawn = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('zoneSpawn', ['BoneCrawlerZoneSpawn'])) || window.BoneCrawlerZoneSpawn;
+      if(zoneSpawn && typeof zoneSpawn.spawnAtPoint === 'function'){
+        return zoneSpawn.spawnAtPoint(Object.assign({}, def || {}, {enemy}));
       }
       if(typeof doSpawn === 'function'){
         doSpawn(enemy === 'giantEnemy1', enemy === 'wizardEnemy1', enemy);

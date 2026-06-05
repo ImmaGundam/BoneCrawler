@@ -20,6 +20,36 @@ function getDialogEntry(id){
   }catch(err){}
   return null;
 }
+function cloneDialogPages(pages, title){
+  return (pages||[]).map(page=>Array.isArray(page)
+    ? page.slice()
+    : {
+        speaker:String(page.speaker||title||'NODE').toUpperCase(),
+        lines:(page.lines||[]).slice()
+      });
+}
+function armDialogAdvanceLock(delayMs=DIALOG_ADVANCE_GRACE_MS){
+  dialogAdvanceUnlockUntilMs=performance.now()+Math.max(0, Number(delayMs)||0);
+  return dialogAdvanceUnlockUntilMs;
+}
+function canAdvanceDialogNow(){
+  return performance.now()>=(Number(dialogAdvanceUnlockUntilMs)||0);
+}
+function enterDialogState(title, pages, mode='npc', options={}){
+  dialogTitle=title||'NODE';
+  dialogMode=mode||'npc';
+  dialogPages=cloneDialogPages(pages, title);
+  dialogPageIndex=0;
+  clearGameplayKeys();
+  armDialogAdvanceLock(options.delayMs);
+  gState='dialog';
+  return true;
+}
+function tryAdvanceDialogFromInput(){
+  if(gState!=='dialog' || !canAdvanceDialogNow()) return false;
+  advanceDialog();
+  return true;
+}
 function maybeTriggerScriptedZoneDialog(){
   if(gState!=='playing') return false;
   try{
@@ -31,13 +61,8 @@ function maybeTriggerScriptedZoneDialog(){
 function startSecret2NpcDialog(){
   if(currentZone!==ZONE_SECRET2) return;
   const dialog = getDialogEntry(secret2NpcMet ? 'npc.woundedStranger.repeat' : 'npc.woundedStranger.initial');
-  dialogTitle=(dialog && dialog.title) || 'WOUNDED STRANGER';
-  dialogMode=(dialog && dialog.mode) || 'npc';
-  dialogPages=(dialog && dialog.pages) ? dialog.pages : [];
   secret2NpcMet = true;
-  dialogPageIndex = 0;
-  clearGameplayKeys();
-  gState='dialog';
+  enterDialogState((dialog && dialog.title) || 'WOUNDED STRANGER', (dialog && dialog.pages) || [], (dialog && dialog.mode) || 'npc');
 }
 
 function claimSecret2MasterSword(){
@@ -47,15 +72,10 @@ function claimSecret2MasterSword(){
   masterSwordDialogSeen=true;
   if(!whirlwindUnlocked) whirlwindUnlocked=true;
   if(!whirlwindLearnDialogSeen) queueWhirlwindLearnDialog();
-  dialogTitle='ITEM ACQUIRED';
-  dialogMode='reward';
-  dialogPages = getMasterSwordRewardPages();
-  dialogPageIndex = 0;
-  const titleFlow = window.BoneCrawlerTitleFlow || null;
+  const titleFlow = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('titleFlow', ['BoneCrawlerTitleFlow'])) || window.BoneCrawlerTitleFlow || null;
   if(titleFlow && typeof titleFlow.saveRunIfNeeded === 'function') titleFlow.saveRunIfNeeded();
   else saveRunIfNeeded();
-  clearGameplayKeys();
-  gState='dialog';
+  enterDialogState('ITEM ACQUIRED', getMasterSwordRewardPages(), 'reward');
 }
 
 function startSecret2SwordDialog(){
@@ -66,13 +86,8 @@ function startSecret2SwordDialog(){
 function startZone3TreeDialog(){
   if(currentZone!==3 || !zone3TreeAwake) return;
   const dialog = getDialogEntry('npc.zone3Tree.default');
-  dialogTitle=(dialog && dialog.title) || 'DEKU';
-  dialogMode=(dialog && dialog.mode) || 'npc';
-  dialogPages=(dialog && dialog.pages) ? dialog.pages : [];
   zone3TreeMet=true;
-  dialogPageIndex=0;
-  clearGameplayKeys();
-  gState='dialog';
+  enterDialogState((dialog && dialog.title) || 'DEKU', (dialog && dialog.pages) || [], (dialog && dialog.mode) || 'npc');
 }
 
 
@@ -111,6 +126,7 @@ function advanceDialog(){
     const wasOpening=dialogMode==='opening';
     dialogPages=[];
     dialogPageIndex=0;
+    dialogAdvanceUnlockUntilMs=0;
     if(wasOpening) startupDialogCompletedThisRun=true;
     clearGameplayKeys();
     gState='playing';
@@ -125,6 +141,7 @@ function skipDialog(){
   const wasOpening=dialogMode==='opening';
   dialogPages=[];
   dialogPageIndex=0;
+  dialogAdvanceUnlockUntilMs=0;
   if(wasOpening) startupDialogCompletedThisRun=true;
   clearGameplayKeys();
   gState='playing';
@@ -133,9 +150,12 @@ function skipDialog(){
   }
 }
 
-function hurtPlayer(amount=1){
+function hurtPlayer(amount=1, options={}){
   const p=player;
   if(!p) return false;
+  const opts=options||{};
+  const bypassDefense=!!opts.bypassDefense;
+  const bypassInvuln=!!opts.bypassInvuln;
   if(devGodMode){
     p.dead=false;
     p.hp=p.maxHp;
@@ -144,8 +164,10 @@ function hurtPlayer(amount=1){
     p.shieldBreakT=0;
     return false;
   }
-  if(p.dead || p.hurtT>0 || (p.dodgeInvulnT||0)>0) return false;
-  if(p.shield){
+  if(p.dead) return false;
+  if(!bypassInvuln && (p.hurtT>0 || (p.dodgeInvulnT||0)>0)) return false;
+  if(!bypassDefense && typeof tryPlayerBlockHit==='function' && tryPlayerBlockHit(amount, opts)) return true;
+  if(!bypassDefense && p.shield){
     try{ if(window.AudioEvents) AudioEvents.playerShield(); }catch(err){}
     p.shield=false;
     p.shieldBreakT=24;
@@ -161,7 +183,7 @@ function hurtPlayer(amount=1){
     p.dead=true;
     try{ if(window.AudioEvents) AudioEvents.playerDeath(); }catch(err){}
     runTimeMs=performance.now()-runStartMs;
-    const titleFlow = window.BoneCrawlerTitleFlow || null;
+    const titleFlow = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('titleFlow', ['BoneCrawlerTitleFlow'])) || window.BoneCrawlerTitleFlow || null;
     if(titleFlow && typeof titleFlow.saveRunIfNeeded === 'function') titleFlow.saveRunIfNeeded();
     else saveRunIfNeeded();
     setTimeout(()=>{gState='gameover';},1200);
@@ -169,3 +191,7 @@ function hurtPlayer(amount=1){
   return true;
 }
 
+window.armDialogAdvanceLock = armDialogAdvanceLock;
+window.canAdvanceDialogNow = canAdvanceDialogNow;
+window.enterDialogState = enterDialogState;
+window.tryAdvanceDialogFromInput = tryAdvanceDialogFromInput;

@@ -1,6 +1,34 @@
 // game state update
 // Purpose: Main update tick: game-state progression, movement, collisions, items, enemy updates, and menu transitions.
 // ── Update ────────────────────────────────────────────────────
+function hitEnemyWithReflectedFireball(fb){
+  const box={x:fb.x,y:fb.y,w:3,h:3};
+  for(let i=enemies.length-1;i>=0;i--){
+    const e=enemies[i];
+    if(!e || e.spawnInvulnerable) continue;
+    if(!ov(box,{x:e.x,y:e.y,w:e.w,h:e.h})) continue;
+    e.hp -= 1;
+    try{ if(window.AudioEvents) AudioEvents.enemyHit(); }catch(err){}
+    burst(e.x+e.w/2, e.y+e.h/2);
+    if(e.hp<=0) handleEnemyDefeat(i,e,false);
+    else e.hurtT=10;
+    return true;
+  }
+  if(dragonBoss && dragonBoss.howlT<=0 && ov(box,getDragonHurtBox())){
+    damageDragonBoss(1,false);
+    return true;
+  }
+  if(whyDragonsBoss && whyDragonsBoss.howlT<=0 && ov(box,getDragonHurtBox(whyDragonsBoss))){
+    damageWhyDragonsBoss(1,false);
+    return true;
+  }
+  if(shadowBoss && shadowBoss.howlT<=0 && ov(box,getShadowHurtBox())){
+    damageShadowBoss(1,false);
+    return true;
+  }
+  return false;
+}
+
 function update(){
   frame++; // always tick so animations run on all screens
   syncVisibleHearts();
@@ -17,10 +45,11 @@ function update(){
   if(gState==='startup_scene'){
     if(startupSceneFadeT>0){
       startupSceneFadeT=Math.max(0,startupSceneFadeT-1);
-      if(startupSceneFadeT<=0) startupScenePauseStartMs=performance.now();
+      if(startupSceneFadeT<=0 && startupDialogPending) startupScenePauseStartMs=STARTUP_SCENE_DIALOG_DELAY_MS;
     } else if(startupDialogPending){
-      if(!startupScenePauseStartMs) startupScenePauseStartMs=performance.now();
-      if(performance.now()-startupScenePauseStartMs>=STARTUP_SCENE_DIALOG_DELAY_MS){
+      if(startupScenePauseStartMs<=0) startupScenePauseStartMs=STARTUP_SCENE_DIALOG_DELAY_MS;
+      startupScenePauseStartMs=Math.max(0,startupScenePauseStartMs-getSimulationStepMs());
+      if(startupScenePauseStartMs<=0){
         openStartupGameDialog();
       }
     } else {
@@ -36,15 +65,16 @@ function update(){
     try{ if(window.AudioEvents && typeof AudioEvents.ensureZoneAmbience === 'function') AudioEvents.ensureZoneAmbience(currentZone); }catch(err){}
   }
 
+  const zoneSpawnRuntime = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('zoneSpawn', ['BoneCrawlerZoneSpawn'])) || window.BoneCrawlerZoneSpawn;
   const zoneSpawnIntroBlocked = (() => {
-    if(!window.BoneCrawlerZoneSpawn) return false;
-    if(typeof BoneCrawlerZoneSpawn.updateZoneIntro === 'function') BoneCrawlerZoneSpawn.updateZoneIntro();
-    return typeof BoneCrawlerZoneSpawn.isZoneStartBlocked === 'function' && BoneCrawlerZoneSpawn.isZoneStartBlocked(currentZone);
+    if(!zoneSpawnRuntime) return false;
+    if(typeof zoneSpawnRuntime.updateZoneIntro === 'function') zoneSpawnRuntime.updateZoneIntro();
+    return typeof zoneSpawnRuntime.isZoneStartBlocked === 'function' && zoneSpawnRuntime.isZoneStartBlocked(currentZone);
   })();
 
   // Spawn timers
-  if(!zoneSpawnIntroBlocked && window.BoneCrawlerZoneSpawn && BoneCrawlerZoneSpawn.shouldOwnUpdate(currentZone)){
-    BoneCrawlerZoneSpawn.update();
+  if(!zoneSpawnIntroBlocked && zoneSpawnRuntime && zoneSpawnRuntime.shouldOwnUpdate(currentZone)){
+    zoneSpawnRuntime.update();
   } else if(!zoneSpawnIntroBlocked && !isSecretZone(currentZone)){
     for(let i=pSpawns.length-1;i>=0;i--){
       pSpawns[i].t--;
@@ -128,7 +158,7 @@ function update(){
         e.atkT=20; e.atkCD=(e.giant?100:116)+(Math.random()*(e.giant?60:65)|0);
         try{ if(window.AudioEvents) AudioEvents.skeletonAttack(); }catch(err){}
         if(p.hurtT<=0){
-          hurtPlayer(1);
+          hurtPlayer(1,{sourceType:'physical',sourceEntity:e});
         }
       }
     } else {
@@ -146,10 +176,14 @@ function update(){
     if(fb.x<PX||fb.x>PX+PW||fb.y<PY||fb.y>PY+PH||fb.life<=0){
       releaseFireballAt(fireballs,i); continue;
     }
-    // Hit player
-    if(p.hurtT<=0 && ov({x:fb.x,y:fb.y,w:3,h:3},{x:p.x,y:p.y,w:p.w,h:p.h})){
+    if(fb.friendly && hitEnemyWithReflectedFireball(fb)){
       releaseFireballAt(fireballs,i);
-      hurtPlayer(1);
+      continue;
+    }
+    // Hit player
+    if(!fb.friendly && p.hurtT<=0 && ov({x:fb.x,y:fb.y,w:3,h:3},{x:p.x,y:p.y,w:p.w,h:p.h})){
+      hurtPlayer(1,{sourceType:'magic', projectile:fb});
+      if(!fb.friendly) releaseFireballAt(fireballs,i);
       continue;
     }
   }
@@ -351,5 +385,3 @@ function drawShadowBoss(b){
     ctx.globalAlpha=1;
   }
 }
-
-

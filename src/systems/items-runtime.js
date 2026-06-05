@@ -233,7 +233,10 @@
   function spawnKeyDrop(x,y,kind='zone3'){
     const list=ensureKeyDrops();
     const pos = findNearestWalkableGroundPosition(x, y, 7, 7, { maxRadius: 48, step: 4, pad: 2 });
-    list.push(buildRuntimeKey(kind, pos.x, pos.y));
+    const nextDrop = buildRuntimeKey(kind, pos.x, pos.y);
+    const existingIndex = list.findIndex(drop => drop && drop.kind === kind);
+    if(existingIndex >= 0) list.splice(existingIndex, 1, nextDrop);
+    else list.push(nextDrop);
     keyDrop=list;
     return list;
   }

@@ -24,9 +24,48 @@ function isKeyDown(...codes){
   return codes.some(code=>!!keys[code]);
 }
 
+function __runtimeLookup(key, legacy){
+  return (window.GameRuntimeApi && window.GameRuntimeApi.lookup(key, legacy)) || (legacy && legacy.length ? window[legacy[0]] : null) || null;
+}
 
 function __titleFlow(){
-  return window.BoneCrawlerTitleFlow || null;
+  return __runtimeLookup('titleFlow', ['BoneCrawlerTitleFlow']);
+}
+
+function __playerAbilities(){
+  return __runtimeLookup('playerAbilities', ['BoneCrawlerPlayerAbilities']);
+}
+
+function __runFlow(){
+  return __runtimeLookup('runFlow', ['BoneCrawlerRunFlow']);
+}
+
+function goToTitleMenu(){
+  const runFlow = __runFlow();
+  if(runFlow && typeof runFlow.goToTitleState === 'function') runFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true});
+  else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true});
+  else gState='title';
+}
+
+function performRegisteredMove(moveId, payload){
+  const abilities=__playerAbilities();
+  if(abilities && typeof abilities.performMove==='function'){
+    return !!abilities.performMove(moveId, payload||{});
+  }
+  if(moveId==='dodge' && typeof performDodge==='function') return performDodge();
+  if(moveId==='block' && typeof performBlock==='function') return performBlock();
+  if(moveId==='interact' && typeof handlePrimaryInteract==='function') return handlePrimaryInteract();
+  if(moveId==='attack' && typeof performPlayerAttack==='function') return performPlayerAttack(payload && payload.strength!=null ? payload.strength : 1);
+  return false;
+}
+
+function applyRegisteredUpgrade(upgradeId, payload){
+  if(typeof applyUpgrade==='function') return !!applyUpgrade(upgradeId, payload||{});
+  const abilities=__playerAbilities();
+  if(abilities && typeof abilities.applyUpgrade==='function'){
+    return !!abilities.applyUpgrade(upgradeId, payload||{});
+  }
+  return false;
 }
 
 function setPlayerDirFromVector(dx,dy){
@@ -39,7 +78,7 @@ function performTouchSwipeDodge(dx,dy,dist,elapsed){
   if(gState!=='playing' || !player || player.dead) return false;
   if(dist<CANVAS_TOUCH_DODGE_SWIPE_MIN_PX || elapsed>CANVAS_TOUCH_DODGE_SWIPE_MAX_MS) return false;
   setPlayerDirFromVector(dx,dy);
-  return performDodge();
+  return performRegisteredMove('dodge', {source:'touch-swipe'});
 }
 
 function handleInputKeyDown(e){
@@ -47,10 +86,13 @@ function handleInputKeyDown(e){
   const key=e.key;
   const keyLower=typeof key==='string' ? key.toLowerCase() : '';
   keys[code]=true;
-  if(['Space','Enter','Escape','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(code) && e && typeof e.preventDefault==='function') e.preventDefault();
+  if(['Space','Enter','Escape','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyF'].includes(code) && e && typeof e.preventDefault==='function') e.preventDefault();
 
   if(gState==='dialog'){
-    if(code==='Enter' || code==='Space' || code==='KeyE') advanceDialog();
+    if(code==='Enter' || code==='Space' || code==='KeyE'){
+      if(typeof tryAdvanceDialogFromInput === 'function') tryAdvanceDialogFromInput();
+      else advanceDialog();
+    }
     else if(code==='Escape') skipDialog();
     return;
   }
@@ -61,15 +103,15 @@ function handleInputKeyDown(e){
     else if(keyLower==='m' || code==='Backspace'){
       retryTaxPaid=false;
       retryPromptMode='';
-      if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function') BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else gState='title';
+      goToTitleMenu();
     }
     return;
   }
 
   if(gState==='upgrade'){
-    if(key==='1' && currentUpgradeBtns[0]) applyUpgrade(currentUpgradeBtns[0].type);
-    else if(key==='2' && currentUpgradeBtns[1]) applyUpgrade(currentUpgradeBtns[1].type);
-    else if(key==='3' && currentUpgradeBtns[2]) applyUpgrade(currentUpgradeBtns[2].type);
+    if(key==='1' && currentUpgradeBtns[0]) applyRegisteredUpgrade(currentUpgradeBtns[0].type, {button:currentUpgradeBtns[0], source:'keyboard'});
+    else if(key==='2' && currentUpgradeBtns[1]) applyRegisteredUpgrade(currentUpgradeBtns[1].type, {button:currentUpgradeBtns[1], source:'keyboard'});
+    else if(key==='3' && currentUpgradeBtns[2]) applyRegisteredUpgrade(currentUpgradeBtns[2].type, {button:currentUpgradeBtns[2], source:'keyboard'});
     return;
   }
 
@@ -118,21 +160,24 @@ function handleInputKeyDown(e){
   }
 
   if(gState==='scoreboard'){
-    if(code==='Escape' || code==='Backspace'){ if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function') BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else gState='title'; }
+    if(code==='Escape' || code==='Backspace'){ goToTitleMenu(); }
     else if(code==='ArrowLeft'){ const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.prevScorePage === 'function') titleFlow.prevScorePage(); else if(scoreboardPage>0) scoreboardPage--; }
     else if(code==='ArrowRight'){ const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.nextScorePage === 'function') titleFlow.nextScorePage(); else if(scoreboardPage<totalScorePages()-1) scoreboardPage++; }
     return;
   }
 
   if(gState==='playing' && !e.repeat && (code==='ShiftLeft' || code==='ShiftRight')){
-    if(performDodge()) return;
+    if(performRegisteredMove('dodge', {source:'keyboard'})) return;
+  }
+  if(gState==='playing' && !e.repeat && code==='KeyF'){
+    if(performRegisteredMove('block', {source:'keyboard'})) return;
   }
   if(gState==='playing' && !e.repeat && code==='KeyP'){
     if(useHealthPotion()) return;
   }
 
   if(gState==='playing' && (code==='Enter' || code==='KeyE')){
-    if(handlePrimaryInteract()) return;
+    if(performRegisteredMove('interact', {source:'keyboard'})) return;
     if(code==='Enter'){
       pauseGame();
       return;
@@ -149,7 +194,7 @@ function handleInputKeyDown(e){
     else if(code==='Escape' || code==='Backspace' || keyLower==='m'){
       retryTaxPaid=false;
       retryPromptMode='';
-      if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function') BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else gState='title';
+      goToTitleMenu();
     }
     return;
   }
@@ -162,7 +207,7 @@ function handleInputKeyUp(e){
 document.addEventListener('keydown', handleInputKeyDown);
 document.addEventListener('keyup', handleInputKeyUp);
 
-window.BoneCrawlerTouchInputBridge = {
+const touchInputBridge = {
   press(code, key){
     handleInputKeyDown(makeInputEvent(code, key || code, !!keys[code]));
   },
@@ -173,6 +218,8 @@ window.BoneCrawlerTouchInputBridge = {
     if(typeof clearGameplayKeys === 'function') clearGameplayKeys();
   }
 };
+if(window.GameRuntimeApi && typeof window.GameRuntimeApi.register === 'function') window.GameRuntimeApi.register('touchInputBridge', touchInputBridge, { legacy: ['BoneCrawlerTouchInputBridge'] });
+else window.BoneCrawlerTouchInputBridge = touchInputBridge;
 window.addEventListener('blur', clearGameplayKeys);
 document.addEventListener('visibilitychange', ()=>{
   if(document.hidden) clearGameplayKeys();
@@ -198,7 +245,8 @@ window.addEventListener('mouseup',()=>{
 canvas.addEventListener('touchstart',e=>{
   if(gState==='dialog'){
     lastCanvasDialogTouchTime=performance.now();
-    advanceDialog();
+    if(typeof tryAdvanceDialogFromInput === 'function') tryAdvanceDialogFromInput();
+    else advanceDialog();
     e.preventDefault();
     return;
   }
@@ -258,7 +306,7 @@ canvas.addEventListener('touchend',e=>{
   const potionRect={x:0,y:0,w:55,h:22};
 
   if(isTap && pointInBtn(lx,ly,dodgeRect)){
-    performDodge();
+    performRegisteredMove('dodge', {source:'touch-ui'});
     touchAttackChargeActive=false;
     touchAttackCancelQueued=true;
   } else if(isTap && whirlwindUnlocked && pointInBtn(lx,ly,whirlRect)){
@@ -316,9 +364,13 @@ if(touchInteractBtn){
   const onInteractPress=e=>{
     e.preventDefault();
     e.stopPropagation();
-    if(gState==='dialog'){ advanceDialog(); return; }
+    if(gState==='dialog'){
+      if(typeof tryAdvanceDialogFromInput === 'function') tryAdvanceDialogFromInput();
+      else advanceDialog();
+      return;
+    }
     if(gState==='leave_zone_confirm'){ confirmLeaveZone(); return; }
-    if(gState==='playing') handlePrimaryInteract();
+    if(gState==='playing') performRegisteredMove('interact', {source:'touch-button'});
   };
   if(window.PointerEvent) touchInteractBtn.addEventListener('pointerdown', onInteractPress);
   else touchInteractBtn.addEventListener('touchstart', onInteractPress, {passive:false});
@@ -328,10 +380,20 @@ if(touchDodgeBtn){
   const onDodgePress=e=>{
     e.preventDefault();
     e.stopPropagation();
-    if(gState==='playing') performDodge();
+    if(gState==='playing') performRegisteredMove('block', {source:'touch-button'});
   };
   if(window.PointerEvent) touchDodgeBtn.addEventListener('pointerdown', onDodgePress);
   else touchDodgeBtn.addEventListener('touchstart', onDodgePress, {passive:false});
+}
+
+if(touchBlockBtn){
+  const onBlockPress=e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    if(gState==='playing') performRegisteredMove('block', {source:'touch-button'});
+  };
+  if(window.PointerEvent) touchBlockBtn.addEventListener('pointerdown', onBlockPress);
+  else touchBlockBtn.addEventListener('touchstart', onBlockPress, {passive:false});
 }
 
 // name modal wiring
@@ -357,7 +419,7 @@ canvas.addEventListener('click',e=>{
   if(gState==='upgrade'){
     for(const btn of currentUpgradeBtns){
       if(pointInBtn(lx,ly,btn)){
-        applyUpgrade(btn.type);
+        applyRegisteredUpgrade(btn.type, {button:btn, source:'pointer'});
         break;
       }
     }
@@ -370,7 +432,7 @@ canvas.addEventListener('click',e=>{
     const whirlRect={x:GW-31,y:2,w:8,h:8};
     const potionRect={x:0,y:0,w:55,h:22};
     if(pointInBtn(lx,ly,dodgeRect)){
-      performDodge();
+      performRegisteredMove('dodge', {source:'pointer'});
       return;
     }
     if(potionCount>0 && pointInBtn(lx,ly,potionRect)){
@@ -394,7 +456,8 @@ canvas.addEventListener('click',e=>{
   }
 
   if(gState==='dialog'){
-    advanceDialog();
+    if(typeof tryAdvanceDialogFromInput === 'function') tryAdvanceDialogFromInput();
+    else advanceDialog();
     return;
   }
 
@@ -439,18 +502,18 @@ canvas.addEventListener('click',e=>{
   }
 
   if(gState==='scoreboard'){
-    if(pointInBtn(lx,ly,{x:7,y:105,w:24,h:9})){ if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function') BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else gState='title'; }
+    if(pointInBtn(lx,ly,{x:7,y:105,w:24,h:9})){ goToTitleMenu(); }
     else if(pointInBtn(lx,ly,{x:89,y:105,w:10,h:9})){ const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.prevScorePage === 'function') titleFlow.prevScorePage(); else if(scoreboardPage>0) scoreboardPage--; }
     else if(pointInBtn(lx,ly,{x:103,y:105,w:10,h:9})){ const titleFlow=__titleFlow(); if(titleFlow && typeof titleFlow.nextScorePage === 'function') titleFlow.nextScorePage(); else if(scoreboardPage<totalScorePages()-1) scoreboardPage++; }
     return;
   }
 
   if(gState==='paused'){
-    if(pointInBtn(lx,ly,GAMEOVER_RETRY)) openRetryPrompt();
-    else if(pointInBtn(lx,ly,GAMEOVER_MENU)){
+    if(pointInBtn(lx,ly,PAUSE_RETRY)) openRetryPrompt();
+    else if(pointInBtn(lx,ly,PAUSE_MENU)){
       retryTaxPaid=false;
       retryPromptMode='';
-      if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function') BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else gState='title';
+      goToTitleMenu();
     }
     return;
   }
@@ -460,7 +523,7 @@ canvas.addEventListener('click',e=>{
     else if(pointInBtn(lx,ly,GAMEOVER_MENU)){
       retryTaxPaid=false;
       retryPromptMode='';
-      if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function') BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(typeof goToTitleState === 'function') goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else gState='title';
+      goToTitleMenu();
     }
   }
 });

@@ -1,7 +1,8 @@
 // zone-bindings
 // Purpose: keeps map identity separate from spawn, progression, object, and dialog resources.
 (function(){
-  if(window.BoneCrawlerZoneRuntime) return;
+  const runtimeApi = window.GameRuntimeApi || null;
+  if((runtimeApi && runtimeApi.lookup('zoneRuntime', ['BoneCrawlerZoneRuntime'])) || window.BoneCrawlerZoneRuntime) return;
 
   const defaultBindings = {
     0: {
@@ -60,8 +61,9 @@
     }
   };
 
-  const bindings = window.BoneCrawlerZoneBindings || defaultBindings;
-  window.BoneCrawlerZoneBindings = bindings;
+  const bindings = (runtimeApi && runtimeApi.lookup('zoneBindings', ['BoneCrawlerZoneBindings'])) || window.BoneCrawlerZoneBindings || defaultBindings;
+  if(runtimeApi && typeof runtimeApi.register === 'function') runtimeApi.register('zoneBindings', bindings, { legacy: ['BoneCrawlerZoneBindings'] });
+  else window.BoneCrawlerZoneBindings = bindings;
 
   function clone(value){
     try{ return JSON.parse(JSON.stringify(value)); }catch(err){ return value; }
@@ -108,7 +110,7 @@
     return clone(bindings);
   }
 
-  window.BoneCrawlerZoneRuntime = {
+  const api = {
     getBinding,
     setBinding,
     patchBinding,
@@ -116,4 +118,6 @@
     getEditorSnapshot,
     bindings
   };
+  if(runtimeApi && typeof runtimeApi.register === 'function') runtimeApi.register('zoneRuntime', api, { legacy: ['BoneCrawlerZoneRuntime'] });
+  else window.BoneCrawlerZoneRuntime = api;
 })();

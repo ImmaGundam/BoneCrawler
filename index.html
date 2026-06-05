@@ -1,15 +1,15 @@
-<!-- BoneCrawler.com - jamesdeitz.dev - version 2.9.4 -->
+<!-- BoneCrawler.com - jamesdeitz.dev - version 2.9.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>BoneCrawler - NES-Style Dark Fantasy Arcade Action Game</title>
+<title>BoneCrawler - 8-bit Dark Fantasy Arcade Action Game</title>
 <link rel="icon" type="image/jpeg" href="assets/icon.jpg">
 <script>
 /* Browser layout detection.
-   Phones get the mobile controller. Tablets keep a tablet/desktop layout.
-   Optional override: ?layout=desktop, ?layout=tablet, or ?layout=mobile. */
+   Phones and tablets use the responsive main UI; the old mobile controller shell is disabled.
+   Optional override: ?layout=desktop or ?layout=tablet. ?layout=mobile aliases tablet. */
 (function () {
   var ua = navigator.userAgent || '';
   var params = new URLSearchParams(window.location.search || '');
@@ -27,29 +27,27 @@
 
   var mode = 'desktop';
 
-  if (forced === 'mobile' || forced === 'phone') {
-    mode = 'mobile';
-  } else if (forced === 'tablet') {
+  if (forced === 'mobile' || forced === 'phone' || forced === 'tablet') {
     mode = 'tablet';
   } else if (forced === 'desktop') {
     mode = 'desktop';
   } else {
     var phoneLike = mobileUA && !tabletUA && !iPadOS && shortSide < 700;
     var tabletLike = iPadOS || tabletUA || ((touch || coarse || noHover) && shortSide >= 700 && longSide >= 900);
-    mode = phoneLike ? 'mobile' : (tabletLike ? 'tablet' : 'desktop');
+    mode = (phoneLike || tabletLike) ? 'tablet' : 'desktop';
   }
 
   document.documentElement.dataset.deviceLayout = mode;
   document.documentElement.classList.add(mode + '-browser');
   document.documentElement.classList.add('screen-extension-enabled');
 
-  if (mode === 'tablet') {
+  if (mode === 'desktop') {
     document.documentElement.classList.add('desktop-browser');
   }
 })();
 </script>
 <link rel="stylesheet" href="./src/ui/index-shell.css">
-<link rel="stylesheet" href="./src/ui/game-ui.css">
+<link rel="stylesheet" href="./src/ui/game-ui.css?v=2.9.5-shell-3">
 <link rel="stylesheet" href="./src/ui/mobile-ui.css">
 <link rel="stylesheet" href="./src/ui/mobile-shell.css">
 </head>
@@ -66,9 +64,9 @@
 <div id="desktopTitlebar" class="desktop-titlebar" aria-hidden="true">
   <div class="desktop-titlebar-label">BONECRAWLER</div>
   <div class="desktop-window-controls">
-    <button id="desktopMinBtn" class="desktop-window-btn" type="button" aria-label="Minimize">–</button>
-    <button id="desktopMaxBtn" class="desktop-window-btn" type="button" aria-label="Maximize">□</button>
-    <button id="desktopCloseBtn" class="desktop-window-btn desktop-window-close" type="button" aria-label="Close">×</button>
+    <button id="desktopMinBtn" class="desktop-window-btn" type="button" aria-label="Minimize">â€“</button>
+    <button id="desktopMaxBtn" class="desktop-window-btn" type="button" aria-label="Maximize">â–¡</button>
+    <button id="desktopCloseBtn" class="desktop-window-btn desktop-window-close" type="button" aria-label="Close">Ã—</button>
   </div>
 </div>
 
@@ -76,28 +74,31 @@
   <aside class="player-menu player-menu-left" id="playerMenuLeft" hidden aria-hidden="true" aria-label="BoneCrawler about and controls menu">
     <div class="player-card player-about-card" id="aboutPanel">
       <div class="player-panel-tools" aria-label="Controls panel size controls">
-        <button type="button" class="player-tool-btn player-tool-icon" id="aboutExpandBtn" aria-label="Maximize Controls" title="Maximize Controls">□</button>
-        <button type="button" class="player-tool-btn player-tool-icon hidden" id="aboutNormalBtn" aria-label="Restore Controls" title="Restore Controls">❐</button>
+        <button type="button" class="player-tool-btn player-tool-icon" id="aboutExpandBtn" aria-label="Maximize Controls" title="Maximize Controls">â–¡</button>
+        <button type="button" class="player-tool-btn player-tool-icon hidden" id="aboutNormalBtn" aria-label="Restore Controls" title="Restore Controls">â</button>
       </div>
-      <button type="button" class="panel-minimize box-dismiss" id="aboutPanelCollapse" aria-label="Minimize Controls" aria-expanded="true" title="Minimize Controls">−</button><button type="button" class="panel-dismiss box-dismiss" id="aboutPanelDismiss" aria-label="Dismiss Controls">×</button>
+      <button type="button" class="panel-minimize box-dismiss" id="aboutPanelCollapse" aria-label="Minimize Controls" aria-expanded="true" title="Minimize Controls">âˆ’</button><button type="button" class="panel-dismiss box-dismiss" id="aboutPanelDismiss" aria-label="Dismiss Controls">Ã—</button>
       <div class="player-card-title controls-title">CONTROLS</div>
       <div class="player-about-body">
         <div class="panel-group">
           <div class="panel-head hd-warm"><u><b>DESKTOP:</b></u></div>
           <div class="panel-line"><strong>ARROWS / WASD</strong> = MOVE</div>
           <div class="panel-line"><strong>SPACE / LEFT CLICK</strong> = ATTACK</div>
+          <div class="panel-line"><strong>F</strong> = BLOCK</div>
           <div class="panel-line"><strong>ENTER / E</strong> = INTERACT</div>
           <div class="panel-line"><strong>ESC</strong> = PAUSE GAME (SKIPS DIALOG)</div>
-          <div class="panel-line"><strong>DODGE</strong> — SHIFT</div>
+          <div class="panel-line"><strong>DODGE</strong> â€” SHIFT</div>
         </div>
         <div class="panel-rule"></div>
         <div class="panel-group">
           <div class="panel-head hd-blue"><u><b>MOBILE:</b></u></div>
-          <div class="panel-line"><strong>D-PAD</strong> = MOVE</div>
-          <div class="panel-line"><strong>B BUTTON</strong> = ATTACK</div>
-          <div class="panel-line"><strong>E / USE BUTTON</strong> — INTERACT</div>
-          <div class="panel-line"><strong>A BUTTON</strong> — DODGE</div>
-          <div class="panel-line"><strong>TAP HUD</strong> — USE POTION</div>
+          <div class="panel-line"><strong>TOUCH DRAG</strong> = MOVE</div>
+          <div class="panel-line"><strong>TAP SCREEN</strong> = ATTACK</div>
+          <div class="panel-line"><strong>BLOCK BTN</strong> = BLOCK</div>
+          <div class="panel-line"><strong>USE BTN</strong> &mdash; INTERACT</div>
+          <div class="panel-line"><strong>PAUSE BTN</strong> &mdash; PAUSE</div>
+          <div class="panel-line"><strong>SWIPE</strong> &mdash; DODGE</div>
+          <div class="panel-line"><strong>TAP HUD</strong> â€” USE POTION</div>
         </div>
         <div class="panel-rule"></div>
         <div class="panel-group">
@@ -119,7 +120,7 @@
     <div class="gamepad-shell" id="gamePadShell">
       <div class="gp-half gp-left" id="gpLeft" aria-label="Controller left">
         <button type="button" class="menu-toggle-btn-landscape" id="menuToggleLandscape" aria-label="Open menu" aria-expanded="false" aria-controls="sideMenuOverlay">
-          <span class="menu-toggle-icon">☰</span>
+          <span class="menu-toggle-icon">â˜°</span>
         </button>
         <div class="gp-dpad-wrap">
           <div class="gp-dpad" id="gpDpad" role="group" aria-label="Directional pad">
@@ -158,9 +159,10 @@
             <div class="screen-wrap-holder" id="screenWrapHolder">
               <div class="screen-wrap" id="screenWrap">
                 <canvas id="gameCanvas" width="240" height="240"></canvas>
-                <button type="button" class="touch-pause-btn hidden" id="touchPauseBtn" aria-label="Pause game">❚❚</button>
+                <button type="button" class="touch-pause-btn hidden" id="touchPauseBtn" aria-label="Pause game">âšâš</button>
                 <button type="button" class="touch-action-btn hidden" id="touchInteractBtn" aria-label="Interact">E</button>
-                <button type="button" class="touch-action-btn hidden" id="touchDodgeBtn" aria-label="Dodge">DODGE</button>
+                <button type="button" class="touch-action-btn hidden" id="touchDodgeBtn" aria-label="Block">BLOCK</button>
+                <button type="button" class="touch-action-btn hidden" id="touchBlockBtn" aria-label="Block">BLOCK</button>
               </div>
             </div>
 
@@ -173,7 +175,7 @@
               <div class="screen-extension-section screen-extension-zone-card" data-screen-extension-zone-card>
                 <div class="screen-extension-label">ZONE</div>
                 <div class="screen-extension-main" id="screenExtZone">ZONE 1</div>
-                <div class="screen-extension-sub" id="screenExtWave">WAVE —</div>
+                <div class="screen-extension-sub" id="screenExtWave">WAVE â€”</div>
               </div>
 
               <div class="screen-extension-section screen-extension-objective-card" aria-label="Objective">
@@ -199,11 +201,11 @@
               <div class="screen-extension-grid screen-extension-key-grid" aria-label="Key status">
                 <div class="screen-extension-stat">
                   <span>ZONE KEY</span>
-                  <strong id="screenExtZoneKey">—</strong>
+                  <strong id="screenExtZoneKey">â€”</strong>
                 </div>
                 <div class="screen-extension-stat">
                   <span>RANK</span>
-                  <strong id="screenExtRank">—</strong>
+                  <strong id="screenExtRank">â€”</strong>
                 </div>
               </div>
 
@@ -220,7 +222,7 @@
           <section class="screen-guide-popdown" id="screenGuidePopdown" hidden aria-label="BoneCrawler guide panel">
             <div class="screen-guide-head">
               <div class="screen-guide-title" id="screenGuideTitle">CONTROLS</div>
-              <button type="button" class="screen-guide-close" id="screenGuideClose" aria-label="Close guide">×</button>
+              <button type="button" class="screen-guide-close" id="screenGuideClose" aria-label="Close guide">Ã—</button>
             </div>
 
             <div class="screen-guide-pane active" id="screenGuideControls" data-guide-pane="controls">
@@ -228,18 +230,21 @@
                 <div class="panel-head hd-warm"><u><b>DESKTOP:</b></u></div>
                 <div class="panel-line"><strong>ARROWS / WASD</strong> = MOVE</div>
                 <div class="panel-line"><strong>SPACE / LEFT CLICK</strong> = ATTACK</div>
+                <div class="panel-line"><strong>F</strong> = BLOCK</div>
                 <div class="panel-line"><strong>ENTER / E</strong> = INTERACT</div>
                 <div class="panel-line"><strong>ESC</strong> = PAUSE GAME (SKIPS DIALOG)</div>
-                <div class="panel-line"><strong>DODGE</strong> — SHIFT</div>
+                <div class="panel-line"><strong>DODGE</strong> â€” SHIFT</div>
               </div>
               <div class="panel-rule"></div>
               <div class="panel-group">
                 <div class="panel-head hd-blue"><u><b>MOBILE:</b></u></div>
-                <div class="panel-line"><strong>D-PAD</strong> = MOVE</div>
-                <div class="panel-line"><strong>B BUTTON</strong> = ATTACK</div>
-                <div class="panel-line"><strong>E / USE BUTTON</strong> — INTERACT</div>
-                <div class="panel-line"><strong>A BUTTON</strong> — DODGE</div>
-                <div class="panel-line"><strong>TAP HUD</strong> — USE POTION</div>
+                <div class="panel-line"><strong>TOUCH DRAG</strong> = MOVE</div>
+                <div class="panel-line"><strong>TAP SCREEN</strong> = ATTACK</div>
+                <div class="panel-line"><strong>BLOCK BTN</strong> = BLOCK</div>
+                <div class="panel-line"><strong>USE BTN</strong> &mdash; INTERACT</div>
+                <div class="panel-line"><strong>PAUSE BTN</strong> &mdash; PAUSE</div>
+          <div class="panel-line"><strong>SWIPE</strong> &mdash; DODGE</div>
+                <div class="panel-line"><strong>TAP HUD</strong> â€” USE POTION</div>
               </div>
               <div class="panel-rule"></div>
               <div class="panel-group">
@@ -258,28 +263,30 @@
                 <div class="panel-head hd-yellow"><u><b>CHEST ROLLS</b></u></div>
                 <div class="panel-line">Each chest contains <strong>3</strong> random choices.</div>
                 <div class="panel-line">An <strong>upgrade</strong>, a full <strong>heart</strong>, or <strong>points</strong>.</div>
-                <div class="panel-line heart"><strong>HEART</strong> — HEAL 1 HEART [MAX 5]</div>
-                <div class="panel-line sword"><strong>SWORD</strong> — BIGGER BLADE</div>
-                <div class="panel-line speed"><strong>SPEED</strong> — INCREASE SPEED</div>
-                <div class="panel-line step"><strong>STEP</strong> — IMPROVE DODGE</div>
-                <div class="panel-line shield"><strong>MAGIC SHIELD</strong> — ABSORB HIT &amp; BURSTS IN SHOCKWAVE</div>
+                <div class="panel-line heart"><strong>HEART</strong> â€” HEAL 1 HEART [MAX 5]</div>
+                <div class="panel-line sword"><strong>SWORD</strong> â€” LONGER BLADE</div>
+                <div class="panel-line speed"><strong>SPEED</strong> â€” SLIGHTLY FASTER</div>
+                <div class="panel-line step"><strong>STEP</strong> â€” IMPROVE DODGE</div>
+                <div class="panel-line shield"><strong>MAGIC SHIELD</strong> â€” ABSORB HIT &amp; BURSTS IN SHOCKWAVE</div>
                 <div class="panel-line note">Upgrades stack by increasing stats. Pick wisely.</div>
               </div>
               <div class="panel-rule"></div>
               <div class="panel-group">
                 <div class="panel-head">The world has secrets. Find them. <i>(Try looking for breakable objects)</i></div>
                 <div class="panel-head hd-warm"><u><b>ITEMS:</b></u></div>
-                <div class="panel-line heart"><strong>HALF HEART</strong> — HEALS 1/2 HEART</div>
-                <div class="panel-line heart"><strong>FULL HEART</strong> — HEALS 1 HEART</div>
-                <div class="panel-line heart"><strong>HEALTH POTION</strong> — HEALS 1 HEART</div>
-                <div class="panel-line sword"><strong>MASTER SWORD</strong> — +5 BLADE &amp; WHIRLWIND SLASH</div>
+                <div class="panel-line heart"><strong>HALF HEART</strong> â€” HEALS 1/2 HEART</div>
+                <div class="panel-line heart"><strong>FULL HEART</strong> â€” HEALS 1 HEART</div>
+                <div class="panel-line heart"><strong>HEALTH POTION</strong> â€” HEALS 1 HEART</div>
+                <div class="panel-line sword"><strong>MASTER SWORD</strong> â€” +5 BLADE &amp; WHIRLWIND SLASH</div>
               </div>
               <div class="panel-rule"></div>
               <div class="panel-group">
                 <div class="panel-head hd-blue"><u><b>SKILLS:</b></u></div>
-                <div class="panel-line step"><strong>SHADOW STEP</strong> — Dodge farther with brief invincibility</div>
-                <div class="panel-line sword"><strong>WHIRLWIND SLASH</strong> — Charge and release attack for a 360 radius</div>
-                <div class="panel-line shield"><s><strong>MIRROR</strong> — REFLECT ALL ATTACKS</s> <em>Coming Soon!</em></div>
+                <div class="panel-line shield"><strong>BLOCK</strong> = Timed guard for physical hits</div>
+                <div class="panel-line shield"><strong>REFLECT</strong> = Attack after a block to counter cleanly</div>
+                <div class="panel-line step"><strong>SHADOW STEP</strong> â€” Dodge farther with brief invincibility</div>
+                <div class="panel-line sword"><strong>WHIRLWIND SLASH</strong> â€” Charge and release attack for a 360 radius</div>
+          <div class="panel-line shield"><strong>MIRROR</strong> = Reflect All Attacks (4s CD)</div>
               </div>
             </div>
           </section>
@@ -287,15 +294,15 @@
           <section class="screen-about-popdown" id="screenAboutPopdown" hidden aria-label="BoneCrawler about links">
             <div class="screen-about-head">
               <div class="screen-about-title">ABOUT</div>
-              <button type="button" class="screen-about-close" id="screenAboutClose" aria-label="Close about">×</button>
+              <button type="button" class="screen-about-close" id="screenAboutClose" aria-label="Close about">Ã—</button>
             </div>
             <div class="screen-about-body">
               <div class="screen-about-actions">
-                <a class="screen-about-link" href="docs/1bit.html">1-BIT</a>
+                <a class="screen-about-link" href="docs/1bit.html" target="_blank" rel="noopener noreferrer">1-BIT</a>
                 <a class="screen-about-link" href="docs/license.html" target="_blank" rel="noopener noreferrer">LICENSE</a>
                 <a class="screen-about-link" href="https://github.com/ImmaGundam/BoneCrawler" target="_blank" rel="noopener noreferrer">REPO</a>
               </div>
-              <div class="screen-about-version">Version: 2.9.4 (5/29/26)</div>
+              <div class="screen-about-version">Version: 2.9.5 (6/3/26)</div>
               <div class="screen-about-copy"><span class="footer-copy-symbol">&copy;</span> BoneCrawler.com</div>
             </div>
           </section>
@@ -305,9 +312,9 @@
       <div class="gp-half gp-right" id="gpRight" aria-label="Controller right">
         <div class="gp-action-wrap">
           <div class="gp-actions gp-actions-diamond" id="gpActions" role="group" aria-label="Action buttons">
-            <button type="button" class="gpa-btn gpa-a gpa-diamond-top" data-kc="ShiftLeft" data-k="Shift" aria-label="Dodge (A)">
+            <button type="button" class="gpa-btn gpa-a gpa-diamond-top" data-kc="KeyF" data-k="f" aria-label="Block (A)">
               <span class="gpa-letter">A</span>
-              <span class="gpa-label">DODGE</span>
+              <span class="gpa-label">BLOCK</span>
             </button>
             <button type="button" class="gpa-btn gpa-b gpa-diamond-bot" data-kc="Space" data-k=" " aria-label="Attack (B)">
               <span class="gpa-letter">B</span>
@@ -316,7 +323,11 @@
           </div>
         </div>
         <div class="gp-sys-row gp-sys-right">
-          <button type="button" class="gp-sys-btn gp-sys-e" id="gpInteractBtn" data-kc="KeyE" data-k="e" aria-label="Interact (E)">
+          <button type="button" class="gp-sys-btn gp-sys-e" id="gpInteractBtn" data-kc="Escape" data-k="Escape" aria-label="Pause">
+            <span class="gps-icon">&#10074;&#10074;</span>
+            <span class="gps-label">PAUSE</span>
+          </button>
+          <button type="button" class="gp-sys-btn" id="gpBlockBtn" data-kc="KeyE" data-k="e" aria-label="Interact">
             <span class="gps-icon">E</span>
             <span class="gps-label">USE</span>
           </button>
@@ -347,13 +358,17 @@
           <span class="gps-icon">E</span>
           <span class="gps-label">USE</span>
         </button>
+        <button type="button" class="gp-sys-btn gpb-block" data-kc="KeyF" data-k="f" aria-label="Block">
+          <span class="gps-icon">BLK</span>
+          <span class="gps-label">BLOCK</span>
+        </button>
       </div>
       <div class="gpb-zone gpb-zone-right">
         <div class="gpb-actions" role="group" aria-label="Action buttons">
           <div class="gpb-diamond">
-            <button type="button" class="gpa-btn gpa-a gpb-a" data-kc="ShiftLeft" data-k="Shift" aria-label="Dodge (A)">
+            <button type="button" class="gpa-btn gpa-a gpb-a" data-kc="KeyF" data-k="f" aria-label="Block (A)">
               <span class="gpa-letter">A</span>
-              <span class="gpa-label">DODGE</span>
+              <span class="gpa-label">BLOCK</span>
             </button>
             <button type="button" class="gpa-btn gpa-b gpb-b" data-kc="Space" data-k=" " aria-label="Attack (B)">
               <span class="gpa-letter">B</span>
@@ -365,7 +380,7 @@
     </div>
 
     <div class="player-card zoom-strip" id="zoomStrip" hidden aria-hidden="true" aria-label="Display zoom controls">
-      <button type="button" class="panel-minimize box-dismiss" id="zoomCollapse" aria-label="Minimize Display Zoom" aria-expanded="true" title="Minimize Display Zoom">−</button><button type="button" class="panel-dismiss box-dismiss" id="zoomDismiss" aria-label="Dismiss Display Zoom">×</button>
+      <button type="button" class="panel-minimize box-dismiss" id="zoomCollapse" aria-label="Minimize Display Zoom" aria-expanded="true" title="Minimize Display Zoom">âˆ’</button><button type="button" class="panel-dismiss box-dismiss" id="zoomDismiss" aria-label="Dismiss Display Zoom">Ã—</button>
       <span class="zoom-label">DISPLAY ZOOM</span>
       <div class="zoom-controls" id="zoomControls">
         <button type="button" class="zoom-btn" data-zoom="100" aria-label="Set display zoom to 100 percent">100%</button>
@@ -381,56 +396,58 @@
     </div>
 
     <button type="button" class="menu-toggle-btn" id="menuToggleBtn" aria-expanded="false" aria-controls="sideMenuOverlay">
-      <span class="menu-toggle-icon">☰</span> MENU
+      <span class="menu-toggle-icon">â˜°</span> MENU
     </button>
   </div>
   <aside class="player-menu player-menu-right" id="playerMenuRight" hidden aria-hidden="true" aria-label="BoneCrawler how to play menu">
     <details class="info-panel player-card" id="howToPlayPanel" open>
       <summary class="howto-summary"><span class="howto-title">HOW TO PLAY</span></summary>
       <div class="player-panel-tools" aria-label="How to Play panel size controls">
-        <button type="button" class="player-tool-btn player-tool-icon" id="howToPlayExpandBtn" aria-label="Maximize How to Play" title="Maximize How to Play">□</button>
-        <button type="button" class="player-tool-btn player-tool-icon hidden" id="howToPlayNormalBtn" aria-label="Restore How to Play" title="Restore How to Play">❐</button>
+        <button type="button" class="player-tool-btn player-tool-icon" id="howToPlayExpandBtn" aria-label="Maximize How to Play" title="Maximize How to Play">â–¡</button>
+        <button type="button" class="player-tool-btn player-tool-icon hidden" id="howToPlayNormalBtn" aria-label="Restore How to Play" title="Restore How to Play">â</button>
       </div>
-      <button type="button" class="panel-minimize box-dismiss" id="howToPlayCollapseBtn" aria-label="Minimize How to Play" aria-expanded="true" title="Minimize How to Play">−</button><button type="button" class="panel-dismiss box-dismiss" id="panelDismiss" aria-label="Dismiss How to Play">×</button>
+      <button type="button" class="panel-minimize box-dismiss" id="howToPlayCollapseBtn" aria-label="Minimize How to Play" aria-expanded="true" title="Minimize How to Play">âˆ’</button><button type="button" class="panel-dismiss box-dismiss" id="panelDismiss" aria-label="Dismiss How to Play">Ã—</button>
       <div class="panel-body">
         <div class="panel-group">
           <div class="panel-head hd-yellow"><u><b>CHEST ROLLS</b></u></div>
           <div class="panel-line" style="color:#e8e4d8">Each chest contains <span style="color:#f0b020">3</span> random choices.</div>
           <div class="panel-line" style="color:#e8e4d8">An <span style="color:#88c8ff">upgrade</span>, a full <span style="color:#ff9977">heart</span> or <span style="color:#d2c6a1">Points</span>.</div>
-          <div class="panel-line heart" style="color:#e8e4d8"><strong>HEART</strong> — HEAL 1 HEART [MAX 5]</div>
-          <div class="panel-line sword" style="color:#e8e4d8"><strong>SWORD</strong> — BIGGER BLADE</div>
-          <div class="panel-line speed" style="color:#e8e4d8"><strong>SPEED</strong> — INCREASE SPEED</div>
-          <div class="panel-line step" style="color:#e8e4d8"><strong>STEP</strong> — IMPROVE DODGE</div>
-          <div class="panel-line shield" style="color:#e8e4d8"><strong>MAGIC SHIELD</strong> — ABSORB HIT &amp; BURSTS IN SHOCKWAVE</div>
+          <div class="panel-line heart" style="color:#e8e4d8"><strong>HEART</strong> â€” HEAL 1 HEART [MAX 5]</div>
+          <div class="panel-line sword" style="color:#e8e4d8"><strong>SWORD</strong> â€” LONGER BLADE</div>
+          <div class="panel-line speed" style="color:#e8e4d8"><strong>SPEED</strong> â€” SLIGHTLY FASTER</div>
+          <div class="panel-line step" style="color:#e8e4d8"><strong>STEP</strong> â€” IMPROVE DODGE</div>
+          <div class="panel-line shield" style="color:#e8e4d8"><strong>MAGIC SHIELD</strong> â€” ABSORB HIT &amp; BURSTS IN SHOCKWAVE</div>
           <div class="panel-line note">Upgrades stack by increasing stats.</div>
           <div class="panel-line note">Shields stack by increasing shockwave distance.</div>
           <div class="panel-line note">Pick Wisely!</div>
           <div class="panel-rule"></div>
           <div class="panel-head">The world has secrets. Find them. <i>(Try looking for breakable objects)</i></div>
           <div class="panel-head hd-warm"><u><b>ITEMS:</b></u></div>
-          <div class="panel-line heart"><strong>HALF HEART</strong> — HEALS 1/2 HEART</div>
-          <div class="panel-line heart"><strong>FULL HEART</strong> — HEALS 1 HEART</div>
-          <div class="panel-line heart"><strong>HEALTH POTION</strong> — HEALS 1 HEART</div>
+          <div class="panel-line heart"><strong>HALF HEART</strong> â€” HEALS 1/2 HEART</div>
+          <div class="panel-line heart"><strong>FULL HEART</strong> â€” HEALS 1 HEART</div>
+          <div class="panel-line heart"><strong>HEALTH POTION</strong> â€” HEALS 1 HEART</div>
           <div class="panel-line sword"><strong>MASTER SWORD</strong> - +5 BLADE &amp; WHIRLWIND SLASH</div>
         </div>
         <div class="panel-rule"></div>
         <div class="panel-group">
           <div class="panel-head hd-blue"><u><b>SKILLS:</b></u></div>
+          <div class="panel-line shield"><strong>BLOCK</strong> - Timed guard for physical hits</div>
+          <div class="panel-line shield"><strong>REFLECT</strong> - Attack after a block to counter cleanly</div>
           <div class="panel-line step"><strong>SHADOW STEP</strong> - Dodge at greater length with brief invincibility</div>
           <div class="panel-line sword"><strong>WHIRLWIND SLASH</strong> - Creates a 360 attack radius. Charge &amp; release attack.</div>
-          <div class="panel-line shield"><s><strong>MIRROR</strong> - REFLECT ALL ATTACKS (HOLD TO ACTIVATE)</s> <em>Coming Soon!</em></div>
+          <div class="panel-line shield"><strong>MIRROR</strong> - Reflect All Attacks (4s CD)</div>
         </div>
       </div>
     </details>
   </aside>
 </div>
 
-<!-- ── Menu overlay ── -->
+<!-- â”€â”€ Menu overlay â”€â”€ -->
 <div class="side-menu-overlay hidden" id="sideMenuOverlay" role="dialog" aria-modal="true" aria-label="Game menu">
   <div class="side-menu-inner">
 
     <!-- Close -->
-    <button type="button" class="side-menu-close" id="sideMenuClose" aria-label="Close menu">×</button>
+    <button type="button" class="side-menu-close" id="sideMenuClose" aria-label="Close menu">Ã—</button>
 
     <!-- Tab bar -->
     <div class="player-tab-bar" role="tablist" aria-label="Menu tabs">
@@ -456,18 +473,21 @@
           <div class="panel-head hd-warm"><u><b>DESKTOP:</b></u></div>
           <div class="panel-line"><strong>ARROWS / WASD</strong> = MOVE</div>
           <div class="panel-line"><strong>SPACE / LEFT CLICK</strong> = ATTACK</div>
+          <div class="panel-line"><strong>F</strong> = BLOCK</div>
           <div class="panel-line"><strong>ENTER / E</strong> = INTERACT</div>
           <div class="panel-line"><strong>ESC</strong> = PAUSE GAME (SKIPS DIALOG)</div>
-          <div class="panel-line"><strong>DODGE</strong> — SHIFT</div>
+          <div class="panel-line"><strong>DODGE</strong> â€” SHIFT</div>
         </div>
         <div class="panel-rule"></div>
         <div class="panel-group">
           <div class="panel-head hd-blue"><u><b>MOBILE:</b></u></div>
-          <div class="panel-line"><strong>D-PAD</strong> = MOVE</div>
-          <div class="panel-line"><strong>B BUTTON</strong> = ATTACK</div>
-          <div class="panel-line"><strong>E / USE BUTTON</strong> — INTERACT</div>
-          <div class="panel-line"><strong>A BUTTON</strong> — DODGE</div>
-          <div class="panel-line"><strong>TAP HUD</strong> — USE POTION</div>
+          <div class="panel-line"><strong>TOUCH DRAG</strong> = MOVE</div>
+          <div class="panel-line"><strong>TAP SCREEN</strong> = ATTACK</div>
+          <div class="panel-line"><strong>BLOCK BTN</strong> = BLOCK</div>
+          <div class="panel-line"><strong>USE BTN</strong> &mdash; INTERACT</div>
+          <div class="panel-line"><strong>PAUSE BTN</strong> &mdash; PAUSE</div>
+          <div class="panel-line"><strong>SWIPE</strong> &mdash; DODGE</div>
+          <div class="panel-line"><strong>TAP HUD</strong> â€” USE POTION</div>
         </div>
         <div class="panel-rule"></div>
         <div class="panel-group">
@@ -490,27 +510,29 @@
           <div class="panel-head hd-yellow"><u><b>CHEST ROLLS</b></u></div>
           <div class="panel-line" style="color:#e8e4d8">Each chest contains <span style="color:#f0b020">3</span> random choices.</div>
           <div class="panel-line" style="color:#e8e4d8">An <span style="color:#88c8ff">upgrade</span>, a full <span style="color:#ff9977">heart</span> or <span style="color:#d2c6a1">Points</span>.</div>
-          <div class="panel-line heart"><strong>HEART</strong> — HEAL 1 HEART [MAX 5]</div>
-          <div class="panel-line sword"><strong>SWORD</strong> — BIGGER BLADE</div>
-          <div class="panel-line speed"><strong>SPEED</strong> — INCREASE SPEED</div>
-          <div class="panel-line step"><strong>STEP</strong> — IMPROVE DODGE</div>
-          <div class="panel-line shield"><strong>MAGIC SHIELD</strong> — ABSORB HIT &amp; BURSTS IN SHOCKWAVE</div>
+          <div class="panel-line heart"><strong>HEART</strong> â€” HEAL 1 HEART [MAX 5]</div>
+          <div class="panel-line sword"><strong>SWORD</strong> â€” LONGER BLADE</div>
+          <div class="panel-line speed"><strong>SPEED</strong> â€” SLIGHTLY FASTER</div>
+          <div class="panel-line step"><strong>STEP</strong> â€” IMPROVE DODGE</div>
+          <div class="panel-line shield"><strong>MAGIC SHIELD</strong> â€” ABSORB HIT &amp; BURSTS IN SHOCKWAVE</div>
           <div class="panel-line note">Upgrades stack by increasing stats. Shields stack shockwave distance.</div>
           <div class="panel-line note">Pick Wisely!</div>
           <div class="panel-rule"></div>
           <div class="panel-head">The world has secrets. Find them. <i>(Try looking for breakable objects)</i></div>
           <div class="panel-head hd-warm"><u><b>ITEMS:</b></u></div>
-          <div class="panel-line heart"><strong>HALF HEART</strong> — HEALS 1/2 HEART</div>
-          <div class="panel-line heart"><strong>FULL HEART</strong> — HEALS 1 HEART</div>
-          <div class="panel-line heart"><strong>HEALTH POTION</strong> — HEALS 1 HEART</div>
+          <div class="panel-line heart"><strong>HALF HEART</strong> â€” HEALS 1/2 HEART</div>
+          <div class="panel-line heart"><strong>FULL HEART</strong> â€” HEALS 1 HEART</div>
+          <div class="panel-line heart"><strong>HEALTH POTION</strong> â€” HEALS 1 HEART</div>
           <div class="panel-line sword"><strong>MASTER SWORD</strong> - +5 BLADE &amp; WHIRLWIND SLASH</div>
         </div>
         <div class="panel-rule"></div>
         <div class="panel-group">
           <div class="panel-head hd-blue"><u><b>SKILLS:</b></u></div>
+          <div class="panel-line shield"><strong>BLOCK</strong> - Timed guard for physical hits</div>
+          <div class="panel-line shield"><strong>REFLECT</strong> - Attack after a block to counter cleanly</div>
           <div class="panel-line step"><strong>SHADOW STEP</strong> - Dodge at greater length with brief invincibility</div>
           <div class="panel-line sword"><strong>WHIRLWIND SLASH</strong> - Creates a 360 attack radius. Charge &amp; release attack.</div>
-          <div class="panel-line shield"><s><strong>MIRROR</strong> - REFLECT ALL ATTACKS (HOLD TO ACTIVATE)</s> <em>Coming Soon!</em></div>
+          <div class="panel-line shield"><strong>MIRROR</strong> - Reflect All Attacks (4s CD)</div>
         </div>
       </div>
     </div>
@@ -520,10 +542,10 @@
 
 <div class="player-page-footer" id="playerPageFooter" hidden aria-hidden="true" aria-label="BoneCrawler footer links">
   <div class="player-page-footer-inner player-page-footer-card">
-    <button type="button" class="player-page-footer-dismiss" id="playerFooterDismiss" aria-label="Dismiss footer">×</button>
-    <div class="player-page-footer-site"><span class="footer-copy-symbol">&copy;</span> BoneCrawler.com - Version: 2.9.4 (5/29/26)</div>
+    <button type="button" class="player-page-footer-dismiss" id="playerFooterDismiss" aria-label="Dismiss footer">Ã—</button>
+    <div class="player-page-footer-site"><span class="footer-copy-symbol">&copy;</span> BoneCrawler.com - Version: 2.9.5 (6/3/26)</div>
     <div class="player-page-footer-actions">
-      <a class="about-link-button" href="docs/1bit.html">1-BIT</a>
+      <a class="about-link-button" href="docs/1bit.html" target="_blank" rel="noopener noreferrer">1-BIT</a>
       <a class="about-license" href="docs/license.html" target="_blank" rel="noopener noreferrer">LICENSE</a>
     </div>
   </div>
@@ -754,7 +776,7 @@
   document.addEventListener('visibilitychange', function () { if (document.hidden) releaseAll(); });
 
   function suppressLegacyBtns() {
-    ['touchPauseBtn','touchInteractBtn','touchDodgeBtn'].forEach(function (id) {
+    ['touchPauseBtn','touchInteractBtn','touchDodgeBtn','touchBlockBtn'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
     });

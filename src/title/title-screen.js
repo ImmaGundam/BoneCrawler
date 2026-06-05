@@ -1,6 +1,7 @@
 // BoneCrawler title screen module
 (function(){
   'use strict';
+  const runtimeApi = window.GameRuntimeApi || null;
 
   const originalTitleRenderer = window.rTitle;
   let activeLastFrame = false;
@@ -41,7 +42,7 @@
     }
   }
 
-  window.BoneCrawlerTitleScreen = {
+  const api = {
     id: 'title',
     label: 'TITLE SCREEN',
     isActive: isTitleState,
@@ -50,9 +51,12 @@
     beforeRender,
     render,
   };
+  if(runtimeApi && typeof runtimeApi.register === 'function') runtimeApi.register('titleScreen', api, { legacy: ['BoneCrawlerTitleScreen'] });
+  else window.BoneCrawlerTitleScreen = api;
 
   function wrappedTitleRenderer(){
-    return window.BoneCrawlerTitleScreen.render();
+    const titleScreen = (runtimeApi && runtimeApi.lookup('titleScreen', ['BoneCrawlerTitleScreen'])) || window.BoneCrawlerTitleScreen || api;
+    return titleScreen.render();
   }
 
   try{ rTitle = wrappedTitleRenderer; }catch(err){}

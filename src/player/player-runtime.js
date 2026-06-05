@@ -2,21 +2,33 @@
 // Purpose: Upgrade constants, weighted point rewards, upgrade-button rolling.
 // ── Upgrade menu buttons ─────────────────────────────────────
 const PLAYER_BASE_SPEED = 0.28;
-const SPEED_UP_STEP = 0.12;
-const MAX_PLAYER_SPEED = 0.94;
+const SPEED_UP_STEP = 0.075;
+const MAX_PLAYER_SPEED = 0.72;
+const SWORD_REACH_UP_STEP = 2;
 const MASTER_SWORD_START_LEVEL = 4;
-const MASTER_SWORD_START_REACH = 35;
+const MASTER_SWORD_START_REACH = 27;
 const MASTER_SWORD_DISPLAY_RANGE = 5;
 const MASTER_SWORD_START_WIDTH = 1;
 const MASTER_SWORD_START_HEART_SLOTS = 5;
 const STEP_BASE_DISTANCE = 10;
 const STEP_SHADOW_BASE_DISTANCE = 14;
-const STEP_DISTANCE_PER_UPGRADE = 2;
+const STEP_DISTANCE_PER_UPGRADE = 1;
 const STEP_BASE_COOLDOWN_FRAMES = 5*60;
 const STEP_SHADOW_BASE_COOLDOWN_FRAMES = 4*60;
-const STEP_COOLDOWN_REDUCTION_PER_UPGRADE = 45;
-const STEP_MIN_COOLDOWN_FRAMES = 90;
+const STEP_COOLDOWN_REDUCTION_PER_UPGRADE = 30;
+const STEP_MIN_COOLDOWN_FRAMES = 120;
 const SHADOW_STEP_INVULN_FRAMES = 12;
+const BLOCK_PARRY_WINDOW_FRAMES = 12;
+const BLOCK_STANCE_FRAMES = 20;
+const BLOCK_MULTI_GUARD_FRAMES = 4;
+const BLOCK_REFLECT_WINDOW_FRAMES = 14;
+const BLOCK_REFLECT_INVULN_FRAMES = 12;
+const BLOCK_REFLECT_ATTACK_FRAMES = 16;
+const BLOCK_REFLECT_ATTACK_COOLDOWN_FRAMES = 18;
+const BLOCK_MIRROR_LIFE_FRAMES = 160;
+const BLOCK_MIRROR_COOLDOWN_FRAMES = 4*60;
+const BLOCK_MIRROR_COOLDOWN_REDUCTION_FRAMES = 15;
+const BLOCK_MIRROR_MIN_COOLDOWN_FRAMES = 2*60;
 const POTION_DROP_CHANCE = 0.18;
 const POTION_MAX_COUNT = 1;
 const POTION_ITEM_TTL_FRAMES = 8*60;
@@ -34,13 +46,36 @@ const POINT_REWARD_WEIGHTS=[
 ];
 const UPGRADE_POOL=[
   {type:'heart',label:'HEART',sub:'HEAL 1 HEART',border:C.BLD,text:'#ff9977',icon:'upHeart'},
-  {type:'sword',label:'SWORD',sub:'BIGGER BLADE',border:C.SI2,text:C.BN1,icon:'upSword'},
-  {type:'shield',label:'MAGIC SHIELD',sub:'ABSORB HIT + SHOCKWAVE',border:C.SH2,text:C.SH,icon:'shieldIcon',labelFs:6,subFs:4},
-  {type:'speed',label:'SPEED',sub:'INCREASE SPEED',border:C.FR2,text:C.FR1,icon:'upSpeed'},
-  {type:'shadowstep',label:'SHADOW STEP',sub:'IMPROVE DODGE',border:'#7a74f5',text:'#d8d3ff',icon:'shadowStepIcon',labelFs:5,subFs:4},
+  {type:'sword',label:'SWORD',sub:'LONGER BLADE',border:C.SI2,text:C.BN1,icon:'upSword'},
+  {type:'shield',label:'MAGIC SHIELD',sub:'ABSORB HIT + SHOCKWAVE',border:C.SH2,text:C.SH,icon:'shieldIcon',subFs:4},
+  {type:'speed',label:'SPEED',sub:'SLIGHTLY FASTER',border:C.FR2,text:C.FR1,icon:'upSpeed'},
+  {type:'shadowstep',label:'SHADOW STEP',sub:'IMPROVE DODGE',border:'#7a74f5',text:'#d8d3ff',icon:'shadowStepIcon',subFs:4},
   {type:'points',label:'POINTS',sub:'BONUS SCORE',border:C.FR1,text:C.BN1,icon:'pointsIcon'},
 ];
 let currentUpgradeBtns=[];
+
+function getPlayerAbilityRuntime(){
+  return (window.GameRuntimeApi && window.GameRuntimeApi.lookup('playerAbilities', ['BoneCrawlerPlayerAbilities'])) || window.BoneCrawlerPlayerAbilities || null;
+}
+function getZoneSpawnRuntime(){
+  return (window.GameRuntimeApi && window.GameRuntimeApi.lookup('zoneSpawn', ['BoneCrawlerZoneSpawn'])) || window.BoneCrawlerZoneSpawn || null;
+}
+
+function getBlockUpgradeChoice(){
+  const abilities=getPlayerAbilityRuntime();
+  const reflectMeta=abilities && typeof abilities.getUpgrade==='function' ? abilities.getUpgrade('reflect') : null;
+  const mirrorMeta=abilities && typeof abilities.getUpgrade==='function' ? abilities.getUpgrade('mirror') : null;
+  const reflectLabel=((reflectMeta && reflectMeta.label) || 'Reflect').toUpperCase();
+  const mirrorLabel=((mirrorMeta && mirrorMeta.label) || 'Mirror').toUpperCase();
+  const p=player||{};
+  if(!p.reflectBlock){
+    return {type:'reflect',label:reflectLabel,sub:'BLOCK -> COUNTER',border:C.SI2,text:C.SH,icon:'reflectIcon',subFs:4};
+  }
+  if(!p.mirrorBlock){
+    return {type:'mirror',label:mirrorLabel,sub:'REFLECT ALL ATTACKS',border:C.MG2,text:'#e7dbff',icon:'mirrorIcon',subFs:4};
+  }
+  return {type:'mirror',label:mirrorLabel+'+',sub:'REDUCED COOLDOWN',border:C.MG2,text:'#e7dbff',icon:'mirrorIcon',subFs:4};
+}
 
 function choosePointReward(){
   const total=POINT_REWARD_WEIGHTS.reduce((sum,opt)=>sum+opt.weight,0);
@@ -54,13 +89,15 @@ function choosePointReward(){
 
 function rollUpgradeChoices(){
   const pool=UPGRADE_POOL.slice();
+  const blockUpgradeChoice=getBlockUpgradeChoice();
   for(let i=pool.length-1;i>0;i--){
     const j=(Math.random()*(i+1))|0;
     const tmp=pool[i];
     pool[i]=pool[j];
     pool[j]=tmp;
   }
-  currentUpgradeBtns=pool.slice(0,3).map((opt,idx)=>{
+  const picked=blockUpgradeChoice ? [blockUpgradeChoice].concat(pool.slice(0,2)) : pool.slice(0,3);
+  currentUpgradeBtns=picked.map((opt,idx)=>{
     const btn={
       ...opt,
       num:String(idx+1),
@@ -81,19 +118,15 @@ function rollUpgradeChoices(){
 
 // player-combat
 // Purpose: Player attacks, sword hit detection, whirlwind slash, and attack effects.
-function performPlayerAttack(strength=1){
-  const p=player;
-  if(!p || p.atkCD>0 || p.atkT>0) return false;
-  p.atkT=14;
-  p.atkCD=30;
-  try{ if(window.AudioEvents) AudioEvents.playerAttack(); }catch(err){}
+function applyPlayerAttackBox(box, strength=1){
   const dmg = devGodMode ? 999 : Math.max(1, strength|0);
-  const box=atkBox(p, p.swordReach);
+  let landed=false;
   for(let i=enemies.length-1;i>=0;i--){
     const e=enemies[i];
     if(!e || e.spawnInvulnerable) continue;
     if(ov(box,{x:e.x,y:e.y,w:e.w,h:e.h})){
       e.hp -= dmg;
+      landed=true;
       try{ if(window.AudioEvents) AudioEvents.enemyHit(); }catch(err){}
       burst(e.x+e.w/2, e.y+e.h/2);
       if(e.hp<=0){
@@ -104,12 +137,15 @@ function performPlayerAttack(strength=1){
     }
   }
   if(dragonBoss && dragonBoss.howlT<=0 && ov(box,getDragonHurtBox())){
+    landed=true;
     damageDragonBoss(devGodMode ? 10 : strength,false);
   }
   if(whyDragonsBoss && whyDragonsBoss.howlT<=0 && ov(box,getDragonHurtBox(whyDragonsBoss))){
+    landed=true;
     damageWhyDragonsBoss(devGodMode ? 10 : strength,false);
   }
   if(shadowBoss && shadowBoss.howlT<=0 && ov(box,getShadowHurtBox())){
+    landed=true;
     damageShadowBoss(devGodMode ? 10 : strength,false);
     const sc=getShadowCenter();
     const pcx=player.x+player.w/2, pcy=player.y+player.h/2;
@@ -117,6 +153,17 @@ function performPlayerAttack(strength=1){
       triggerShadowCounter();
     }
   }
+  return landed;
+}
+
+function performPlayerAttack(strength=1){
+  const p=player;
+  if(!p || p.atkCD>0 || p.atkT>0) return false;
+  p.atkT=14;
+  p.atkCD=30;
+  try{ if(window.AudioEvents) AudioEvents.playerAttack(); }catch(err){}
+  const box=atkBox(p, p.swordReach);
+  applyPlayerAttackBox(box, strength);
   if(currentZone===1){
     for(let i=0;i<ZONE1_DECOR_BLOCKERS.length;i++){
       if(!zone1Broken[i] && ov(box, ZONE1_DECOR_BREAK_RECTS[i])) breakZone1Decor(i);
@@ -141,6 +188,164 @@ function performPlayerAttack(strength=1){
       if(!zone3Broken[i] && ov(box, ZONE3_DECOR_BREAK_RECTS[i])) breakZone3Decor(i);
     }
   }
+  return true;
+}
+
+function getBlockTier(p=player){
+  if(!p) return 1;
+  if(p.mirrorBlock) return 2 + Math.max(1, p.mirrorLevel||1);
+  if(p.reflectBlock) return 2;
+  return 1;
+}
+
+function getMirrorCooldownFrames(p=player){
+  const level=Math.max(1, Number(p && p.mirrorLevel)||1);
+  const reduction=Math.max(0, level-1) * BLOCK_MIRROR_COOLDOWN_REDUCTION_FRAMES;
+  return Math.max(BLOCK_MIRROR_MIN_COOLDOWN_FRAMES, BLOCK_MIRROR_COOLDOWN_FRAMES - reduction);
+}
+
+function isMirrorReady(p=player){
+  return !!(p && p.mirrorBlock && (p.mirrorCooldownT||0)<=0);
+}
+
+function consumeMirrorCooldown(p=player){
+  if(!p || !p.mirrorBlock) return;
+  p.mirrorCooldownT=getMirrorCooldownFrames(p);
+}
+
+function performBlock(){
+  const p=player;
+  if(!p || p.dead || gState!=='playing') return false;
+  const wasBlocking=(p.blockT||0)>0;
+  p.blockT=Math.max(p.blockT||0, BLOCK_STANCE_FRAMES);
+  p.blockWindowT=BLOCK_PARRY_WINDOW_FRAMES;
+  if(!wasBlocking){
+    floatTexts.push({x:p.x+4,y:p.y-6,text:'GUARD',life:14,max:14,col:C.BN1});
+  }
+  return true;
+}
+
+function reflectEnemyFireball(fb){
+  if(!player || !fb) return false;
+  const vx=Number(fb.vx) || 0;
+  const vy=Number(fb.vy) || 0;
+  fb.vx=-vx;
+  fb.vy=-vy;
+  fb.friendly=true;
+  fb.owner='player';
+  fb.maxLife=Math.max(Number(fb.maxLife)||0, Number(fb.life)||0, BLOCK_MIRROR_LIFE_FRAMES);
+  fb.life=fb.maxLife;
+  fb.x=player.x+player.w/2-1 + (fb.vx===0 ? 0 : Math.sign(fb.vx)*3);
+  fb.y=player.y+player.h/2-1 + (fb.vy===0 ? 0 : Math.sign(fb.vy)*3);
+  return true;
+}
+
+function facePlayerTowardBlockSource(source){
+  const p=player;
+  if(!p || !source) return false;
+  let sx=null, sy=null;
+  if(source.projectile){
+    const proj=source.projectile;
+    sx=(Number(proj.x)||0) + ((Number(proj.w)||3)/2);
+    sy=(Number(proj.y)||0) + ((Number(proj.h)||3)/2);
+  } else if(source.sourceEntity){
+    const entity=source.sourceEntity;
+    sx=(Number(entity.x)||0) + ((Number(entity.w)||0)/2);
+    sy=(Number(entity.y)||0) + ((Number(entity.h)||0)/2);
+  } else if(source.sourceBox){
+    const box=source.sourceBox;
+    sx=(Number(box.x)||0) + ((Number(box.w)||0)/2);
+    sy=(Number(box.y)||0) + ((Number(box.h)||0)/2);
+  } else if(Number.isFinite(source.sourceX) && Number.isFinite(source.sourceY)){
+    sx=source.sourceX;
+    sy=source.sourceY;
+  }
+  if(!Number.isFinite(sx) || !Number.isFinite(sy)) return false;
+  const pcx=p.x+p.w/2;
+  const pcy=p.y+p.h/2;
+  const dx=sx-pcx;
+  const dy=sy-pcy;
+  if(Math.abs(dx) > Math.abs(dy)) p.dir=dx<0 ? 'left' : 'right';
+  else if(Math.abs(dy) > 0.001) p.dir=dy<0 ? 'up' : 'down';
+  return true;
+}
+
+function flushPlayerBlockedDamage(){
+  const p=player;
+  if(!p || p.dead) return false;
+  const pending=Number(p.pendingBlockDamage||0);
+  if(pending>0){
+    p.blockChipBuffer=Number(p.blockChipBuffer||0)+pending;
+    p.pendingBlockDamage=0;
+  }
+  const chipDamage=Math.floor((Number(p.blockChipBuffer||0))+1e-6);
+  if(chipDamage<1) return false;
+  p.blockChipBuffer=Math.max(0, Number(p.blockChipBuffer||0)-chipDamage);
+  return hurtPlayer(chipDamage, {bypassDefense:true, bypassInvuln:true});
+}
+
+function tryPlayerBlockHit(amount, source){
+  const p=player;
+  if(!p || p.dead || amount<=0) return false;
+  const src=source||{};
+  const sourceType=src.sourceType||'physical';
+  const projectile=src.projectile||null;
+  const guardOpen=(p.blockT||0)>0 || (p.blockWindowT||0)>0 || (p.blockLatchT||0)>0;
+  const hasMirror=!!p.mirrorBlock;
+  const mirrorReady=isMirrorReady(p);
+  const canMirrorProjectile=!!(projectile && hasMirror && mirrorReady);
+  if(!guardOpen) return false;
+  if(sourceType!=='physical' && !mirrorReady) return false;
+
+  p.blockT=Math.max(p.blockT||0, BLOCK_STANCE_FRAMES);
+  p.blockLatchT=Math.max(p.blockLatchT||0, BLOCK_MULTI_GUARD_FRAMES);
+  p.blockWindowT=0;
+
+  try{ if(window.AudioEvents) AudioEvents.playerShield(); }catch(err){}
+  burst(p.x+4,p.y+4);
+
+  if(canMirrorProjectile && reflectEnemyFireball(projectile)){
+    p.reflectWindowT=0;
+    p.reflectT=Math.max(p.reflectT||0, BLOCK_REFLECT_INVULN_FRAMES);
+    p.dodgeInvulnT=Math.max(p.dodgeInvulnT||0, BLOCK_REFLECT_INVULN_FRAMES);
+    consumeMirrorCooldown(p);
+    floatTexts.push({x:p.x+4,y:p.y-6,text:'MIRROR',life:28,max:28,col:C.MG2});
+    return true;
+  }
+
+  if(hasMirror && mirrorReady){
+    const mirrored=performReflectCounter(src, true, 'MIRROR', C.MG2);
+    if(mirrored) consumeMirrorCooldown(p);
+    return mirrored;
+  }
+
+  floatTexts.push({x:p.x+4,y:p.y-6,text:'BLOCK',life:20,max:20,col:C.SH});
+  p.pendingBlockDamage=Number(p.pendingBlockDamage||0)+(amount*0.5);
+  if(p.reflectBlock){
+    p.reflectWindowT=Math.max(p.reflectWindowT||0, BLOCK_REFLECT_WINDOW_FRAMES);
+  } else {
+    flushPlayerBlockedDamage();
+  }
+  return true;
+}
+
+function performReflectCounter(source, force, label='REFLECT', color=C.SH2){
+  const p=player;
+  if(!p || p.dead || (!force && (p.reflectWindowT||0)<=0)) return false;
+  facePlayerTowardBlockSource(source||null);
+  p.reflectWindowT=0;
+  p.pendingBlockDamage=0;
+  p.blockLatchT=0;
+  p.blockT=Math.max(p.blockT||0, BLOCK_STANCE_FRAMES);
+  p.reflectT=Math.max(p.reflectT||0, BLOCK_REFLECT_INVULN_FRAMES);
+  p.dodgeInvulnT=Math.max(p.dodgeInvulnT||0, BLOCK_REFLECT_INVULN_FRAMES);
+  p.atkT=Math.max(p.atkT||0, BLOCK_REFLECT_ATTACK_FRAMES);
+  p.atkCD=Math.max(p.atkCD||0, BLOCK_REFLECT_ATTACK_COOLDOWN_FRAMES);
+  whirlwindChargeT=0;
+  try{ if(window.AudioEvents) AudioEvents.playerAttack(); }catch(err){}
+  applyPlayerAttackBox(atkBox(p, p.swordReach+3), 1);
+  burst(p.x+4,p.y+4);
+  floatTexts.push({x:p.x+4,y:p.y-6,text:label,life:26,max:26,col:color});
   return true;
 }
 
@@ -194,11 +399,23 @@ function performWhirlwindSlash(){
   return true;
 }
 
+function runManifestPlayerMove(moveId, payload){
+  const abilities=getPlayerAbilityRuntime();
+  if(abilities && typeof abilities.performMove==='function'){
+    return !!abilities.performMove(moveId, payload||{});
+  }
+  if(moveId==='attack') return performPlayerAttack(payload && payload.strength!=null ? payload.strength : 1);
+  if(moveId==='block') return performBlock();
+  if(moveId==='dodge') return performDodge();
+  if(moveId==='interact') return handlePrimaryInteract();
+  return false;
+}
+
 
 // player-survival-upgrades
 // Purpose: Progression rewards, health/potion/dodge, decor breaking, and applying upgrades.
 const SHIELD_SHOCKWAVE_BASE_RADIUS = 15;
-const SHIELD_SHOCKWAVE_STEP = 3;
+const SHIELD_SHOCKWAVE_STEP = 2;
 
 function handleEnemyDefeat(i,e,fromShockwave){
   try{ if(window.AudioEvents) AudioEvents.skeletonDeath(); }catch(err){}
@@ -232,8 +449,9 @@ function handleEnemyDefeat(i,e,fromShockwave){
     y: e.y + Math.floor((e.h || 8) / 2) - 3
   };
   try{ if(window.EventEngine) EventEngine.emit('enemy.defeated', defeatPayload); }catch(err){}
-  const spawnSubsystemHandledDefeat = !!(window.BoneCrawlerZoneSpawn && typeof BoneCrawlerZoneSpawn.onEnemyDefeated === 'function' && BoneCrawlerZoneSpawn.onEnemyDefeated(defeatPayload));
-  const usingManagedSpawnProgression = !!(window.BoneCrawlerZoneSpawn && BoneCrawlerZoneSpawn.usesManagedSpawns(currentZone));
+  const zoneSpawn = getZoneSpawnRuntime();
+  const spawnSubsystemHandledDefeat = !!(zoneSpawn && typeof zoneSpawn.onEnemyDefeated === 'function' && zoneSpawn.onEnemyDefeated(defeatPayload));
+  const usingManagedSpawnProgression = !!(zoneSpawn && zoneSpawn.usesManagedSpawns(currentZone));
   if(!spawnSubsystemHandledDefeat && !usingManagedSpawnProgression && currentZone===1 && killCount===ZONE1_ZONE2_KEY_KILLS && !player.zone1DoorKey && !hasKeyDropKind('zone1Door')){
     spawnKeyDrop(e.x+Math.floor(e.w/2)-3,e.y+Math.floor(e.h/2)-3,'zone1Door');
     floatTexts.push({x:e.x+e.w/2,y:e.y-10,text:'ZONE 2 KEY!',life:52,max:52,col:C.FR1});
@@ -249,13 +467,13 @@ function handleEnemyDefeat(i,e,fromShockwave){
     for(const spawn of pSpawns){
       spawn.t=Math.min(spawn.t, spawn.giant ? giantSpawnDelay() : regularSpawnDelay());
     }
-    const managedChestZone = window.BoneCrawlerZoneSpawn && BoneCrawlerZoneSpawn.usesManagedSpawns(currentZone);
+    const managedChestZone = zoneSpawn && zoneSpawn.usesManagedSpawns(currentZone);
     const hasChest = typeof getChestList === 'function' ? getChestList().length > 0 : !!chest;
     if(!managedChestZone && killCount>=nextChestAt && !hasChest && !isSecretZone(currentZone)){
       spawnChest();
       nextChestAt+=getChestKillStepForZone(currentZone);
     }
-    if(!isSecretZone(currentZone) && (!window.BoneCrawlerZoneSpawn || !BoneCrawlerZoneSpawn.usesManagedSpawns(currentZone)) && getZoneProgressKills(currentZone)<getZoneKillTarget(currentZone)){
+    if(!isSecretZone(currentZone) && (!zoneSpawn || !zoneSpawn.usesManagedSpawns(currentZone)) && getZoneProgressKills(currentZone)<getZoneKillTarget(currentZone)){
       if(killCount>=nextGiantAt){
         qSpawn(giantSpawnDelay(), true);
         giantKillInterval=Math.max(GIANT_KILL_INTERVAL_MIN, giantKillInterval-1);
@@ -548,37 +766,95 @@ function shieldBurst(x,y){
   }
 }
 
-function applyUpgrade(type){
+function applyHeartUpgrade(){
+  grantHeartReward(GW/2, PY+22);
+  return true;
+}
+
+function applySwordUpgrade(){
   const p=player;
-  if(type==='heart'){
-    grantHeartReward(GW/2, PY+22);
-  } else if(type==='sword'){
-    p.swordLevel=(p.swordLevel||0)+1;
-    p.swordReach+=3;
-    p.swordWidth=Math.max(1,p.swordWidth||1);
-  } else if(type==='shield'){
-    p.shieldLevel=(p.shieldLevel||0)+1;
-    p.shield=true;
-    p.shieldBreakT=0;
-  } else if(type==='speed'){
-    p.speedLevel=(p.speedLevel||0)+1;
-    p.speed=Math.min(MAX_PLAYER_SPEED, p.speed+SPEED_UP_STEP);
-  } else if(type==='shadowstep'){
-    if(!p.shadowStep){
-      p.shadowStep=true;
-      p.stepLevel=1;
-      queueShadowStepDialog();
-    } else {
-      p.stepLevel=(p.stepLevel||1)+1;
-    }
-  } else if(type==='points'){
-    const picked=currentUpgradeBtns.find(btn=>btn.type==='points');
-    const gain=picked && picked.pointValue ? picked.pointValue : choosePointReward();
-    score+=gain;
-    floatTexts.push({x:GW/2,y:PY+18,text:'+'+gain,life:48,max:48,col:C.FR1});
+  if(!p) return false;
+  p.swordLevel=(p.swordLevel||0)+1;
+  p.swordReach+=SWORD_REACH_UP_STEP;
+  p.swordWidth=Math.max(1,p.swordWidth||1);
+  return true;
+}
+
+function applyShieldUpgrade(){
+  const p=player;
+  if(!p) return false;
+  p.shieldLevel=(p.shieldLevel||0)+1;
+  p.shield=true;
+  p.shieldBreakT=0;
+  return true;
+}
+
+function applySpeedUpgrade(){
+  const p=player;
+  if(!p) return false;
+  p.speedLevel=(p.speedLevel||0)+1;
+  p.speed=Math.min(MAX_PLAYER_SPEED, p.speed+SPEED_UP_STEP);
+  return true;
+}
+
+function applyShadowStepUpgrade(){
+  const p=player;
+  if(!p) return false;
+  if(!p.shadowStep){
+    p.shadowStep=true;
+    p.stepLevel=1;
+    queueShadowStepDialog();
+  } else {
+    p.stepLevel=(p.stepLevel||1)+1;
   }
+  return true;
+}
+
+function applyReflectUpgrade(){
+  const p=player;
+  if(!p) return false;
+  p.reflectBlock=true;
+  return true;
+}
+
+function applyMirrorUpgrade(){
+  const p=player;
+  if(!p) return false;
+  const alreadyMirror=!!p.mirrorBlock;
+  p.reflectBlock=true;
+  p.mirrorBlock=true;
+  p.mirrorLevel=alreadyMirror ? Math.max(1,p.mirrorLevel||1)+1 : Math.max(1,p.mirrorLevel||1);
+  p.mirrorCooldownT=Math.min(p.mirrorCooldownT||0, getMirrorCooldownFrames(p));
+  return true;
+}
+
+function applyPointsUpgrade(payload){
+  const picked=(payload && payload.button) || currentUpgradeBtns.find(btn=>btn.type==='points');
+  const gain=picked && picked.pointValue ? picked.pointValue : choosePointReward();
+  score+=gain;
+  floatTexts.push({x:GW/2,y:PY+18,text:'+'+gain,life:48,max:48,col:C.FR1});
+  return true;
+}
+
+function applyUpgrade(type, payload){
+  const abilities=getPlayerAbilityRuntime();
+  let applied=false;
+  if(abilities && typeof abilities.applyUpgrade==='function'){
+    applied=!!abilities.applyUpgrade(type, payload||{});
+  } else {
+    if(type==='heart') applied=applyHeartUpgrade();
+    else if(type==='sword') applied=applySwordUpgrade();
+    else if(type==='shield') applied=applyShieldUpgrade();
+    else if(type==='speed') applied=applySpeedUpgrade();
+    else if(type==='shadowstep') applied=applyShadowStepUpgrade();
+    else if(type==='reflect') applied=applyReflectUpgrade();
+    else if(type==='mirror') applied=applyMirrorUpgrade();
+    else if(type==='points') applied=applyPointsUpgrade(payload||{});
+  }
+  if(!applied) return false;
   prevSpc=!!keys['Space']; // prevent instant sword swing on resume
   gState='playing';
+  return true;
 }
 
 // title/start/name/scoreboard flow moved to src/title/title-menu-runtime.js
@@ -594,10 +870,24 @@ function updatePlayerRuntimeFrame(){
     p.hurtT=0;
     p.shield=true;
     p.shieldBreakT=0;
+    p.pendingBlockDamage=0;
+    p.blockChipBuffer=0;
+    p.reflectWindowT=0;
+    p.reflectT=0;
+    p.mirrorCooldownT=0;
     p.visibleHearts=Math.max(p.visibleHearts||3, Math.min(5, Math.ceil(p.hp/2)));
   }
 
   if(p.shieldBreakT>0) p.shieldBreakT--;
+  if(p.blockT>0) p.blockT--;
+  if(p.blockWindowT>0) p.blockWindowT--;
+  if(p.blockLatchT>0) p.blockLatchT--;
+  if(p.reflectT>0) p.reflectT--;
+  if(p.mirrorCooldownT>0) p.mirrorCooldownT--;
+  if(p.reflectWindowT>0){
+    p.reflectWindowT--;
+    if(p.reflectWindowT<=0) flushPlayerBlockedDamage();
+  }
 
   for(let i=heartDrops.length-1;i>=0;i--){
     const h=heartDrops[i];
@@ -679,7 +969,6 @@ function updatePlayerRuntimeFrame(){
       removeKeyDropAt(i);
       spawnFloatText({x:p.x+4,y:p.y-6,text:drop.kind==='secret1'?'SECRET KEY':(drop.kind==='zone1Door'?'ZONE 2 KEY':'KEY'),life:40,max:40,col:drop.kind==='secret1'?C.MG2:C.BN1});
     }
-    keyDrop=drops;
   }
   if(currentZone===ZONE_SECRET1){
     if(secret1BlessingT>0) secret1BlessingT--;
@@ -749,7 +1038,12 @@ function updatePlayerRuntimeFrame(){
   if(dodgeCooldownT>0) dodgeCooldownT--;
   if(p.dodgeInvulnT>0) p.dodgeInvulnT--;
 
-  if(whirlwindUnlocked){
+  let reflectConsumed=false;
+  if((p.reflectWindowT||0)>0 && (spcJust || clickJust)){
+    reflectConsumed=performReflectCounter();
+  }
+
+  if(!reflectConsumed && whirlwindUnlocked){
     if(spcJust && p.atkCD<=0 && p.atkT<=0){
       whirlwindChargeT=1;
     } else if(spcNow && whirlwindChargeT>0){
@@ -761,18 +1055,18 @@ function updatePlayerRuntimeFrame(){
       if(whirlwindChargeT>=WHIRLWIND_HOLD_FRAMES && whirlwindCooldownT<=0){
         performWhirlwindSlash();
       } else if(p.atkCD<=0 && p.atkT<=0){
-        performPlayerAttack(1);
+        runManifestPlayerMove('attack', {strength:1, source:'keyboard-hold-release'});
       }
       whirlwindChargeT=0;
     } else if((!spcNow && whirlwindChargeT>0 && !spcRelease) || touchChargeCanceled){
       whirlwindChargeT=0;
     }
-  } else if(spcJust && p.atkCD<=0 && p.atkT<=0){
-    performPlayerAttack(1);
+  } else if(!reflectConsumed && spcJust && p.atkCD<=0 && p.atkT<=0){
+    runManifestPlayerMove('attack', {strength:1, source:'keyboard-press'});
   }
 
-  if(clickJust && p.atkCD<=0 && p.atkT<=0){
-    performPlayerAttack(1);
+  if(!reflectConsumed && clickJust && p.atkCD<=0 && p.atkT<=0){
+    runManifestPlayerMove('attack', {strength:1, source:'pointer-click'});
   }
 
   if(p.atkT>0) p.atkT--;
@@ -780,3 +1074,22 @@ function updatePlayerRuntimeFrame(){
   if(p.hurtT>0) p.hurtT--;
   return false;
 }
+
+(function registerManifestAbilityHandlers(){
+  const abilities=getPlayerAbilityRuntime();
+  if(!abilities) return;
+
+  abilities.registerMoveHandler('player.attack', payload=>performPlayerAttack(payload && payload.strength!=null ? payload.strength : 1));
+  abilities.registerMoveHandler('player.block', ()=>performBlock());
+  abilities.registerMoveHandler('player.dodge', ()=>performDodge());
+  abilities.registerMoveHandler('player.interact', ()=>handlePrimaryInteract());
+
+  abilities.registerUpgradeHandler('upgrade.heart', ()=>applyHeartUpgrade());
+  abilities.registerUpgradeHandler('upgrade.sword', ()=>applySwordUpgrade());
+  abilities.registerUpgradeHandler('upgrade.shield', ()=>applyShieldUpgrade());
+  abilities.registerUpgradeHandler('upgrade.speed', ()=>applySpeedUpgrade());
+  abilities.registerUpgradeHandler('upgrade.shadowstep', ()=>applyShadowStepUpgrade());
+  abilities.registerUpgradeHandler('upgrade.reflect', ()=>applyReflectUpgrade());
+  abilities.registerUpgradeHandler('upgrade.mirror', ()=>applyMirrorUpgrade());
+  abilities.registerUpgradeHandler('upgrade.points', payload=>applyPointsUpgrade(payload||{}));
+})();
