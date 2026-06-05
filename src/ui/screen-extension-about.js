@@ -4,6 +4,7 @@
   var button = document.getElementById('screenAboutBtn');
   var popdown = document.getElementById('screenAboutPopdown');
   var close = document.getElementById('screenAboutClose');
+  var bitLinks = Array.prototype.slice.call(document.querySelectorAll('a[href="docs/1bit.html"]'));
   var guideButtons = Array.prototype.slice.call(document.querySelectorAll('[data-guide-target]'));
   var guidePopdown = document.getElementById('screenGuidePopdown');
 
@@ -44,6 +45,23 @@
   });
 
   if (close) close.addEventListener('click', closeAbout);
+
+  bitLinks.forEach(function (bitLink) {
+    bitLink.addEventListener('click', function (event) {
+      event.preventDefault();
+      var href = bitLink.getAttribute('href') || 'docs/1bit.html';
+      var features = [
+        'noopener',
+        'noreferrer',
+        'width=330',
+        'height=380',
+        'resizable=yes',
+        'scrollbars=yes'
+      ].join(',');
+      var opened = window.open(href, '_blank', features);
+      if (!opened) window.location.href = href;
+    });
+  });
 
   guideButtons.forEach(function (btn) {
     btn.addEventListener('click', closeAbout);

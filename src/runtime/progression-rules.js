@@ -12,11 +12,13 @@
   function getActiveSpawnSystem(zone){
     try{
       const z = Number(zone || currentZoneValue());
-      if(window.BoneCrawlerZoneSpawn && typeof BoneCrawlerZoneSpawn.getRuntimeSpawnMode === 'function'){
-        return String(BoneCrawlerZoneSpawn.getRuntimeSpawnMode(z) || '');
+      const zoneSpawn = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('zoneSpawn', ['BoneCrawlerZoneSpawn'])) || window.BoneCrawlerZoneSpawn;
+      if(zoneSpawn && typeof zoneSpawn.getRuntimeSpawnMode === 'function'){
+        return String(zoneSpawn.getRuntimeSpawnMode(z) || '');
       }
-      if(window.BoneCrawlerZoneBindings && typeof BoneCrawlerZoneBindings.get === 'function'){
-        const binding = BoneCrawlerZoneBindings.get(z) || {};
+      const zoneBindings = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('zoneBindings', ['BoneCrawlerZoneBindings'])) || window.BoneCrawlerZoneBindings;
+      if(zoneBindings && typeof zoneBindings.get === 'function'){
+        const binding = zoneBindings.get(z) || {};
         return String((binding.spawn && binding.spawn.system) || '');
       }
     }catch(err){}

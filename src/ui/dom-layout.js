@@ -41,6 +41,7 @@ const howToPlayNormalBtn = document.getElementById('howToPlayNormalBtn');
 const touchPauseBtn = document.getElementById('touchPauseBtn');
 const touchInteractBtn = document.getElementById('touchInteractBtn');
 const touchDodgeBtn = document.getElementById('touchDodgeBtn');
+const touchBlockBtn = document.getElementById('touchBlockBtn');
 const nameModalOverlay = document.getElementById('nameModalOverlay');
 const nameModalInput = document.getElementById('nameModalInput');
 const nameModalOk = document.getElementById('nameModalOk');

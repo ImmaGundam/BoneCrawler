@@ -21,11 +21,16 @@ function __sceneRect(objectId, field){
   return null;
 }
 function __sceneFlow(){
-  return (window.BoneCrawlerSceneFlow && typeof BoneCrawlerSceneFlow === 'object') ? BoneCrawlerSceneFlow : null;
+  const sceneFlow = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('sceneFlow', ['BoneCrawlerSceneFlow'])) || window.BoneCrawlerSceneFlow;
+  return (sceneFlow && typeof sceneFlow === 'object') ? sceneFlow : null;
 }
 function __runFlow(){
-  if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow === 'object') return BoneCrawlerRunFlow;
+  const runFlow = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('runFlow', ['BoneCrawlerRunFlow'])) || window.BoneCrawlerRunFlow;
+  if(runFlow && typeof runFlow === 'object') return runFlow;
   return null;
+}
+function __zoneSpawn(){
+  return (window.GameRuntimeApi && window.GameRuntimeApi.lookup('zoneSpawn', ['BoneCrawlerZoneSpawn'])) || window.BoneCrawlerZoneSpawn || null;
 }
 function __playerNearRect(rect, pad=4){
   if(!player || !rect || typeof ov !== 'function') return false;
@@ -118,7 +123,7 @@ function finishRunVictory(){
   const runFlow = __runFlow();
   try{ if(runFlow && typeof runFlow.goToTitleState === 'function') runFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true}); else if(window.AudioEvents) AudioEvents.stopAll(); }catch(err){}
   if(runStartMs>0 && runTimeMs<=0) runTimeMs=performance.now()-runStartMs;
-  const titleFlow = window.BoneCrawlerTitleFlow || null;
+  const titleFlow = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('titleFlow', ['BoneCrawlerTitleFlow'])) || window.BoneCrawlerTitleFlow || null;
   if(titleFlow && typeof titleFlow.saveRunIfNeeded === 'function') titleFlow.saveRunIfNeeded();
   else saveRunIfNeeded();
   pendingZoneTransition=0;
@@ -172,7 +177,8 @@ function getZoneProgressKills(zone=currentZone){
 }
 
 function ensureZoneMomentum(){
-  if(window.BoneCrawlerZoneSpawn && BoneCrawlerZoneSpawn.usesManagedSpawns(currentZone)) return;
+  const zoneSpawn = __zoneSpawn();
+  if(zoneSpawn && zoneSpawn.usesManagedSpawns(currentZone)) return;
   if(isSecretZone(currentZone) || getZoneProgressKills(currentZone)>=getZoneKillTarget(currentZone) || pSpawns.length>0) return;
   const immediateDelay=Math.max(12, Math.floor(regularSpawnDelay()*0.55));
   qSpawn(immediateDelay, false, false, pickRegularEnemyType());
@@ -183,7 +189,8 @@ function enterZone2(){
   try{ if(window.AudioEvents) AudioEvents.enterZone(2); }catch(err){}
   secret1RatTalkCount=0;
   currentZone=2;
-  if(window.BoneCrawlerZoneSpawn) BoneCrawlerZoneSpawn.enterZone(2);
+  const zoneSpawn = __zoneSpawn();
+  if(zoneSpawn) zoneSpawn.enterZone(2);
   zone2KillStart=killCount;
   nextChestAt=Math.max(nextChestAt, killCount + ZONE2_FIRST_CHEST_DELAY);
   const p=player;
@@ -202,7 +209,8 @@ function enterZone3(){
   try{ if(window.AudioEvents) AudioEvents.enterZone(3); }catch(err){}
   secret1RatTalkCount=0;
   currentZone=3;
-  if(window.BoneCrawlerZoneSpawn) BoneCrawlerZoneSpawn.enterZone(3);
+  const zoneSpawn = __zoneSpawn();
+  if(zoneSpawn) zoneSpawn.enterZone(3);
   zone3KillStart=killCount;
   zone3IntroDialogShown=false;
   zone3Kill80DialogShown=false;
@@ -233,7 +241,8 @@ function enterSecretZone1(){
   try{ if(window.AudioEvents) AudioEvents.enterZone(ZONE_SECRET1); }catch(err){}
   secret1RatTalkCount=0;
   currentZone=ZONE_SECRET1;
-  if(window.BoneCrawlerZoneSpawn) BoneCrawlerZoneSpawn.enterZone(ZONE_SECRET1);
+  const zoneSpawn = __zoneSpawn();
+  if(zoneSpawn) zoneSpawn.enterZone(ZONE_SECRET1);
   const p=player;
   p.hasKey=false;
   p.zone2Key=false;
@@ -252,7 +261,8 @@ function enterSecretZone2(){
   try{ if(window.AudioEvents) AudioEvents.enterZone(ZONE_SECRET2); }catch(err){}
   secret1RatTalkCount=0;
   currentZone=ZONE_SECRET2;
-  if(window.BoneCrawlerZoneSpawn) BoneCrawlerZoneSpawn.enterZone(ZONE_SECRET2);
+  const zoneSpawn = __zoneSpawn();
+  if(zoneSpawn) zoneSpawn.enterZone(ZONE_SECRET2);
   const p=player;
   p.hasKey=false;
   p.zone2Key=false;
@@ -270,7 +280,7 @@ function enterSecretZone2(){
   }
   spawnFloatText({x:GW/2,y:PY+18,text:'SECRET ZONE',life:90,max:90,col:C.BN1});
   spawnFloatText({x:GW/2,y:PY+26,text:masterSwordOwned?'SANCTUM':'MASTER SWORD',life:95,max:95,col:C.SH});
-  const titleFlow = window.BoneCrawlerTitleFlow || null;
+  const titleFlow = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('titleFlow', ['BoneCrawlerTitleFlow'])) || window.BoneCrawlerTitleFlow || null;
   if(titleFlow && typeof titleFlow.saveRunIfNeeded === 'function') titleFlow.saveRunIfNeeded();
   else saveRunIfNeeded();
 }
@@ -344,11 +354,13 @@ function getCurrentInteractionTarget(){
   return null;
 }
 function openDialogSequence(title, pages, mode='npc'){
+  if(typeof enterDialogState === 'function') return enterDialogState(title, pages, mode);
   dialogTitle=title||'NODE';
   dialogMode=mode;
   dialogPages=(pages||[]).map(page=>Array.isArray(page) ? page.slice() : {speaker:String(page.speaker||title||'NODE').toUpperCase(),lines:(page.lines||[]).slice()});
   dialogPageIndex=0;
   clearGameplayKeys();
+  dialogAdvanceUnlockUntilMs=performance.now()+DIALOG_ADVANCE_GRACE_MS;
   gState='dialog';
 }
 function startLeaveZoneConfirm(transition){

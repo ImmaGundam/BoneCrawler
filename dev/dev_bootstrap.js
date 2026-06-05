@@ -6,6 +6,13 @@
 (function(){
   if(window.__bonecrawlerCombinedBridgeLoaded) return;
   window.__bonecrawlerCombinedBridgeLoaded = true;
+  const runtimeApi = window.GameRuntimeApi || null;
+
+  function runtimeLookup(key, legacy){
+    if(runtimeApi && typeof runtimeApi.lookup === 'function') return runtimeApi.lookup(key, legacy || []);
+    if(Array.isArray(legacy) && legacy.length) return window[legacy[0]] || null;
+    return null;
+  }
 
   const EDITOR_SOURCE = 'bonecrawler-editor';
   const DEV_PANEL_SOURCE = 'bonecrawler-dev-panel';
@@ -492,8 +499,14 @@
       zones: byZone,
       editorResources: {
         zoneSettings: deepClone(editorZoneSettings),
-        zoneBindings: (window.BoneCrawlerZoneRuntime && typeof BoneCrawlerZoneRuntime.getEditorSnapshot === 'function') ? BoneCrawlerZoneRuntime.getEditorSnapshot() : null,
-        spawnSystems: (window.BoneCrawlerSpawnSystems && typeof BoneCrawlerSpawnSystems.list === 'function') ? BoneCrawlerSpawnSystems.list() : null,
+        zoneBindings: (() => {
+          const zoneRuntime = runtimeLookup('zoneRuntime', ['BoneCrawlerZoneRuntime']);
+          return (zoneRuntime && typeof zoneRuntime.getEditorSnapshot === 'function') ? zoneRuntime.getEditorSnapshot() : null;
+        })(),
+        spawnSystems: (() => {
+          const spawnSystems = runtimeLookup('spawnSystems', ['BoneCrawlerSpawnSystems']);
+          return (spawnSystems && typeof spawnSystems.list === 'function') ? spawnSystems.list() : null;
+        })(),
         waves: deepClone(editorWaveStore),
         standardSpawns: deepClone(editorStandardSpawnStore),
         waveSystems: (() => {
@@ -841,9 +854,20 @@
       objectResource: settings.objectResource || null,
       dialogResource: settings.dialogResource || null,
       spawnPoints,
-      statScaling: deepClone(window.BoneCrawlerZoneSpawn && typeof BoneCrawlerZoneSpawn.getZoneConfig === 'function' && BoneCrawlerZoneSpawn.getZoneConfig(zone) ? BoneCrawlerZoneSpawn.getZoneConfig(zone).statScaling || null : null),
-      waveSystem: deepClone(window.BoneCrawlerZoneSpawn && typeof BoneCrawlerZoneSpawn.getZoneConfig === 'function' && BoneCrawlerZoneSpawn.getZoneConfig(zone) ? BoneCrawlerZoneSpawn.getZoneConfig(zone).waveSystem || null : null),
-      standardSpawn: deepClone(editorStandardSpawnStore[zone] || (window.BoneCrawlerZoneSpawn && typeof BoneCrawlerZoneSpawn.getStandardConfig === 'function' ? BoneCrawlerZoneSpawn.getStandardConfig(zone) : null)),
+      statScaling: (() => {
+        const zoneSpawn = runtimeLookup('zoneSpawn', ['BoneCrawlerZoneSpawn']);
+        const cfg = zoneSpawn && typeof zoneSpawn.getZoneConfig === 'function' ? zoneSpawn.getZoneConfig(zone) : null;
+        return deepClone(cfg ? cfg.statScaling || null : null);
+      })(),
+      waveSystem: (() => {
+        const zoneSpawn = runtimeLookup('zoneSpawn', ['BoneCrawlerZoneSpawn']);
+        const cfg = zoneSpawn && typeof zoneSpawn.getZoneConfig === 'function' ? zoneSpawn.getZoneConfig(zone) : null;
+        return deepClone(cfg ? cfg.waveSystem || null : null);
+      })(),
+      standardSpawn: (() => {
+        const zoneSpawn = runtimeLookup('zoneSpawn', ['BoneCrawlerZoneSpawn']);
+        return deepClone(editorStandardSpawnStore[zone] || (zoneSpawn && typeof zoneSpawn.getStandardConfig === 'function' ? zoneSpawn.getStandardConfig(zone) : null));
+      })(),
       waves: deepClone(editorWaveStore[zone] || []),
       objects: exportZoneObjects(zone)
     };
@@ -1285,15 +1309,17 @@
         if(data.objectResource != null) settings.objectResource = data.objectResource || null;
         if(data.dialogResource != null) settings.dialogResource = data.dialogResource || null;
         try{
-          if(window.BoneCrawlerZoneRuntime && typeof BoneCrawlerZoneRuntime.patchBinding === 'function'){
-            BoneCrawlerZoneRuntime.patchBinding(zone, {
+          const zoneRuntime = runtimeLookup('zoneRuntime', ['BoneCrawlerZoneRuntime']);
+          const zoneSpawn = runtimeLookup('zoneSpawn', ['BoneCrawlerZoneSpawn']);
+          if(zoneRuntime && typeof zoneRuntime.patchBinding === 'function'){
+            zoneRuntime.patchBinding(zone, {
               spawn: {system: settings.spawnSystem || 'standard', resource: settings.resourceFile || null},
               progression: {system: settings.progressionSystem || 'rules', resource: settings.progressionResource || null},
               objects: {resource: settings.objectResource || null},
               dialog: {resource: settings.dialogResource || null}
             });
-            if(window.BoneCrawlerZoneSpawn && typeof BoneCrawlerZoneSpawn.enterZone === 'function' && typeof currentZone !== 'undefined' && Number(currentZone) === Number(zone)){
-              BoneCrawlerZoneSpawn.enterZone(zone, {spawnSystemChanged:true});
+            if(zoneSpawn && typeof zoneSpawn.enterZone === 'function' && typeof currentZone !== 'undefined' && Number(currentZone) === Number(zone)){
+              zoneSpawn.enterZone(zone, {spawnSystemChanged:true});
             }
           }
         }catch(err){}

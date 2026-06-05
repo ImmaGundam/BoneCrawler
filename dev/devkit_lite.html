@@ -29,6 +29,35 @@
     overflow:hidden;
   }
 
+  *{
+    scrollbar-width:thin;
+    scrollbar-color:rgba(124,106,72,.92) rgba(10,14,16,.96);
+  }
+
+  *::-webkit-scrollbar{
+    width:12px;
+    height:12px;
+  }
+
+  *::-webkit-scrollbar-track{
+    background:linear-gradient(180deg,rgba(11,16,19,.98),rgba(18,24,27,.98));
+    border:1px solid rgba(124,106,72,.22);
+  }
+
+  *::-webkit-scrollbar-thumb{
+    background:linear-gradient(180deg,rgba(205,173,76,.92),rgba(124,106,72,.96));
+    border:2px solid rgba(10,14,16,.96);
+    border-radius:999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover{
+    background:linear-gradient(180deg,rgba(227,140,58,.95),rgba(163,95,33,.96));
+  }
+
+  *::-webkit-scrollbar-corner{
+    background:rgba(10,14,16,.96);
+  }
+
   .appShell{
     height:100vh;
     height:100dvh;
@@ -1393,12 +1422,26 @@
     max-height:min(62dvh,640px);
   }
 
+  body[data-layout-mode="focus"]{
+    overflow:auto;
+  }
+
+  body[data-layout-mode="focus"] .appShell{
+    min-height:100dvh;
+    height:auto;
+    max-height:none;
+    grid-template-rows:auto auto;
+    overflow:visible;
+  }
+
   body[data-layout-mode="focus"] .workspace,
   body[data-layout-mode="focus"] .workspace.hide-left,
   body[data-layout-mode="focus"] .workspace.hide-right,
   body[data-layout-mode="focus"] .workspace.hide-left.hide-right{
     grid-template-columns:1fr!important;
     grid-template-areas:"main"!important;
+    height:auto!important;
+    overflow:visible!important;
   }
 
   body[data-layout-mode="focus"] .leftPane,
@@ -1410,7 +1453,11 @@
 
   body[data-layout-mode="focus"] main.mainPane{
     padding:10px;
-    overflow:auto;
+    overflow:visible!important;
+  }
+
+  body[data-layout-mode="focus"] .previewShell{
+    min-height:clamp(520px,72dvh,820px)!important;
   }
 
   body[data-layout-mode="focus"] .previewWrap{
@@ -1636,7 +1683,7 @@
 
 </style>
 </head>
-<body class="lite">
+<body class="lite" data-layout-mode="desktop" data-layout-preference="auto">
 <div class="appShell">
   <header class="programMenuBar">
     <div class="menuBrand">BoneCrawler Dev Kit Lite</div>
@@ -1704,17 +1751,7 @@
       </div>
     </nav>
 
-    <div class="menuSummary">Lite Mode · Desktop recommended</div>
-
-    <label class="layoutModeControl" for="layoutModeSelect">
-      <span>Layout</span>
-      <select id="layoutModeSelect" aria-label="Dev kit layout mode">
-        <option value="auto">Auto</option>
-        <option value="desktop">Desktop</option>
-        <option value="tablet">Tablet</option>
-        <option value="focus">Focus Game</option>
-      </select>
-    </label>
+    <div class="menuSummary">Work in progress - Game Editor Toolkit</div>
 
     <div class="mobileNavControls" aria-label="Mobile workspace controls">
       <button id="mobileGameOnlyBtn" type="button">Game</button>
@@ -1730,26 +1767,12 @@
         <div class="paneHeader">
           <div>
             <h1>Toolkit Panels</h1>
-            <p class="sub">Lite public toolkit. Desktop or tablet recommended.</p>
+            <p class="sub">Work in progress - Game Editor Toolkit</p>
           </div>
           <button id="resetLeftDockBtn" type="button">Reset</button>
         </div>
 
         <div id="leftDock" class="dockStack">
-          <section class="panel moduleCard" id="liteNoticeModule" draggable="true">
-            <div class="moduleHeader">
-              <div class="moduleHeaderMain">
-                <div class="moduleTitle">Lite Mode</div>
-                <div class="moduleMeta">public demo</div>
-              </div>
-              <div class="moduleHeaderTools">
-                <button class="collapseBtn" type="button" aria-label="Collapse panel">▾</button>
-              </div>
-            </div>
-            <div class="moduleBody stack">
-              <div class="liteNotice">This version is for the public build. It can inspect and test the running game session, but it does not save files.</div>
-            </div>
-          </section>
           <section class="panel moduleCard" id="projectModule" draggable="true">
             <div class="moduleHeader">
               <div class="moduleHeaderMain">
@@ -2302,7 +2325,6 @@
   let resourceLoadedFromDisk = false;
 
   const LEFT_DEFAULT_ORDER = [
-    'liteNoticeModule',
     'projectModule',
     'quickModule',
     'transportModule',
@@ -4198,16 +4220,6 @@ This build combines:
 
 <script>
 (function(){
-  var select = document.getElementById('layoutModeSelect');
-  if (!select) return;
-
-  var key = 'bonecrawler-devkit-layout-mode';
-
-  function normalize(value){
-    value = String(value || 'auto').toLowerCase();
-    return /^(auto|desktop|tablet|focus)$/.test(value) ? value : 'auto';
-  }
-
   function inferAutoMode(){
     var shortSide = Math.min(window.innerWidth || 0, window.innerHeight || 0);
     var longSide = Math.max(window.innerWidth || 0, window.innerHeight || 0);
@@ -4219,25 +4231,17 @@ This build combines:
     return 'desktop';
   }
 
-  function applyLayout(value){
-    var selected = normalize(value);
-    var mode = selected === 'auto' ? inferAutoMode() : selected;
+  function applyLayout(){
+    var mode = inferAutoMode();
     document.body.dataset.layoutMode = mode;
-    document.body.dataset.layoutPreference = selected;
-    select.value = selected;
+    document.body.dataset.layoutPreference = 'auto';
   }
 
-  select.addEventListener('change', function(){
-    var value = normalize(select.value);
-    localStorage.setItem(key, value);
-    applyLayout(value);
-  });
-
   window.addEventListener('resize', function(){
-    if (normalize(select.value) === 'auto') applyLayout('auto');
+    applyLayout();
   });
 
-  applyLayout(localStorage.getItem(key) || 'auto');
+  applyLayout();
 })();
 </script>
 

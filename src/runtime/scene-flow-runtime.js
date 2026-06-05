@@ -2,6 +2,7 @@
 // Purpose: authoritative transition/interaction flow owner sitting between EventEngine rules and zone entry helpers.
 (function(){
   'use strict';
+  const runtimeApi = window.GameRuntimeApi || null;
 
   function currentTransition(){
     try{
@@ -58,8 +59,9 @@
 
   function finishRunVictory(){
     try{
-      if(window.BoneCrawlerRunFlow && typeof BoneCrawlerRunFlow.goToTitleState === 'function'){
-        BoneCrawlerRunFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true});
+      const runFlow = (runtimeApi && runtimeApi.lookup('runFlow', ['BoneCrawlerRunFlow'])) || window.BoneCrawlerRunFlow;
+      if(runFlow && typeof runFlow.goToTitleState === 'function'){
+        runFlow.goToTitleState({clearAllSceneCaches:true, stopAudio:true});
       } else if(typeof goToTitleState === 'function') {
         goToTitleState({clearAllSceneCaches:true, stopAudio:true});
       } else if(window.AudioEvents && typeof AudioEvents.stopAll === 'function') {
@@ -67,7 +69,7 @@
       }
     }catch(err){}
     if(typeof runStartMs !== 'undefined' && runStartMs > 0 && typeof runTimeMs !== 'undefined' && runTimeMs <= 0) runTimeMs = performance.now() - runStartMs;
-    const titleFlow = window.BoneCrawlerTitleFlow || null;
+    const titleFlow = (runtimeApi && runtimeApi.lookup('titleFlow', ['BoneCrawlerTitleFlow'])) || window.BoneCrawlerTitleFlow || null;
     if(titleFlow && typeof titleFlow.saveRunIfNeeded === 'function') titleFlow.saveRunIfNeeded();
     else if(typeof saveRunIfNeeded === 'function') saveRunIfNeeded();
     pendingZoneTransition = 0;
@@ -76,7 +78,8 @@
     if(typeof retryTaxPaid !== 'undefined') retryTaxPaid = false;
     if(typeof retryPromptMode !== 'undefined') retryPromptMode = '';
     if(typeof startupDialogPending !== 'undefined' && typeof newGamePlus !== 'undefined') startupDialogPending = !!newGamePlus;
-    if((!window.BoneCrawlerRunFlow || typeof BoneCrawlerRunFlow.goToTitleState !== 'function') && typeof goToTitleState !== 'function') gState = 'title';
+    const runFlow = (runtimeApi && runtimeApi.lookup('runFlow', ['BoneCrawlerRunFlow'])) || window.BoneCrawlerRunFlow;
+    if((!runFlow || typeof runFlow.goToTitleState !== 'function') && typeof goToTitleState !== 'function') gState = 'title';
   }
 
   function continueZoneTransition(){
@@ -127,7 +130,7 @@
     return !!(target && target.type === type);
   }
 
-  window.BoneCrawlerSceneFlow = {
+  const api = {
     getCurrentInteractionTarget,
     getActiveZoneTransitionInteractable: currentTransition,
     buildTransitionInfo,
@@ -139,4 +142,6 @@
     cancelLeaveZone,
     interactionIs
   };
+  if(runtimeApi && typeof runtimeApi.register === 'function') runtimeApi.register('sceneFlow', api, { legacy: ['BoneCrawlerSceneFlow'] });
+  else window.BoneCrawlerSceneFlow = api;
 })();

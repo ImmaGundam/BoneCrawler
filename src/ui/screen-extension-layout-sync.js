@@ -17,7 +17,7 @@
   function syncLayout() {
     rafId = 0;
 
-    if (window.matchMedia('(max-width: 979px), (orientation: portrait)').matches) {
+    if (window.matchMedia('(max-width: 719px)').matches) {
       shell.style.removeProperty('--bc-game-size-sync');
       return;
     }

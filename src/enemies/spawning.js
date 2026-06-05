@@ -82,8 +82,9 @@ function resolveSpawnSystemEnemyStats(kind, zone=currentZone, context){
     source:'enemy-factory'
   }, context || {});
   try{
-    if(window.BoneCrawlerZoneSpawn && typeof BoneCrawlerZoneSpawn.resolveEnemyStats === 'function'){
-      const resolved=BoneCrawlerZoneSpawn.resolveEnemyStats(kind || 'normalEnemy1', ctx);
+    const zoneSpawn = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('zoneSpawn', ['BoneCrawlerZoneSpawn'])) || window.BoneCrawlerZoneSpawn;
+    if(zoneSpawn && typeof zoneSpawn.resolveEnemyStats === 'function'){
+      const resolved=zoneSpawn.resolveEnemyStats(kind || 'normalEnemy1', ctx);
       if(resolved && typeof resolved === 'object') return resolved;
     }
   }catch(err){}
@@ -247,4 +248,3 @@ function doSpawn(giant, wizard, type){
   const enemy=createStandardEnemyGameObject(enemyKind, x, y, currentZone, {source:'queued-standard-spawn'});
   if(enemy){ enemies.push(applyEnemySpawnAnimation(enemy, 'walkIn', 32, { freeze:false })); try{ if(window.AudioEvents) AudioEvents.skeletonSpawn(); }catch(err){} }
 }
-

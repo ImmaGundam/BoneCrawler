@@ -2,6 +2,7 @@
 // Purpose: Title/startup/name/scoreboard flow owner.
 (function(){
   'use strict';
+  const runtimeApi = window.GameRuntimeApi || null;
 
   function beginRunFromIntro(){
     if(introPage<INTRO_PAGE_COUNT-1){
@@ -104,6 +105,16 @@
     return scoreboardPage;
   }
 
+  function resetScoreboard(){
+    scoreboardEntries=[];
+    scoreboardPage=0;
+    if(typeof clearScores === 'function') clearScores();
+    else {
+      try{ localStorage.removeItem('boneCrawlerScoreboard_v1'); }catch(err){}
+    }
+    return scoreboardEntries.slice();
+  }
+
   const api = {
     beginRunFromIntro,
     startGame,
@@ -115,9 +126,11 @@
     scorePageEntries,
     nextScorePage,
     prevScorePage,
+    resetScoreboard,
   };
 
-  window.BoneCrawlerTitleFlow = api;
+  if(runtimeApi && typeof runtimeApi.register === 'function') runtimeApi.register('titleFlow', api, { legacy: ['BoneCrawlerTitleFlow'] });
+  else window.BoneCrawlerTitleFlow = api;
   window.beginRunFromIntro = beginRunFromIntro;
   window.startGame = startGame;
   window.promptForPlayerName = promptForPlayerName;
@@ -126,4 +139,5 @@
   window.saveRunIfNeeded = saveRunIfNeeded;
   window.totalScorePages = totalScorePages;
   window.scorePageEntries = scorePageEntries;
+  window.resetScoreboard = resetScoreboard;
 })();

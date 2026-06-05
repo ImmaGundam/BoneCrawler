@@ -647,6 +647,48 @@ html.screen-about-open .screen-extension-status-toggle{opacity:.58;}
 .screen-extension-upgrade-section{margin-top:7px;
   padding-top:6px;
   border-top:1px solid rgba(135,115,67,.28);}
+.bc-runtime-panel{border-color:rgba(208,128,255,.36)!important;
+  background:linear-gradient(180deg,rgba(24,18,31,.78),rgba(8,8,10,.94))!important;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.9), 0 0 12px rgba(144,64,208,.12)!important;}
+.bc-runtime-line{display:grid;
+  gap:2px;
+  min-width:0;}
+.bc-runtime-line strong{color:#e7dbff;
+  font-size:8px;
+  line-height:1.2;
+  letter-spacing:.08em;
+  text-shadow:1px 1px 0 #000;}
+.bc-runtime-line span{color:#b7c5d1;
+  font-size:6px;
+  line-height:1.25;
+  letter-spacing:.04em;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;}
+.bc-runtime-actions{display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:5px;
+  margin-top:4px;}
+.bc-runtime-btn{min-height:22px;
+  border:1px solid rgba(193,165,103,.48);
+  background:linear-gradient(180deg,#24302b,#111715);
+  color:#ead9a9;
+  font-family:inherit;
+  font-size:5px;
+  line-height:1.15;
+  padding:2px 3px;
+  text-align:center;
+  letter-spacing:.05em;
+  text-shadow:1px 1px 0 #000;
+  box-shadow:inset 0 0 0 1px #000;
+  cursor:pointer;}
+.bc-runtime-btn:hover{border-color:#d4c89a;
+  color:#fff1bc;}
+.bc-runtime-btn:disabled{opacity:.48;
+  cursor:wait;}
+.bc-runtime-btn-danger{border-color:rgba(255,140,52,.58);
+  color:#ffc196;
+  background:linear-gradient(180deg,#392016,#17100d);}
 .upgrade-stack{display:flex;
   flex-wrap:wrap;
   gap:4px;
@@ -1343,4 +1385,123 @@ html.tablet-browser #gameCanvas{width:min(72dvh, 58vw, 620px);}
 .bc-play-shell .screen-extension-objective-card,
 .bc-play-shell .screen-extension-player-card,
 .bc-play-shell .screen-extension-key-grid{grid-column:1!important;}
+}
+
+/* Canonical responsive game shell.
+   Keep desktop/tablet layouts side-by-side until the viewport is genuinely narrow,
+   and let the canvas fill one square frame without inheriting legacy wrap padding. */
+html:not(.mobile-browser) .bc-play-shell{
+  --bc-shell-gap:clamp(6px, 1vw, 10px);
+  --bc-gap:var(--bc-shell-gap);
+  --bc-panel-w:clamp(216px, 21vw, 286px);
+  --bc-shell-game-size:min(
+    calc(100dvh - 88px),
+    calc(100vw - var(--bc-panel-w) - var(--bc-shell-gap) - 24px),
+    720px
+  )!important;
+  --bc-game-size:var(--bc-shell-game-size)!important;
+  width:calc(var(--bc-shell-game-size) + var(--bc-panel-w) + var(--bc-shell-gap))!important;
+  max-width:calc(100vw - 24px)!important;
+  margin:0 auto!important;
+  padding:0!important;
+  gap:var(--bc-shell-gap)!important;
+  box-sizing:border-box!important;}
+html:not(.mobile-browser) .bc-play-shell > .screen-extension-nav{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  box-sizing:border-box!important;}
+html:not(.mobile-browser) .bc-play-shell .screen-wrap-holder{
+  padding:var(--bc-frame-inset, 4px)!important;
+  margin:0!important;
+  box-sizing:border-box!important;}
+html:not(.mobile-browser) .bc-play-shell .screen-wrap{
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  transform:none!important;
+  box-sizing:border-box!important;}
+html:not(.mobile-browser) .bc-play-shell #gameCanvas{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  aspect-ratio:1 / 1;
+  box-sizing:border-box!important;}
+
+@media (min-width:720px){
+html:not(.mobile-browser) .bc-play-shell > .screen-extension-shell,
+html:not(.mobile-browser) .bc-play-shell .gp-screen-slot{
+    display:grid!important;
+    grid-template-columns:var(--bc-shell-game-size) var(--bc-panel-w)!important;
+    width:100%!important;
+    height:var(--bc-shell-game-size)!important;
+    max-width:none!important;
+    gap:var(--bc-shell-gap)!important;
+    align-items:stretch!important;
+    justify-items:stretch!important;
+    box-sizing:border-box!important;}
+html:not(.mobile-browser) .bc-play-shell .screen-wrap-holder{
+    width:var(--bc-shell-game-size)!important;
+    height:var(--bc-shell-game-size)!important;
+    min-height:var(--bc-shell-game-size)!important;
+    max-height:var(--bc-shell-game-size)!important;
+    justify-self:end!important;
+    align-self:start!important;}
+html:not(.mobile-browser) .bc-play-shell .screen-extension-panel{
+    display:flex!important;
+    flex-direction:column!important;
+    width:var(--bc-panel-w)!important;
+    height:var(--bc-shell-game-size)!important;
+    min-height:var(--bc-shell-game-size)!important;
+    max-height:var(--bc-shell-game-size)!important;
+    max-width:none!important;
+    overflow:auto!important;
+    justify-self:stretch!important;
+    align-self:stretch!important;
+    box-sizing:border-box!important;}
+html:not(.mobile-browser) .bc-play-shell .screen-extension-zone-card{
+    display:grid!important;
+    grid-template-columns:minmax(0, 1fr) auto!important;
+    column-gap:var(--ui-gap)!important;
+    align-items:start!important;}
+}
+
+@media (max-width:719px){
+html:not(.mobile-browser) .bc-play-shell{
+    --bc-shell-game-size:min(calc(100vw - 16px), 680px)!important;
+    --bc-game-size:var(--bc-shell-game-size)!important;
+    width:var(--bc-shell-game-size)!important;
+    max-width:calc(100vw - 16px)!important;}
+html:not(.mobile-browser) .bc-play-shell > .screen-extension-shell,
+html:not(.mobile-browser) .bc-play-shell .gp-screen-slot{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    width:100%!important;
+    height:auto!important;
+    max-width:none!important;
+    gap:var(--bc-shell-gap)!important;
+    align-items:start!important;
+    justify-items:center!important;
+    box-sizing:border-box!important;}
+html:not(.mobile-browser) .bc-play-shell > .screen-extension-nav,
+html:not(.mobile-browser) .bc-play-shell .screen-wrap-holder,
+html:not(.mobile-browser) .bc-play-shell .screen-extension-panel{
+    width:var(--bc-shell-game-size)!important;
+    max-width:100%!important;
+    justify-self:center!important;}
+html:not(.mobile-browser) .bc-play-shell .screen-wrap-holder{
+    height:var(--bc-shell-game-size)!important;
+    min-height:var(--bc-shell-game-size)!important;
+    max-height:var(--bc-shell-game-size)!important;}
+html:not(.mobile-browser) .bc-play-shell .screen-extension-panel{
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+    align-self:start!important;}
 }

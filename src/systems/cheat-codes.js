@@ -1,7 +1,8 @@
 // cheat-codes
 // Purpose: name-entry cheat codes separate from menu/startup and spawn/progression internals.
 (function(){
-  if(window.BoneCrawlerCheatCodes) return;
+  const runtimeApi = window.GameRuntimeApi || null;
+  if((runtimeApi && runtimeApi.lookup('cheatCodes', ['BoneCrawlerCheatCodes'])) || window.BoneCrawlerCheatCodes) return;
 
   const codeMap = {
     'link':'link',
@@ -28,7 +29,7 @@
     const p = player;
 
     if(code === 'link'){
-      p.swordLevel=3; p.swordReach=11+3*6; p.swordWidth=1;
+      p.swordLevel=3; p.swordReach=11+3*SWORD_REACH_UP_STEP; p.swordWidth=1;
       p.speedLevel=3; p.speed=PLAYER_BASE_SPEED+3*SPEED_UP_STEP;
       p.shield=true; p.shieldLevel=3;
       p.shadowStep=true; p.stepLevel=3;
@@ -42,7 +43,7 @@
     }
 
     if(code === 'doodoorocks'){
-      p.swordLevel=7; p.swordReach=11+7*6;
+      p.swordLevel=7; p.swordReach=11+7*SWORD_REACH_UP_STEP;
       p.speedLevel=7; p.speed=Math.min(MAX_PLAYER_SPEED,PLAYER_BASE_SPEED+7*SPEED_UP_STEP);
       return true;
     }
@@ -85,8 +86,9 @@
 
   function runWhyDragons(){
     currentZone = 1;
-    if(window.BoneCrawlerZoneSpawn && typeof BoneCrawlerZoneSpawn.enterZone === 'function'){
-      BoneCrawlerZoneSpawn.enterZone(1);
+    const zoneSpawn = (runtimeApi && runtimeApi.lookup('zoneSpawn', ['BoneCrawlerZoneSpawn'])) || window.BoneCrawlerZoneSpawn;
+    if(zoneSpawn && typeof zoneSpawn.enterZone === 'function'){
+      zoneSpawn.enterZone(1);
     }
     beginWhyDragonsRunDirect();
     spawnWhyDragonsKey();
@@ -144,5 +146,7 @@
     return true;
   }
 
-  window.BoneCrawlerCheatCodes = {detect, get:detect, apply, start, runWhyDragons};
+  const api = {detect, get:detect, apply, start, runWhyDragons};
+  if(runtimeApi && typeof runtimeApi.register === 'function') runtimeApi.register('cheatCodes', api, { legacy: ['BoneCrawlerCheatCodes'] });
+  else window.BoneCrawlerCheatCodes = api;
 })();

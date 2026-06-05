@@ -1,0 +1,174 @@
+{
+  "schemaVersion": "0.1.0",
+  "packageVersion": "0.1.0",
+  "game": {
+    "id": "bonecrawler",
+    "title": "BoneCrawler",
+    "version": "2.9.5",
+    "description": "8-bit Dark Fantasy Arcade Action package for the BoneCrawler runtime."
+  },
+  "runtime": {
+    "target": "bonecrawler-js",
+    "minimumEngineVersion": "2.9.5",
+    "entry": "runtime:index.html",
+    "mode": "loose-runtime-refs"
+  },
+  "assets": {
+    "roots": [
+      "runtime:assets"
+    ],
+    "palettes": [
+      "runtime:C"
+    ],
+    "sprites": [
+      "runtime:S"
+    ]
+  },
+  "content": {
+    "zones": [
+      {
+        "id": "zone1",
+        "name": "Zone 1",
+        "kind": "map",
+        "runtimeRef": "runtime:src/maps/zones/zone1.js",
+        "spawnConfigRef": "runtime:src/enemies/zone-spawn-config-baseline.js"
+      },
+      {
+        "id": "zone2",
+        "name": "Zone 2",
+        "kind": "map",
+        "runtimeRef": "runtime:src/maps/zones/zone2.js",
+        "spawnConfigRef": "runtime:src/enemies/zone-spawn-config-baseline.js"
+      },
+      {
+        "id": "zone3",
+        "name": "Zone 3",
+        "kind": "map",
+        "runtimeRef": "runtime:src/maps/zones/zone3.js",
+        "spawnConfigRef": "runtime:src/enemies/zone-spawn-config-baseline.js"
+      },
+      {
+        "id": "secret-zone1",
+        "name": "Secret Zone 1",
+        "kind": "map",
+        "runtimeRef": "runtime:src/maps/zones/secret-zone1.js"
+      },
+      {
+        "id": "secret-zone2",
+        "name": "Secret Zone 2",
+        "kind": "map",
+        "runtimeRef": "runtime:src/maps/zones/secret-zone2.js"
+      }
+    ],
+    "dialogs": {
+      "runtimeRef": "runtime:src/game/dialog/dialog-data.js"
+    },
+    "events": {
+      "runtimeRef": "runtime:src/game/events/scene-event-data.js"
+    }
+  },
+  "player": {
+    "entityId": "player",
+    "stats": {
+      "baseSpeed": 0.28,
+      "maxSpeed": 0.72,
+      "baseSwordReach": 11,
+      "baseHp": 6,
+      "maxHp": 10
+    },
+    "moves": [
+      {
+        "id": "attack",
+        "label": "Attack",
+        "input": ["Space", "MouseLeft", "Tap"],
+        "runtimeHandler": "player.attack"
+      },
+      {
+        "id": "block",
+        "label": "Block",
+        "input": ["KeyB", "TouchBlock"],
+        "runtimeHandler": "player.block"
+      },
+      {
+        "id": "dodge",
+        "label": "Dodge",
+        "input": ["ShiftLeft", "ShiftRight", "TouchDodge"],
+        "runtimeHandler": "player.dodge"
+      },
+      {
+        "id": "interact",
+        "label": "Interact",
+        "input": ["Enter", "KeyE", "TouchInteract"],
+        "runtimeHandler": "player.interact"
+      }
+    ]
+  },
+  "progression": {
+    "upgrades": [
+      {
+        "id": "heart",
+        "label": "Heart",
+        "stacking": "bounded",
+        "runtimeHandler": "upgrade.heart"
+      },
+      {
+        "id": "sword",
+        "label": "Sword",
+        "stacking": "linear",
+        "runtimeHandler": "upgrade.sword"
+      },
+      {
+        "id": "shield",
+        "label": "Magic Shield",
+        "stacking": "linear",
+        "runtimeHandler": "upgrade.shield"
+      },
+      {
+        "id": "speed",
+        "label": "Speed",
+        "stacking": "bounded",
+        "runtimeHandler": "upgrade.speed"
+      },
+      {
+        "id": "shadowstep",
+        "label": "Shadow Step",
+        "stacking": "linear",
+        "runtimeHandler": "upgrade.shadowstep"
+      },
+      {
+        "id": "reflect",
+        "label": "Reflect",
+        "requiresMove": "block",
+        "stacking": "unlock",
+        "runtimeHandler": "upgrade.reflect"
+      },
+      {
+        "id": "mirror",
+        "label": "Mirror",
+        "requiresUpgrade": "reflect",
+        "stacking": "cooldown-reduction",
+        "cooldownSeconds": 4,
+        "minimumCooldownSeconds": 2,
+        "runtimeHandler": "upgrade.mirror"
+      },
+      {
+        "id": "points",
+        "label": "Points",
+        "stacking": "reward-roll",
+        "runtimeHandler": "upgrade.points"
+      }
+    ]
+  },
+  "editor": {
+    "packageRole": "template-game",
+    "delivery": "external-companion",
+    "inRuntimeOverlay": false,
+    "variableMode": "loose",
+    "editableCollections": [
+      "content.zones",
+      "player.moves",
+      "progression.upgrades",
+      "assets"
+    ]
+  }
+}

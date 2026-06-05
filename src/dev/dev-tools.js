@@ -2,7 +2,8 @@
 // Purpose: Editable stat/dev API helpers.
 // ── Cheat code name detection ─────────────────────────────────────
 function getCheatCode(name=currentPlayerName){
-  if(window.BoneCrawlerCheatCodes && typeof BoneCrawlerCheatCodes.detect === 'function') return BoneCrawlerCheatCodes.detect(name);
+  const cheatCodes = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('cheatCodes', ['BoneCrawlerCheatCodes'])) || window.BoneCrawlerCheatCodes;
+  if(cheatCodes && typeof cheatCodes.detect === 'function') return cheatCodes.detect(name);
   const clean=String(name||'').trim().toLowerCase();
   const codes={
     'link':'link','doodoorocks':'doodoorocks','circa90x':'circa90x',
@@ -12,13 +13,20 @@ function getCheatCode(name=currentPlayerName){
   return codes[clean]||null;
 }
 function applyCheatCode(code){
-  if(window.BoneCrawlerCheatCodes && typeof BoneCrawlerCheatCodes.apply === 'function'){
-    BoneCrawlerCheatCodes.apply(code);
+  const cheatCodes = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('cheatCodes', ['BoneCrawlerCheatCodes'])) || window.BoneCrawlerCheatCodes;
+  if(cheatCodes && typeof cheatCodes.apply === 'function'){
+    cheatCodes.apply(code);
     return;
   }
 }
 function openStartupGameDialog(){
   startupDialogCompletedThisRun=false;
+  startupDialogPending=false;
+  startupScenePauseStartMs=0;
+  if(typeof enterDialogState === 'function'){
+    enterDialogState('NODE', STARTUP_GAME_DIALOG_PAGES, 'opening');
+    return;
+  }
   dialogTitle='NODE';
   dialogMode='opening';
   dialogPages=STARTUP_GAME_DIALOG_PAGES.map(page=>( {
@@ -26,9 +34,8 @@ function openStartupGameDialog(){
     lines:(page.lines||[]).slice()
   }));
   dialogPageIndex=0;
-  startupDialogPending=false;
-  startupScenePauseStartMs=0;
   clearGameplayKeys();
+  dialogAdvanceUnlockUntilMs=performance.now()+DIALOG_ADVANCE_GRACE_MS;
   gState='dialog';
 }
 function beginStartupSceneTransition(){
@@ -47,8 +54,9 @@ function beginPlayableRun(){
   try{ if(window.AudioEvents) AudioEvents.enterZone(currentZone); }catch(err){}
 }
 function startGameWithCheat(code){
-  if(window.BoneCrawlerCheatCodes && typeof BoneCrawlerCheatCodes.start === 'function'){
-    if(BoneCrawlerCheatCodes.start(code)) return;
+  const cheatCodes = (window.GameRuntimeApi && window.GameRuntimeApi.lookup('cheatCodes', ['BoneCrawlerCheatCodes'])) || window.BoneCrawlerCheatCodes;
+  if(cheatCodes && typeof cheatCodes.start === 'function'){
+    if(cheatCodes.start(code)) return;
   }
   if(introSeenThisPage){
     introStartMs=0;
@@ -62,19 +70,23 @@ function startGameWithCheat(code){
     gState='intro';
   }
 }
-function getKeyDropList(){
+function devGetKeyDropList(){
+  if(typeof window.getKeyDropList === 'function') return window.getKeyDropList();
   if(!keyDrop) return [];
   if(Array.isArray(keyDrop)) return keyDrop;
-  keyDrop=[keyDrop];
-  return keyDrop;
+  return [keyDrop];
 }
-function hasAnyKeyDrop(){
-  return getKeyDropList().length>0;
+function devHasAnyKeyDrop(){
+  return devGetKeyDropList().length>0;
 }
-function hasKeyDropKind(kind){
-  return getKeyDropList().some(drop=>drop && drop.kind===kind);
+function devHasKeyDropKind(kind){
+  return devGetKeyDropList().some(drop=>drop && drop.kind===kind);
 }
-function clearKeyDrops(){
+function devClearKeyDrops(){
+  if(typeof window.clearKeyDrops === 'function'){
+    window.clearKeyDrops();
+    return;
+  }
   keyDrop=[];
 }
 function playerHasAnyKey(p=player){
@@ -94,7 +106,7 @@ function devAdvanceProgress(){
   if(!player || gState!=='playing') return;
   if(currentZone===1){
     player.zone1DoorKey=true;
-    clearKeyDrops();
+    devClearKeyDrops();
     openZoneTransition(2);
     pushDevFloat('SKIP TO ZONE 2', C.GR);
     return;
@@ -102,7 +114,7 @@ function devAdvanceProgress(){
   if(currentZone===2){
     killCount=Math.max(killCount, zone2KillStart + DRAGON_BOSS_TRIGGER_KILLS);
     syncKillSpawnSchedulesFromCount();
-    clearChests(); clearKeyDrops();
+    clearChests(); devClearKeyDrops();
     clearTransientEffectPools();
     enemies=[]; pSpawns=[]; fireballs=[];
     dragonFlames=[]; dragonSwipe=null;
@@ -117,7 +129,7 @@ function devAdvanceProgress(){
   }
   if(currentZone===3){
     killCount=Math.max(killCount, zone3KillStart + ZONE3_BOSS_TRIGGER_KILLS);
-    clearChests(); clearKeyDrops();
+    clearChests(); devClearKeyDrops();
     clearTransientEffectPools();
     enemies=[]; pSpawns=[]; fireballs=[];
     shadowBoss=null; shadowWaves=[]; shadowBossDefeated=false; shadowWizardRespawns=[];
@@ -172,7 +184,7 @@ function devGotoZone(zone){
   zoneTransitionInfo=null;
   clearGameplayKeys();
 
-  clearChests(); clearKeyDrops();
+  clearChests(); devClearKeyDrops();
   clearTransientEffectPools();
   enemies=[]; pSpawns=[]; fireballs=[]; heartDrops=[]; potionDrops=[]; shockwaves=[]; parts=[];
   dragonBoss=null; whyDragonsBoss=null; dragonFlames=[]; dragonSwipe=null; bossDefeated=false; zone1MiniBossDefeated=false; pendingZone1DragonSpawn=false;
@@ -256,7 +268,7 @@ function devSetEditableStats(stats){
   if(Object.prototype.hasOwnProperty.call(stats,'sword')){
     const lvl=Math.max(0, Math.floor(Number(stats.sword)||0));
     player.swordLevel=lvl;
-    player.swordReach=11 + lvl*6;
+    player.swordReach=11 + lvl*SWORD_REACH_UP_STEP;
     player.swordWidth=Math.min(4, lvl);
     changed.push('SWORD '+lvl);
   }
@@ -320,4 +332,3 @@ if(window.__registerBoneCrawlerDevHooks){
   window.__registerBoneCrawlerDevHooks(__bonecrawlerDevApi);
 }
 window.dispatchEvent(new CustomEvent('bonecrawler-dev-api-ready'));
-

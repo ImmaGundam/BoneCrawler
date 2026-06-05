@@ -8,6 +8,7 @@
 .touch-action-btn:active{transform:translateY(1px);background:rgba(16,22,17,.96)}
 #touchInteractBtn{bottom:10px;left:10px}
 #touchDodgeBtn{bottom:10px;right:10px}
+#touchBlockBtn{bottom:10px;left:50%;transform:translateX(-50%)}
 @media (max-width:520px){
 .touch-pause-btn{top:6px;right:6px;min-width:64px;height:26px;font-size:9px}
 }
@@ -382,7 +383,8 @@ html.desktop-browser .gp-portrait-bar,
 html.desktop-browser .menu-toggle-btn-landscape{display:none!important}
 html.mobile-browser #touchPauseBtn,
 html.mobile-browser #touchInteractBtn,
-html.mobile-browser #touchDodgeBtn{display:none!important}
+html.mobile-browser #touchDodgeBtn,
+html.mobile-browser #touchBlockBtn{display:none!important}
 html.mobile-browser .player-stage{gap:0;padding-top:0}
 html.mobile-browser .player-stage>.zoom-strip{display:none!important}
 @media (orientation:landscape){

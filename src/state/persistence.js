@@ -16,6 +16,10 @@ function saveScores(list){
   memoryStore.scores=Array.isArray(list) ? list.slice() : [];
   try{ localStorage.setItem(SCOREBOARD_KEY, JSON.stringify(memoryStore.scores)); }catch(err){}
 }
+function clearScores(){
+  memoryStore.scores=[];
+  try{ localStorage.removeItem(SCOREBOARD_KEY); }catch(err){}
+}
 function loadPlayerName(){
   try{
     const raw=localStorage.getItem(PLAYERNAME_KEY);

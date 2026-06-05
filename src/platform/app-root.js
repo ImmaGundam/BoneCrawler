@@ -12,7 +12,7 @@ export function createAppRoot() {
   const eventMap = new Map();
 
   return {
-    version: '2.9.4',
+    version: '2.9.5',
     flags: {
       editorEnabled: readFlag('editor', true),
       javaRuntimeEnabled: readFlag('javaRuntime', false),

@@ -1,7 +1,8 @@
 // zone-spawn-system
 // Purpose: swappable zone-owned spawn routing for legacy, wave, and passthrough zones.
 (function(){
-  if(window.BoneCrawlerZoneSpawn) return;
+  const runtimeApi = window.GameRuntimeApi || null;
+  if((runtimeApi && runtimeApi.lookup('zoneSpawn', ['BoneCrawlerZoneSpawn'])) || window.BoneCrawlerZoneSpawn) return;
 
   const SECRET_ZONE_1 = 101;
   const SECRET_ZONE_2 = 102;
@@ -41,8 +42,9 @@
   }
   function getSpawnMode(zone){
     try{
-      if(window.BoneCrawlerZoneRuntime && typeof BoneCrawlerZoneRuntime.getSpawnSystem === 'function'){
-        return String(BoneCrawlerZoneRuntime.getSpawnSystem(zone) || 'legacy').toLowerCase();
+      const zoneRuntime = (runtimeApi && runtimeApi.lookup('zoneRuntime', ['BoneCrawlerZoneRuntime'])) || window.BoneCrawlerZoneRuntime;
+      if(zoneRuntime && typeof zoneRuntime.getSpawnSystem === 'function'){
+        return String(zoneRuntime.getSpawnSystem(zone) || 'legacy').toLowerCase();
       }
     }catch(err){}
     return String(getZoneConfig(zone).spawnSystem || 'legacy').toLowerCase();
@@ -50,8 +52,9 @@
   function getRuntimeSpawnMode(zone){
     const mode = getSpawnMode(zone);
     try{
-      if(window.BoneCrawlerSpawnSystems && typeof BoneCrawlerSpawnSystems.get === 'function'){
-        const spec = BoneCrawlerSpawnSystems.get(mode);
+      const spawnSystems = (runtimeApi && runtimeApi.lookup('spawnSystems', ['BoneCrawlerSpawnSystems'])) || window.BoneCrawlerSpawnSystems;
+      if(spawnSystems && typeof spawnSystems.get === 'function'){
+        const spec = spawnSystems.get(mode);
         if(spec && spec.runtime) return String(spec.runtime).toLowerCase();
       }
     }catch(err){}
@@ -62,8 +65,9 @@
   function isSecretZoneId(zone){ return Number(zone) === SECRET_ZONE_1 || Number(zone) === SECRET_ZONE_2; }
   function usesManagedSpawns(zone){
     const mode = getSpawnMode(zone);
-    if(window.BoneCrawlerSpawnSystems && typeof BoneCrawlerSpawnSystems.isManaged === 'function'){
-      return BoneCrawlerSpawnSystems.isManaged(mode);
+    const spawnSystems = (runtimeApi && runtimeApi.lookup('spawnSystems', ['BoneCrawlerSpawnSystems'])) || window.BoneCrawlerSpawnSystems;
+    if(spawnSystems && typeof spawnSystems.isManaged === 'function'){
+      return spawnSystems.isManaged(mode);
     }
     return mode !== 'legacy';
   }
@@ -1252,5 +1256,7 @@
     return {zone: state.zone, spawnSystem: getSpawnMode(state.zone), runtimeSpawnSystem: getRuntimeSpawnMode(state.zone), waveIndex: state.waveIndex, waveActive: state.waveActive, waveComplete: state.waveComplete, finalWaveCompleteEmitted: state.finalWaveCompleteEmitted, waveIntroPhase: state.waveIntro ? state.waveIntro.phase : null, waveKills:getWaveKills(state.zone), standardInitialized: state.standardInitialized, standardComplete: state.standardComplete, queuedSpawns: state.queue.length, waveSpawnCooldownT: state.waveSpawnCooldownT, waveSpawnBudget:getWaveSpawnBudget(state.zone), legacyQueuedSpawns:(typeof pSpawns !== 'undefined' && Array.isArray(pSpawns)) ? pSpawns.length : 0, breakT: state.breakT, zoneGateT: state.zoneGateT, entryTextT: state.entryTextT, entryTextShown: state.entryTextShown, pressureT: state.pressureT, pressureBursts: state.pressureBursts, configName: getConfig().name || 'unnamed'};
   }
 
-  window.BoneCrawlerZoneSpawn = {beginRun, enterZone, clear, update, updateZoneIntro, isZoneStartBlocked, getConfig, getZoneConfig, getSpawnMode, getRuntimeSpawnMode, isStandardMode, getStandardConfig, resolveEnemyStats, usesManagedSpawns, shouldOwnUpdate, awardEntryBonus, spawnAtPoint, spawnLegacy, spawnWaveChest, onEnemyDefeated, getDebugState};
+  const api = {beginRun, enterZone, clear, update, updateZoneIntro, isZoneStartBlocked, getConfig, getZoneConfig, getSpawnMode, getRuntimeSpawnMode, isStandardMode, getStandardConfig, resolveEnemyStats, usesManagedSpawns, shouldOwnUpdate, awardEntryBonus, spawnAtPoint, spawnLegacy, spawnWaveChest, onEnemyDefeated, getDebugState};
+  if(runtimeApi && typeof runtimeApi.register === 'function') runtimeApi.register('zoneSpawn', api, { legacy: ['BoneCrawlerZoneSpawn'] });
+  else window.BoneCrawlerZoneSpawn = api;
 })();

@@ -7,7 +7,7 @@ function stopRunFlowAudio(options = {}){
 }
 
 function clearGameplayKeys(){
-  const reset=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyS','KeyD','KeyW','Space','ShiftLeft','ShiftRight','KeyP','KeyE','Enter','Escape'];
+  const reset=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyS','KeyD','KeyW','Space','KeyB','ShiftLeft','ShiftRight','KeyP','KeyE','Enter','Escape'];
   for(const k of reset) keys[k]=false;
   prevSpc=false;
   mouseAttackQueued=false;
@@ -61,7 +61,14 @@ function clearRunFlowRuntimePools(){
 
 function clearRunFlowSceneCaches(options = {}){
   if(options.clearAllSceneCaches === false) return;
-  try { if(window.BoneCrawlerSceneRenderCache && typeof BoneCrawlerSceneRenderCache.clear === 'function') BoneCrawlerSceneRenderCache.clear(); } catch(err) {}
+  try {
+    const cache = (__runtimeApi && __runtimeApi.lookup('sceneRenderCache', ['BoneCrawlerSceneRenderCache'])) || window.SceneRenderCache || window.BoneCrawlerSceneRenderCache;
+    if(cache && typeof cache.clear === 'function') cache.clear();
+  } catch(err) {}
+}
+
+function __zoneSpawn(){
+  return (__runtimeApi && __runtimeApi.lookup('zoneSpawn', ['BoneCrawlerZoneSpawn'])) || window.BoneCrawlerZoneSpawn || null;
 }
 
 function prepareZoneChange(nextZone, options = {}){
@@ -98,7 +105,8 @@ function goToTitleState(options = {}){
   return 'title';
 }
 
-window.BoneCrawlerRunFlow = {
+const __runtimeApi = window.GameRuntimeApi || null;
+const __runFlowApi = {
   clearGameplayKeys,
   pauseGame,
   resumeGame,
@@ -107,8 +115,13 @@ window.BoneCrawlerRunFlow = {
   resetForNewRun,
   goToTitleState,
 };
-
-window.BoneCrawlerZoneRuntimeLifecycle = window.BoneCrawlerRunFlow;
+if(__runtimeApi && typeof __runtimeApi.register === 'function'){
+  __runtimeApi.register('runFlow', __runFlowApi, { legacy: ['BoneCrawlerRunFlow', 'BoneCrawlerZoneRuntimeLifecycle'] });
+  __runtimeApi.register('zoneRuntimeLifecycle', __runFlowApi, { legacy: ['BoneCrawlerZoneRuntimeLifecycle'] });
+} else {
+  window.BoneCrawlerRunFlow = __runFlowApi;
+  window.BoneCrawlerZoneRuntimeLifecycle = __runFlowApi;
+}
 
 function resetGame(){
   try{ resetForNewRun({clearAllSceneCaches:true, stopAudio:true}); }catch(err){ if(window.AudioEvents) AudioEvents.stopAll(); }
@@ -118,6 +131,9 @@ function resetGame(){
     atkT:0, atkCD:0, hurtT:0, walkF:0, dead:false,
     swordReach:11, swordLevel:0, swordWidth:1,
     shield:false, shieldBreakT:0, shieldLevel:0,
+    blockT:0, blockWindowT:0, blockLatchT:0,
+    pendingBlockDamage:0, blockChipBuffer:0,
+    reflectWindowT:0, reflectT:0, reflectBlock:false, mirrorBlock:false, mirrorLevel:0, mirrorCooldownT:0,
     speedLevel:0, hasKey:false, zone1DoorKey:false, secret1Key:false, zone2Key:false,
     shadowStep:false, stepLevel:0, dodgeInvulnT:0,
   };
@@ -187,10 +203,11 @@ function resetGame(){
   zone3TreeAwake=false;
   zone3TreeMet=false;
   rollUpgradeChoices();
-  if(window.BoneCrawlerZoneSpawn){
-    BoneCrawlerZoneSpawn.beginRun(1);
+  const zoneSpawn = __zoneSpawn();
+  if(zoneSpawn){
+    zoneSpawn.beginRun(1);
   }
-  if(!window.BoneCrawlerZoneSpawn || !BoneCrawlerZoneSpawn.usesManagedSpawns(1)){
+  if(!zoneSpawn || !zoneSpawn.usesManagedSpawns(1)){
     qSpawn(80, false, false, 'normalEnemy1');
     qSpawn(92, false, false, 'normalEnemy3');
   }
@@ -219,6 +236,10 @@ function createZoneRetryCheckpoint(zone){
       swordWidth:Math.max(1, player.swordWidth||1),
       shield:!!player.shield,
       shieldLevel:player.shieldLevel||0,
+      reflectBlock:!!player.reflectBlock,
+      mirrorBlock:!!player.mirrorBlock,
+      mirrorLevel:player.mirrorLevel||0,
+      mirrorCooldownT:Math.max(0, player.mirrorCooldownT||0),
       speed:player.speed||PLAYER_BASE_SPEED,
       speedLevel:player.speedLevel||0,
       dir:player.dir||'down',
@@ -254,11 +275,13 @@ function queueRewardDialog(title, pages){
 function openQueuedRewardDialog(){
   if(!pendingRewardDialogs.length) return false;
   const next=pendingRewardDialogs.shift();
+  if(typeof enterDialogState === 'function') return enterDialogState(next.title||'REWARD', next.pages.map(page=>page.slice()), 'reward');
   dialogTitle=next.title||'REWARD';
   dialogMode='reward';
   dialogPages=next.pages.map(page=>page.slice());
   dialogPageIndex=0;
   clearGameplayKeys();
+  dialogAdvanceUnlockUntilMs=performance.now()+DIALOG_ADVANCE_GRACE_MS;
   gState='dialog';
   return true;
 }
@@ -303,18 +326,23 @@ function queueMasterSwordRewardDialog(){
 }
 function startNgPlusDialog(){
   masterSwordDialogSeen=true;
+  startupDialogPending=false;
+  if(typeof enterDialogState === 'function'){
+    enterDialogState('ITEM ACQUIRED', getMasterSwordRewardPages(), 'reward');
+    return;
+  }
   dialogTitle='ITEM ACQUIRED';
   dialogMode='reward';
   dialogPages=getMasterSwordRewardPages();
   dialogPageIndex=0;
   clearGameplayKeys();
-  startupDialogPending=false;
+  dialogAdvanceUnlockUntilMs=performance.now()+DIALOG_ADVANCE_GRACE_MS;
   gState='dialog';
 }
 
 
 function __titleFlow(){
-  return window.BoneCrawlerTitleFlow || null;
+  return (__runtimeApi && __runtimeApi.lookup('titleFlow', ['BoneCrawlerTitleFlow'])) || window.BoneCrawlerTitleFlow || null;
 }
 
 function openRetryPrompt(){
@@ -392,6 +420,13 @@ function restoreRetryCheckpoint(){
   player.shadowStep=!!cp.player.shadowStep;
   player.stepLevel=cp.player.stepLevel||0;
   player.dodgeInvulnT=0;
+  player.blockT=0;
+  player.blockWindowT=0;
+  player.blockLatchT=0;
+  player.pendingBlockDamage=0;
+  player.blockChipBuffer=0;
+  player.reflectWindowT=0;
+  player.reflectT=0;
   potionCount=Math.max(0, cp.potionCount|0);
   zone3TreeHits=Math.max(0, cp.zone3TreeHits|0);
   zone3TreeAwake=!!cp.zone3TreeAwake;
@@ -400,6 +435,10 @@ function restoreRetryCheckpoint(){
   zone3TreeShakeT=0;
   player.shield=!!cp.player.shield;
   player.shieldLevel=cp.player.shieldLevel||0;
+  player.reflectBlock=!!cp.player.reflectBlock;
+  player.mirrorBlock=!!cp.player.mirrorBlock;
+  player.mirrorLevel=cp.player.mirrorLevel || (player.mirrorBlock ? 1 : 0);
+  player.mirrorCooldownT=Math.max(0, cp.player.mirrorCooldownT||0);
   player.speed=cp.player.speed||player.speed;
   player.speedLevel=cp.player.speedLevel||0;
   player.dir=cp.player.dir||'down';
@@ -411,4 +450,3 @@ function restoreRetryCheckpoint(){
   clearGameplayKeys();
   gState='playing';
 }
-

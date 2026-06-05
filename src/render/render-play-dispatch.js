@@ -82,45 +82,35 @@ function rPlay(){
   }
 
 
-  // Tiny translucent inventory for run items
+  // Compact item + skill strip bounded to the width of the health bar in HUD area
   const inventoryIcons=[];
-  if(masterSwordOwned) inventoryIcons.push({spr:S.upSword, scale:0.68, alpha:0.92, passive:true});
-  if(potionCount>0) inventoryIcons.push({spr:S.potionIcon, scale:0.74, alpha:0.92, count:potionCount});
-  if(playerHasAnyKey(p)) inventoryIcons.push({spr:S.key, scale:0.74, alpha:0.92, count:1});
-  const invX=3, invY=11, slotW=7, gap=1;
-  const hasInventory=inventoryIcons.length>0;
-  const invW=hasInventory ? inventoryIcons.length*(slotW+gap)-gap+4 : 0;
-  if(hasInventory){
-    ctx.save();
-    ctx.globalAlpha=0.22;
-    fr(invX-1,invY-1,invW,9,'#ced9df');
-    ctx.globalAlpha=0.38;
-    fr(invX,invY,invW-2,7,'#0c0f12');
-    inventoryIcons.forEach((icon,idx)=>{
-      const sx=invX+1+idx*(slotW+gap);
-      ctx.globalAlpha=0.10;
-      fr(sx-1,invY+1,slotW,5,'#d8e4ea');
-      ctx.globalAlpha=icon.alpha;
-      dsScale(icon.spr,sx,invY+1,icon.scale);
-      if(icon.count){
-        pt(String(icon.count), (sx+5)*SCALE, (invY+2)*SCALE, 4, C.BN1, 'center', C.DK);
-      }
-    });
-    ctx.restore();
-  }
+  if(masterSwordOwned) inventoryIcons.push({spr:S.hudSwordIcon, edge:'#ced9df', pulse:0.20, alpha:0.88, passive:true});
+  if(potionCount>0) inventoryIcons.push({spr:S.hudPotionIcon, edge:'#ced9df', pulse:0.20, alpha:0.88, count:potionCount});
+  if(playerHasAnyKey(p)) inventoryIcons.push({spr:S.hudKeyIcon, edge:C.BN2, pulse:0.26, alpha:0.90, count:1});
 
   // Skill icons — moved beside the item tray underneath the health bar
   const skillIcons=[];
-  if(p.shield){
+  if(p.shield || (p.shieldLevel||0)>0){
+    const shieldActive=!!p.shield;
     skillIcons.push({
-      spr:S.shieldIcon,
+      spr:S.hudShieldIcon,
       edge:C.SH2,
-      pulse:0.50+0.18*Math.sin(frame*0.10),
-      alpha:0.80
+      pulse:shieldActive ? 0.50+0.18*Math.sin(frame*0.10) : 0.22,
+      alpha:shieldActive ? 0.80 : 0.38
+    });
+  }
+  if(p.mirrorBlock){
+    const mirrorCooldown=Math.max(0, p.mirrorCooldownT||0);
+    skillIcons.push({
+      spr:S.hudMirrorIcon,
+      edge:C.MG2,
+      pulse:mirrorCooldown>0 ? 0.28 : (0.50+0.14*Math.sin(frame*0.11)),
+      alpha:mirrorCooldown>0 ? 0.44 : 0.78,
+      cd:mirrorCooldown>0 ? Math.max(1, Math.ceil(mirrorCooldown/60)) : 0
     });
   }
   skillIcons.push({
-    spr:p.shadowStep ? S.shadowStepIcon : S.stepIcon,
+    spr:p.shadowStep ? S.hudShadowStepIcon : S.hudStepIcon,
     edge:p.shadowStep ? C.MG2 : C.SI2,
     pulse:dodgeCooldownT>0 ? 0.26 : (0.44+0.12*Math.sin(frame*0.12)),
     alpha:dodgeCooldownT>0 ? 0.44 : 0.72,
@@ -128,35 +118,64 @@ function rPlay(){
   });
   if(whirlwindUnlocked){
     skillIcons.push({
-      spr:S.whirlwindIcon,
+      spr:S.hudWhirlwindIcon,
       edge:C.SH2,
       pulse:whirlwindCooldownT>0 ? 0.28 : (0.48+0.12*Math.sin(frame*0.12)),
       alpha:whirlwindCooldownT>0 ? 0.42 : 0.68,
       cd:whirlwindCooldownT>0 ? Math.max(1, Math.ceil(whirlwindCooldownT/60)) : 0
     });
   }
-  if(skillIcons.length){
-    const skillX=(hasInventory ? (invX+invW+3) : 3);
-    const skillY=11;
-    const skillSlotW=7;
-    const skillGap=1;
-    skillIcons.forEach((icon,idx)=>{
-      const iconX=skillX+idx*(skillSlotW+skillGap);
-      const iconY=skillY;
+  const hudStripIcons=inventoryIcons.concat(skillIcons);
+  if(hudStripIcons.length){
+    const stripX = 3;
+    const stripY = 10;
+    const stripBoxW = 9;
+    const stripBoxH = 9;
+    const stripGap = 2;
+    const stripGroupGap = inventoryIcons.length && skillIcons.length ? 4 : 0;
+    const iconInsetX = 2;
+    const iconInsetY = 2;
+    function drawHudIcon(icon, x, y){
       ctx.save();
-      ctx.globalAlpha=icon.pulse;
-      fr(iconX-1,iconY-1,9,9,icon.edge);
-      ctx.globalAlpha=0.55;
-      fr(iconX,iconY,7,7,C.DK);
-      ctx.globalAlpha=icon.alpha;
-      ds(icon.spr, iconX, iconY);
+      ctx.globalAlpha = 0.62;
+      fr(x, y, stripBoxW, stripBoxH, C.DK);
+      frBorder(x, y, stripBoxW, stripBoxH, icon.edge, icon.pulse);
+      ctx.globalAlpha = icon.alpha;
+      ds(icon.spr, x + iconInsetX, y + iconInsetY);
+
       ctx.restore();
-      if(icon.cd){
-        pt(String(icon.cd), (iconX+3)*SCALE, (iconY+8)*SCALE, 4, C.BN1, 'center', C.DK);
+
+      const badge = icon.cd || icon.count;
+      if(badge){
+        pt(
+          String(badge),
+          (x + stripBoxW) * SCALE,
+          (y + stripBoxH - 1) * SCALE,
+          3,
+          C.BN1,
+          'right',
+          C.DK
+        );
       }
+    }
+
+    let iconX = stripX;
+
+    inventoryIcons.forEach((icon) => {
+      drawHudIcon(icon, iconX, stripY);
+      iconX += stripBoxW + stripGap;
+    });
+
+    if(inventoryIcons.length && skillIcons.length){
+     iconX += stripGroupGap;
+    }
+
+    skillIcons.forEach((icon) => {
+      drawHudIcon(icon, iconX, stripY);
+      iconX += stripBoxW + stripGap;
     });
   }
-
+  
   // Score + kill count aligned in two clean HUD rows, slightly larger for readability
   const hudLabelX=(GW-29)*SCALE;
   const hudValueX=(GW-4)*SCALE;
@@ -269,10 +288,12 @@ function rPlay(){
   // Fireballs (Wizard Skeleton projectiles)
   for(const fb of fireballs){
     const pulse=0.7+0.3*Math.sin(frame*0.4);
+    const outerCol=fb.friendly ? C.SH : C.FB;
+    const innerCol=fb.friendly ? C.MG2 : C.FB2;
     ctx.globalAlpha=pulse*0.95;
-    fr(Math.round(fb.x)-1,Math.round(fb.y)-1,5,5,C.FB);
+    fr(Math.round(fb.x)-1,Math.round(fb.y)-1,5,5,outerCol);
     ctx.globalAlpha=pulse;
-    fr(Math.round(fb.x),Math.round(fb.y),3,3,C.FB2);
+    fr(Math.round(fb.x),Math.round(fb.y),3,3,innerCol);
     ctx.globalAlpha=1;
   }
 
@@ -430,10 +451,18 @@ function rPlay(){
       fr(p.x-4,p.y-4,p.w+8,p.h+8,p.shadowStep?C.MG2:C.SH);
       ctx.globalAlpha=1;
     }
-    if((p.dodgeInvulnT||0)>0){
+    if((p.reflectT||0)>0){
+      const pulse=0.45+0.30*Math.sin(frame*0.40);
+      frBorder(p.x-2,p.y-2,p.w+4,p.h+4,C.SH,pulse);
+      frBorder(p.x-3,p.y-3,p.w+6,p.h+6,C.MG2,pulse*0.55);
+    } else if((p.dodgeInvulnT||0)>0){
       const pulse=0.40+0.25*Math.sin(frame*0.35);
       frBorder(p.x-2,p.y-2,p.w+4,p.h+4,C.MG2,pulse);
       frBorder(p.x-3,p.y-3,p.w+6,p.h+6,C.SH,pulse*0.45);
+    } else if((p.blockT||0)>0){
+      const pulse=0.36+0.18*Math.sin(frame*0.28);
+      frBorder(p.x-1,p.y-1,p.w+2,p.h+2,C.BN2,pulse);
+      if((p.blockWindowT||0)>0) frBorder(p.x-2,p.y-2,p.w+4,p.h+4,C.SH,pulse*0.55);
     } else if(p.shield){
       const pulse=0.5+0.3*Math.sin(frame*0.28);
       frBorder(p.x-2,p.y-2,p.w+4,p.h+4,C.SH,pulse);
