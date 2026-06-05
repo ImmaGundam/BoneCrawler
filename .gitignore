@@ -1,5 +1,2 @@
 dist/native/
 dist/*.zip
-tools/java/bc-launcher/.cache/
-tools/java/bc-launcher/build/
-tools/java/bc-launcher/target/
