@@ -7,10 +7,11 @@
   <strong>8-Bit Dark Fantasy Arcade-Action</strong>
 </p>
 
-<p align="center">
-  <a href="https://bonecrawler.com">Homepage</a> ·
-  <a href="https://immagundam.github.io/BoneCrawler">GitHub Pages</a>
-</p>
+<div align="center">
+  <a href="https://bonecrawler.com"><img width="100" height="auto" alt="icon" src="https://github.com/user-attachments/assets/870268f3-84a7-4833-a8ec-ba89cb5d1562" /></a>
+<br>
+
+</div>
 
 ### Story
 ```txt
@@ -26,7 +27,6 @@ Your heart hasn't beaten in over three hundred years.
 
 Born in a tomb.. This voice calls me a Bonecrawler. For now.. maybe I should listen to what they have to say.
 ```
-
 
 <h2 align="center"> Screenshots </h2>   
 
@@ -95,23 +95,10 @@ The BoneCrawler story and game is a work in progress.
 <hr>
 
 <div align="center">
-  <h4>If you enjoy this project, <a href="https://immagundam.itch.io/bonecrawler">consider supporting</a> future game development.</h4>
-  <p>
-    Your support helps fund future updates, new games, tools cost and more development time.
-  </p>
-
-  <p>
-    &nbsp;
-    <a href="https://buymeacoffee.com/immagundam" target="_blank">
-      <img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy_Me_A_Coffee-Support-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=000000">
-        <br>       
-</a>
-  <a href="https://immagundam.itch.io/bonecrawler" target="_blank">
-    <img alt="Play on itch.io" src="https://img.shields.io/badge/Play%20on-itch.io-FA5C5C?style=for-the-badge&logo=itch.io&logoColor=white">
-  </a>
-
-</p>
-  <p><strong>Thank you for helping keep indie development going.</strong></p>
+  <h4>If you enjoy this project, consider supporting future game development.</h4>
+<a href="https://immagundam.itch.io/bonecrawler" target="_blank"><img alt="Play on itch.io" src="https://img.shields.io/badge/Play%20on-itch.io-FA5C5C?style=for-the-badge&logo=itch.io&logoColor=white"></a>
+  <br>
+  <br>
   <img width="auto" height="300" src="https://github.com/user-attachments/assets/aac597fc-9d92-4bf3-9e5a-46500586418c" /><br>
 </div>
 
