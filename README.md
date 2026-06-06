@@ -1,6 +1,6 @@
 <h1 align="center">BoneCrawler</h1>
 <p align="center">
-  <img width="400" alt="BoneCrawler title screen" src="https://github.com/user-attachments/assets/9af41399-d7f9-46f5-8e0c-95b9b5b8e468">
+  <img width="500" height="auto" alt="BoneCrawler title screen" src="https://github.com/user-attachments/assets/e8972ae1-06a2-4ec5-bce1-2af2fefd82fe" />
 </p>
 
 <p align="center">
@@ -27,7 +27,10 @@ Your heart hasn't beaten in over three hundred years.
 Born in a tomb.. This voice calls me a Bonecrawler. For now.. maybe I should listen to what they have to say.
 ```
 
-### Screenshots    
+
+<h2 align="center"> Screenshots </h2>   
+
+<div align="center">
 <details>
     <summary>Click to expand</summary>
    <img width="900" height="auto" alt="BoneCrawler" src="https://github.com/user-attachments/assets/f27ee320-b2e0-4f6c-9b09-ed93bdf2b7ff" />
@@ -36,52 +39,57 @@ Born in a tomb.. This voice calls me a Bonecrawler. For now.. maybe I should lis
 
 <br>
  <h3 align="center">Game in Editor:</h4><br><br>
-    <img align="center" width="380" height="auto" alt="dragons" src="https://github.com/user-attachments/assets/73f42363-62c0-4f97-858f-d06e162c0046" />
  <img width="900" height="auto" alt="BoneCrawler" src="https://github.com/user-attachments/assets/617f1c6e-2fd8-46dc-b794-a1bb54e4f48f" />
-
-    
+ <br>
+ <img align="center" width="380" height="auto" alt="dragons" src="https://github.com/user-attachments/assets/73f42363-62c0-4f97-858f-d06e162c0046" />
+ 
 </details>
 
-## BoneCrawler
-BoneCrawler is a Dark Fantasy Arcade Action game built with vanilla JavaScript. 
+</div>
 
-This is my first public game and I wanted to build something of my own without relying on existing engines, editors, or game-making tools.<br>
-I made the game from scratch, including my tools, focusing on 8bit-era technical limitations as a design scope. This helped me understand and apply game
-design principles to shape the mechanics and structure of the engine. 
-A game limited toolkit is included and will branch into an independant project to make more games likes like this, using BoneCrawler as the template. 
-
-BoneCrawler is my story, and work in progress inspired by what I enjoy most in gaming, media, art and storytelling.
+<h2 align="center"> BoneCrawler </h2>
+BoneCrawler is a NES-Style Dark Fantasy Arcade Action game. 
+<br><br>
 
 - Dodge waves of skeletons that hone in and attack you.
 - Clear zones to earn points! Each Zone will Rank you!
 - Chests drop Upgrades! Plan your upgrades carefully so you don't get overwhelmed!
 - There are 3 zones, 2 secret rooms, 3 bosses and a tiny fantasy dungeon to explore and discover secrets.
 
-Gameplay is made for short runs (20-30 minutes). Die a few times in a few minutes and try again later, or keep dying for a few hours in a "one more try" loop.<br>
+<br>
+A limited toolkit is included and will branch into an independant project to make more games likes like this, using BoneCrawler as the template. 
+The BoneCrawler story and game is a work in progress.
 
-
-## Releases
-
-| Platform | Release | Build Type | Notes |
-|---|---|---|---|
-| Web Browser | [v2.9.4](https://bonecrawler.com) | HTML5 Canvas + JavaScript | Main playable version of BoneCrawler |
-| Windows 10 / 11 | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | Portable EXE, Electron + Node.js | Desktop build packaged from the browser version |
-| Android 4+ | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | Signed APK, WebView + Android Studio | Android APK |
+<h3 align="center"> Releases </h3>
 
 <p align="center">
   <img width="288" height="282" alt="BoneCrawler multi-platform preview" src="https://github.com/user-attachments/assets/df94b914-2f80-4002-b364-7fa389678ed1" />
-</p>
 
-### Prototype v1
-
+<div align="center">
+  
 | Platform | Release | Build Type | Notes |
 |---|---|---|---|
-| Web Browser | [v1](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v1) | HTML5 Canvas + JavaScript | First prototype version of BoneCrawler. |
-| Flipper Zero | [v1-c](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v1-c) | C port, `.fap` app | BoneCrawler v1 ported to C and compiled for Flipper Zero. |
+| Browser | [v2.9.5](https://bonecrawler.com) | HTML5 Canvas + JavaScript + Java | Homepage |
+| Windows 10 / 11 | [v2.9.5](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.9.5) |  JavaSDK + Swing + JCEF | Portable EXE |
+| Android 4+ | [v2.5.9](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v2.5.9) | WebView + Android Studio | Android APK |
 
-<p align="center">
-  <img width="290" alt="BoneCrawler prototype / Flipper Zero preview" src="https://github.com/user-attachments/assets/96af63a7-1133-4398-9bf4-160a4dd19105" />
-</p>
+</div>
+
+<h3 align="center"> 1-Bit </h3>
+
+<div align="center">
+<img width="290" alt="BoneCrawler prototype / Flipper Zero preview" src="https://github.com/user-attachments/assets/96af63a7-1133-4398-9bf4-160a4dd19105" />
+</div>
+<br>
+
+<div align="center">
+  
+| Platform | Release | Build Type | Notes |
+|---|---|---|---|
+| Web Browser | [v1](https://bonecrawler.com/game/docs/1bit.html) | HTML5 Canvas + JavaScript | 1-Bit |
+| Flipper Zero | [v1-c](https://github.com/ImmaGundam/BoneCrawler/releases/tag/v1-c) | C | `.fap` app |
+
+</div>
 
 
 <hr>
