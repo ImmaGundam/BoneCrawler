@@ -69,6 +69,47 @@ jobs:
             throw "The rebuilt Java runtime failed its startup check."
           }
 
+          $env:JPACKAGE_DEBUG = "true"
+          $stdout = Join-Path $env:GITHUB_WORKSPACE "dist/launcher.stdout.log"
+          $stderr = Join-Path $env:GITHUB_WORKSPACE "dist/launcher.stderr.log"
+          $process = Start-Process -FilePath $launcher `
+            -ArgumentList "--headless", "--no-open", "--port", "48996" `
+            -WorkingDirectory $image `
+            -RedirectStandardOutput $stdout `
+            -RedirectStandardError $stderr `
+            -PassThru
+          try {
+            $ready = $false
+            for ($attempt = 0; $attempt -lt 30; $attempt++) {
+              Start-Sleep -Seconds 1
+              $process.Refresh()
+              if ($process.HasExited) {
+                throw "BoneCrawler.exe exited during its JVM startup check with code $($process.ExitCode)."
+              }
+              try {
+                $response = Invoke-WebRequest `
+                  -Uri "http://127.0.0.1:48996/index.html" `
+                  -SkipHttpErrorCheck `
+                  -TimeoutSec 2
+                if ($response.StatusCode -eq 403) {
+                  $ready = $true
+                  break
+                }
+              } catch {
+              }
+            }
+            if (-not $ready) {
+              throw "BoneCrawler.exe stayed open but its Java launcher server did not start."
+            }
+          } finally {
+            $process.Refresh()
+            if (-not $process.HasExited) {
+              Stop-Process -Id $process.Id -Force
+              Wait-Process -Id $process.Id -ErrorAction SilentlyContinue
+            }
+            Get-Content -LiteralPath $stdout, $stderr -ErrorAction SilentlyContinue
+          }
+
           $moduleSize = (Get-Item -LiteralPath $modules).Length
           if ($moduleSize -lt 100MB) {
             throw "The rebuilt Java modules image is unexpectedly small: $moduleSize bytes"
@@ -140,6 +181,47 @@ jobs:
           & (Join-Path $extracted "runtime/bin/java.exe") -version
           if ($LASTEXITCODE -ne 0) {
             throw "The Java runtime failed after archive extraction."
+          }
+
+          $launcher = Join-Path $extracted "BoneCrawler.exe"
+          $stdout = Join-Path $env:GITHUB_WORKSPACE "dist/extracted-launcher.stdout.log"
+          $stderr = Join-Path $env:GITHUB_WORKSPACE "dist/extracted-launcher.stderr.log"
+          $process = Start-Process -FilePath $launcher `
+            -ArgumentList "--headless", "--no-open", "--port", "48997" `
+            -WorkingDirectory $extracted `
+            -RedirectStandardOutput $stdout `
+            -RedirectStandardError $stderr `
+            -PassThru
+          try {
+            $ready = $false
+            for ($attempt = 0; $attempt -lt 30; $attempt++) {
+              Start-Sleep -Seconds 1
+              $process.Refresh()
+              if ($process.HasExited) {
+                throw "The extracted BoneCrawler.exe exited during its JVM startup check with code $($process.ExitCode)."
+              }
+              try {
+                $response = Invoke-WebRequest `
+                  -Uri "http://127.0.0.1:48997/index.html" `
+                  -SkipHttpErrorCheck `
+                  -TimeoutSec 2
+                if ($response.StatusCode -eq 403) {
+                  $ready = $true
+                  break
+                }
+              } catch {
+              }
+            }
+            if (-not $ready) {
+              throw "The extracted BoneCrawler.exe stayed open but its Java launcher server did not start."
+            }
+          } finally {
+            $process.Refresh()
+            if (-not $process.HasExited) {
+              Stop-Process -Id $process.Id -Force
+              Wait-Process -Id $process.Id -ErrorAction SilentlyContinue
+            }
+            Get-Content -LiteralPath $stdout, $stderr -ErrorAction SilentlyContinue
           }
 
       - name: Upload verified Windows image
